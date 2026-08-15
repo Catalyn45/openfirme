@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	common.DownloadResources()
+	// common.DownloadResources()
 
 	repository := common.NewRepository()
 	repository.Init()

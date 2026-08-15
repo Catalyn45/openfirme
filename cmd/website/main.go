@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import "openfirme/common"
 
 func main() {
-	fmt.Println("Hello")
+	repository := common.NewRepository()
+	server := common.NewServer("localhost", 8080, repository)
+	server.Start()
 }

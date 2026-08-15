@@ -87,22 +87,30 @@ func (this *Repository) UpdateFirme(dataset []map[string]string) {
 	stmt := `
 		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
-	preparedStmt, err := this.db.Prepare(stmt)
+	transaction, err := this.db.Begin()
 	if err != nil {
 		panic(err)
 	}
 
-	for index, data := range dataset {
+	defer transaction.Rollback()
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["DENUMIRE"], data["CUI"], data["COD_INMATRICULARE"], data["DATA_INMATRICULARE"], data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
 
 		if err != nil {
 			panic(err)
 		}
+	}
 
-
-		if index > 200 {
-			break
-		}
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -132,21 +140,31 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 	stmt := `
 		INSERT OR REPLACE INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara) VALUES (?,?,?,?,?,?,?,?,?,?);`
 
-	preparedStmt, err := this.db.Prepare(stmt)
+	transaction, err := this.db.Begin()
 	if err != nil {
 		panic(err)
 	}
 
-	for index, data := range dataset {
+	defer transaction.Rollback()
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["PERSOANA_IMPUTERNICITA"], data["CALITATE"], data["DATA_NASTERE"], data["LOCALITATE_NASTERE"], data["JUDET_NASTERE"], data["TARA_NASTERE"], data["LOCALITATE"], data["JUDET"], data["TARA"])
 
 		if err != nil {
 			panic(err)
 		}
+	}
 
-		if index > 200 {
-			break
-		}
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -169,20 +187,117 @@ func (this *Repository) UpdateStari(dataset []map[string]string) {
 	stmt := `
 		INSERT OR REPLACE INTO stari (cod_inmatriculare, cod, status) VALUES (?,?,?);`
 
-	preparedStmt, err := this.db.Prepare(stmt)
+	transaction, err := this.db.Begin()
 	if err != nil {
 		panic(err)
 	}
 
-	for index, data := range dataset {
+	defer transaction.Rollback()
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["COD"], data["STATUS"])
 
 		if err != nil {
 			panic(err)
 		}
+	}
 
-		if index > 200 {
-			break
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
+
+type InfoFirmaLight struct {
+	Nume string
+}
+
+func (this *Repository) GetFirme(partialNumeFirma string) []*InfoFirmaLight {
+	stmt := `SELECT denumire from firme where denumire LIKE '%' || ? || '%';`
+
+	preparedStmt, err := this.db.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	rows, err := preparedStmt.Query(partialNumeFirma)
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	listaNume := []*InfoFirmaLight{}
+	for rows.Next() {
+		var nume string
+
+		err := rows.Scan(&nume)
+		if err != nil {
+			panic(err)
+		}
+
+		listaNume = append(listaNume, &InfoFirmaLight{Nume: nume})
+	}
+
+	return listaNume;
+}
+
+type InfoFirma struct {
+	Nume string
+	FormaJuridica string
+	Cui int
+	Administrator string
+	DataInregistrare string
+	Judet string
+	Status string
+}
+
+func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
+	stmt := `SELECT
+				firme.denumire,
+				firme.forma_juridica,
+				firme.cui,
+				reprezentanti.persoana_imputernicita,
+				firme.data_inmatriculare,
+				firme.judet,
+				stari.status
+			from firme
+			left join reprezentanti on firme.cod_inmatriculare = reprezentanti.cod_inmatriculare
+									and reprezentanti.calitate = 'administrator'
+			join stari on firme.cod_inmatriculare = stari.cod_inmatriculare
+			where firme.denumire = ?`
+
+	preparedStmt, err := this.db.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	rows, err := preparedStmt.Query(nume_firma)
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	var infoFirma InfoFirma
+	for rows.Next() {
+		var administrator sql.NullString
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.FormaJuridica, &infoFirma.Cui, &administrator, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
+		if err != nil {
+			panic(err)
+		}
+
+		if administrator.Valid {
+			infoFirma.Administrator = administrator.String
 		}
 	}
+
+	return &infoFirma
 }
