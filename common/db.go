@@ -1,8 +1,9 @@
-package main
+package common
 
 import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
+	"slices"
 )
 
 type Repository struct {
@@ -10,7 +11,7 @@ type Repository struct {
 	db     *sql.DB
 }
 
-func newRepository() *Repository {
+func NewRepository() *Repository {
 	db, err := sql.Open("sqlite3", "./foo.db")
 	if err != nil {
 		panic(err)
@@ -26,6 +27,28 @@ func (this *Repository) Init() {
 	this.InitFirme()
 	this.InitReprezentanti()
 	this.InitStari()
+}
+
+func (this *Repository) Update() {
+	parsed := read_data("./data/od_firme.csv")
+	this.UpdateFirme(parsed)
+
+	parsed = read_data("./data/od_reprezentanti_legali.csv")
+	this.UpdateReprezentanti(parsed)
+
+	stare_firma := read_data("./data/od_stare_firma.csv")
+	nomenclatura := read_data("./data/n_stare_firma.csv")
+
+	resolve_nomenclatura(stare_firma, nomenclatura)
+
+	this.UpdateStari(stare_firma)
+}
+
+func resolve_nomenclatura(dataset []map[string]string, nomenclatura []map[string]string) {
+	for _, data := range dataset {
+		index := slices.IndexFunc(nomenclatura, func (element map[string]string) bool { return data["COD"] == element["COD"]})
+		data["STATUS"] = nomenclatura[index]["DENUMIRE"]
+	}
 }
 
 func (this *Repository) InitFirme() {
