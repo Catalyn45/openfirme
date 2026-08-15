@@ -11,7 +11,19 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-func findDatasets() (string, string){
+type Downloader struct {
+	url string
+	outputDir string
+}
+
+func NewDownloader(url string, outputDir string) *Downloader {
+	return &Downloader{
+		url: url,
+		outputDir: outputDir,
+	}
+}
+
+func (this *Downloader) findDatasets() (string, string){
 	c := colly.NewCollector()
 
 	var firme string = ""
@@ -31,7 +43,7 @@ func findDatasets() (string, string){
 		}
 	})
 
-	err := c.Visit("https://data.gov.ro/organization/onrc")
+	err := c.Visit(this.url + "/organization/onrc")
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +51,7 @@ func findDatasets() (string, string){
 	return firme, nomenclatoare
 }
 
-func findResources(url string) []string {
+func (this *Downloader) findResources(url string) []string {
 	c := colly.NewCollector()
 
 	resources := []string{}
@@ -68,30 +80,26 @@ func findResources(url string) []string {
 	return resources
 }
 
-func downloadFile(url string) (err error) {
+func (this *Downloader) downloadFile(url string) (err error) {
 	fileName := path.Base(url)
-	filePath := "./data/" + fileName
+	filePath := this.outputDir + "/" + fileName
 
-	// Create the file
 	out, err := os.Create(filePath)
 	if err != nil  {
 		return err
 	}
 	defer out.Close()
 
-	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// Check server response
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("bad status: %s", resp.Status)
 	}
 
-	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil  {
 		return err
@@ -100,13 +108,13 @@ func downloadFile(url string) (err error) {
 	return nil
 }
 
-func DownloadResources() {
-	firme, nomenclatoare := findDatasets()
+func (this *Downloader) DownloadResources() {
+	firme, nomenclatoare := this.findDatasets()
 
-	resources := findResources("https://data.gov.ro" + firme)
-	resources = append(resources, findResources("https://data.gov.ro" + nomenclatoare)...)
+	resources := this.findResources(this.url + firme)
+	resources = append(resources, this.findResources(this.url + nomenclatoare)...)
 
 	for _, resource := range resources {
-		go downloadFile(resource)
+		go this.downloadFile(resource)
 	}
 }

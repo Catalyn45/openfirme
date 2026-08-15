@@ -2,23 +2,26 @@ package common
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"fmt"
 	"slices"
+	"strings"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Repository struct {
-	dbName string
+	dbPath string
 	db     *sql.DB
 }
 
-func NewRepository() *Repository {
-	db, err := sql.Open("sqlite3", "./foo.db")
+func NewRepository(dbPath string) *Repository {
+	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		panic(err)
 	}
 
 	return &Repository{
-		dbName: "foo.db",
+		dbPath: dbPath,
 		db:     db,
 	}
 }
@@ -27,6 +30,7 @@ func (this *Repository) Init() {
 	this.InitFirme()
 	this.InitReprezentanti()
 	this.InitStari()
+	this.InitCaen()
 }
 
 func (this *Repository) Update() {
@@ -42,6 +46,9 @@ func (this *Repository) Update() {
 	resolve_nomenclatura(stare_firma, nomenclatura)
 
 	this.UpdateStari(stare_firma)
+
+	parsed = read_data("./data/od_caen_autorizat.csv")
+	this.UpdateCaen(parsed)
 }
 
 func resolve_nomenclatura(dataset []map[string]string, nomenclatura []map[string]string) {
@@ -54,7 +61,7 @@ func resolve_nomenclatura(dataset []map[string]string, nomenclatura []map[string
 func (this *Repository) InitFirme() {
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS firme (
-			denumire TEXT NOT NULL UNIQUE,
+			denumire TEXT NOT NULL,
 			cui INTEGER NOT NULL,
 			cod_inmatriculare TEXT PRIMARY KEY,
 			data_inmatriculare TEXT NOT NULL,
@@ -75,6 +82,8 @@ func (this *Repository) InitFirme() {
 			web TEXT,
 			tara_firma_mama TEXT
 		);
+		CREATE INDEX IF NOT EXISTS idx_firme_denumire
+		ON firme(denumire);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -85,7 +94,8 @@ func (this *Repository) InitFirme() {
 
 func (this *Repository) UpdateFirme(dataset []map[string]string) {
 	stmt := `
-		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -102,8 +112,8 @@ func (this *Repository) UpdateFirme(dataset []map[string]string) {
 
 	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["DENUMIRE"], data["CUI"], data["COD_INMATRICULARE"], data["DATA_INMATRICULARE"], data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
-
 		if err != nil {
+			fmt.Println(data["DENUMIRE"])
 			panic(err)
 		}
 	}
@@ -117,7 +127,7 @@ func (this *Repository) UpdateFirme(dataset []map[string]string) {
 func (this *Repository) InitReprezentanti() {
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS reprezentanti (
-			cod_inmatriculare TEXT PRIMARY KEY,
+			cod_inmatriculare TEXT NOT NULL,
 			persoana_imputernicita TEXT NOT NULL,
 			calitate TEXT NOT NULL,
 			data_nastere TEXT,
@@ -128,6 +138,8 @@ func (this *Repository) InitReprezentanti() {
 			judet TEXT,
 			tara TEXT
 		);
+		CREATE INDEX IF NOT EXISTS idx_reprezentanti_cod_inmatriculare
+		ON reprezentanti(cod_inmatriculare);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -138,7 +150,8 @@ func (this *Repository) InitReprezentanti() {
 
 func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 	stmt := `
-		INSERT OR REPLACE INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara) VALUES (?,?,?,?,?,?,?,?,?,?);`
+		INSERT INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara)
+		VALUES (?,?,?,?,?,?,?,?,?,?);`
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -156,7 +169,6 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 
 	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["PERSOANA_IMPUTERNICITA"], data["CALITATE"], data["DATA_NASTERE"], data["LOCALITATE_NASTERE"], data["JUDET_NASTERE"], data["TARA_NASTERE"], data["LOCALITATE"], data["JUDET"], data["TARA"])
-
 		if err != nil {
 			panic(err)
 		}
@@ -171,10 +183,12 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 func (this *Repository) InitStari() {
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS stari (
-			cod_inmatriculare TEXT PRIMARY KEY,
+			cod_inmatriculare TEXT NOT NULL,
 			cod INTEGER NOT NULL,
 			status TEXT NOT NULL
 		);
+		CREATE INDEX IF NOT EXISTS idx_stari_cod_inmatriculare
+		ON stari(cod_inmatriculare);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -185,7 +199,8 @@ func (this *Repository) InitStari() {
 
 func (this *Repository) UpdateStari(dataset []map[string]string) {
 	stmt := `
-		INSERT OR REPLACE INTO stari (cod_inmatriculare, cod, status) VALUES (?,?,?);`
+		INSERT INTO stari (cod_inmatriculare, cod, status)
+		VALUES (?,?,?);`
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -203,7 +218,60 @@ func (this *Repository) UpdateStari(dataset []map[string]string) {
 
 	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["COD"], data["STATUS"])
+		if err != nil {
+			panic(err)
+		}
+	}
 
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) InitCaen() {
+	createTableStmt := `
+		CREATE TABLE IF NOT EXISTS caen (
+			cod_inmatriculare TEXT NOT NULL,
+			cod_caen INTEGER NOT NULL,
+			versiune_caen INTEGER NOT NULL
+		);
+		CREATE INDEX IF NOT EXISTS idx_caen_cod_inmatriculare
+		ON caen(cod_inmatriculare);
+	`
+
+	_, err := this.db.Exec(createTableStmt)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) UpdateCaen(dataset []map[string]string) {
+	stmt := `
+		INSERT INTO caen (cod_inmatriculare, cod_caen, versiune_caen)
+		VALUES (?,?,?);`
+
+	transaction, err := this.db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	defer transaction.Rollback()
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
+		// some caen codes doesn't have any company registered
+		if data["COD_INMATRICULARE"] == "" {
+			continue
+		}
+
+		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["COD_CAEN_AUTORIZAT"], data["VER_CAEN_AUTORIZAT"])
 		if err != nil {
 			panic(err)
 		}
@@ -257,6 +325,7 @@ type InfoFirma struct {
 	DataInregistrare string
 	Judet string
 	Status string
+	CoduriCaen []string
 }
 
 func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
@@ -267,11 +336,13 @@ func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
 				reprezentanti.persoana_imputernicita,
 				firme.data_inmatriculare,
 				firme.judet,
-				stari.status
+				stari.status,
+				GROUP_CONCAT(caen.cod_caen, ',') AS coduri_caen
 			from firme
 			left join reprezentanti on firme.cod_inmatriculare = reprezentanti.cod_inmatriculare
 									and reprezentanti.calitate = 'administrator'
 			join stari on firme.cod_inmatriculare = stari.cod_inmatriculare
+			join caen on firme.cod_inmatriculare = caen.cod_inmatriculare
 			where firme.denumire = ?`
 
 	preparedStmt, err := this.db.Prepare(stmt)
@@ -289,7 +360,8 @@ func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
 	var infoFirma InfoFirma
 	for rows.Next() {
 		var administrator sql.NullString
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.FormaJuridica, &infoFirma.Cui, &administrator, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
+		var coduriCaen string
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.FormaJuridica, &infoFirma.Cui, &administrator, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &coduriCaen)
 		if err != nil {
 			panic(err)
 		}
@@ -297,6 +369,8 @@ func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
 		if administrator.Valid {
 			infoFirma.Administrator = administrator.String
 		}
+
+		infoFirma.CoduriCaen = strings.Split(coduriCaen, ",")
 	}
 
 	return &infoFirma
