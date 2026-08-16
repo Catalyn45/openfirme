@@ -82,8 +82,34 @@ func (this *Repository) InitFirme() {
 			web TEXT,
 			tara_firma_mama TEXT
 		);
-		CREATE INDEX IF NOT EXISTS idx_firme_denumire
-		ON firme(denumire);
+
+		CREATE VIRTUAL TABLE IF NOT EXISTS firme_search USING fts5(
+			denumire,
+			content='firme',
+			content_rowid='rowid',
+			tokenize='trigram'
+		);
+
+		-- Insert
+		CREATE TRIGGER IF NOT EXISTS firme_ai AFTER INSERT ON firme BEGIN
+			INSERT INTO firme_search(rowid, denumire)
+			VALUES (new.rowid, new.denumire);
+		END;
+
+		-- Delete
+		CREATE TRIGGER IF NOT EXISTS firme_ad AFTER DELETE ON firme BEGIN
+			INSERT INTO firme_search(firme_search, rowid, denumire)
+			VALUES ('delete', old.rowid, old.denumire);
+		END;
+
+		-- Update
+		CREATE TRIGGER IF NOT EXISTS firme_au AFTER UPDATE OF denumire ON firme BEGIN
+			INSERT INTO firme_search(firme_search, rowid, denumire)
+			VALUES ('delete', old.rowid, old.denumire);
+
+			INSERT INTO firme_search(rowid, denumire)
+			VALUES (new.rowid, new.denumire);
+		END;
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -283,42 +309,9 @@ func (this *Repository) UpdateCaen(dataset []map[string]string) {
 	}
 }
 
-type InfoFirmaLight struct {
-	Nume string
-}
-
-func (this *Repository) GetFirme(partialNumeFirma string) []*InfoFirmaLight {
-	stmt := `SELECT denumire from firme where denumire LIKE '%' || ? || '%';`
-
-	preparedStmt, err := this.db.Prepare(stmt)
-	if err != nil {
-		panic(err)
-	}
-
-	rows, err := preparedStmt.Query(partialNumeFirma)
-	if err != nil {
-		panic(err)
-	}
-
-	defer rows.Close()
-
-	listaNume := []*InfoFirmaLight{}
-	for rows.Next() {
-		var nume string
-
-		err := rows.Scan(&nume)
-		if err != nil {
-			panic(err)
-		}
-
-		listaNume = append(listaNume, &InfoFirmaLight{Nume: nume})
-	}
-
-	return listaNume;
-}
-
 type InfoFirma struct {
 	Nume string
+	CodInmatriculare string
 	FormaJuridica string
 	Cui int
 	Administrator string
@@ -328,9 +321,10 @@ type InfoFirma struct {
 	CoduriCaen []string
 }
 
-func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
+func (this *Repository) GetFirme(partialNumeFirma string) []*InfoFirma {
 	stmt := `SELECT
 				firme.denumire,
+				firme.cod_inmatriculare,
 				firme.forma_juridica,
 				firme.cui,
 				reprezentanti.persoana_imputernicita,
@@ -339,6 +333,64 @@ func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
 				stari.status,
 				GROUP_CONCAT(caen.cod_caen, ',') AS coduri_caen
 			from firme
+			join firme_search on firme.rowid = firme_search.rowid
+			left join reprezentanti on firme.cod_inmatriculare = reprezentanti.cod_inmatriculare
+									and reprezentanti.calitate = 'administrator'
+			join stari on firme.cod_inmatriculare = stari.cod_inmatriculare
+			join caen on firme.cod_inmatriculare = caen.cod_inmatriculare
+			where firme_search match ?;`
+
+	preparedStmt, err := this.db.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Started searching in db...")
+	rows, err := preparedStmt.Query(partialNumeFirma)
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	listaFirme := []*InfoFirma{}
+	for rows.Next() {
+		var infoFirma InfoFirma
+		var administrator sql.NullString
+		var coduriCaen string
+
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administrator, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &coduriCaen)
+		if err != nil {
+			panic(err)
+		}
+
+		if administrator.Valid {
+			infoFirma.Administrator = administrator.String
+		}
+
+		infoFirma.CoduriCaen = strings.Split(coduriCaen, ",")
+
+		listaFirme = append(listaFirme, &infoFirma)
+	}
+
+	fmt.Println("finished searching in db!")
+
+	return listaFirme;
+}
+
+func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
+	stmt := `SELECT
+				firme.denumire,
+				firme.cod_inmatriculare,
+				firme.forma_juridica,
+				firme.cui,
+				reprezentanti.persoana_imputernicita,
+				firme.data_inmatriculare,
+				firme.judet,
+				stari.status,
+				GROUP_CONCAT(caen.cod_caen, ',') AS coduri_caen
+			from firme
+			join firme_search on firme.rowid = firme_search.rowid
 			left join reprezentanti on firme.cod_inmatriculare = reprezentanti.cod_inmatriculare
 									and reprezentanti.calitate = 'administrator'
 			join stari on firme.cod_inmatriculare = stari.cod_inmatriculare
@@ -361,7 +413,7 @@ func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
 	for rows.Next() {
 		var administrator sql.NullString
 		var coduriCaen string
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.FormaJuridica, &infoFirma.Cui, &administrator, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &coduriCaen)
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administrator, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &coduriCaen)
 		if err != nil {
 			panic(err)
 		}

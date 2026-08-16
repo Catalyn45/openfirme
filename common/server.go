@@ -32,7 +32,7 @@ func (self *Server) Start() {
 
 	static := http.FileServer(http.Dir("./public"))
 
-	router.Handler("GET", "/public/*filepath", static)
+	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
 	router.GET("/firme", self.getFirme)
 	router.GET("/firme/:nume_firma", self.getFirma)
