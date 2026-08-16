@@ -68,7 +68,7 @@ func (this *Downloader) findResources(url string) []string {
 			}
 
 			fmt.Println("Found:", href)
-			resources = append(resources, e.Attr("href"))
+			resources = append(resources, href)
 		}
 	})
 
@@ -77,11 +77,14 @@ func (this *Downloader) findResources(url string) []string {
 		panic(err)
 	}
 
+	fmt.Println("Resources: ", resources)
+
 	return resources
 }
 
 func (this *Downloader) downloadFile(url string) (err error) {
 	fileName := path.Base(url)
+	fmt.Println(fileName)
 	filePath := this.outputDir + "/" + fileName
 
 	out, err := os.Create(filePath)
@@ -115,6 +118,8 @@ func (this *Downloader) DownloadResources() {
 	resources = append(resources, this.findResources(this.url + nomenclatoare)...)
 
 	for _, resource := range resources {
-		go this.downloadFile(resource)
+		fmt.Println("Downloading file: ", resource)
+		this.downloadFile(resource)
+		fmt.Println("Finished file: ", resource)
 	}
 }

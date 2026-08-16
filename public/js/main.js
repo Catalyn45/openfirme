@@ -2,6 +2,17 @@
    SEARCH
 ============================================================ */
 
+const prototypeCard = document.getElementById("prototype")
+
+const companyName = prototypeCard.getElementsByClassName("company-name")[0]
+const companyStatus = prototypeCard.getElementsByClassName("company-status")[0]
+const companyCui = prototypeCard.getElementsByClassName("company-cui")[0]
+const companyInregistrare = prototypeCard.getElementsByClassName("company-inregistrare")[0]
+const companyTip = prototypeCard.getElementsByClassName("company-tip")[0]
+const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
+const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
+const companyCaen = prototypeCard.getElementsByClassName("company-caen")[0]
+
 async function searchCompanies() {
     const query =
         document
@@ -30,101 +41,58 @@ async function searchCompanies() {
 
     const cards = document.getElementsByClassName("company-card")
 
-    let prototypeCard = null
     for (let el of Array.from(cards)) {
-        if (el.id === "prototype") {
-            prototypeCard = el
-        } else {
+        if (el.id !== "prototype") {
             el.remove()
         }
-    }
+	}
 
     const data = await response.json()
 
     console.log(data)
 
-    let visible = data.length;
+    let resultCount = data.length;
 
     for (let firma of data) {
+        companyName.textContent = firma.Nume
+		companyJudet.textContent = firma.Judet
+
+		if (firma.CoduriCaen) {
+			companyCaen.textContent = firma.CoduriCaen[0]
+		} else {
+			companyCaen.textContent = ""
+		}
+
+		companyTip.textContent = firma.FormaJuridica
+		companyCui.textContent = firma.Cui
+		companyInregistrare.textContent = firma.CodInmatriculare
+		companyDate.textContent = firma.DataInregistrare
+
+		companyStatus.textContent = firma.Status
+
+		companyStatus.classList.remove("active")
+		companyStatus.classList.remove("inactive")
+		if (firma.Status === "funcțiune") {
+			companyStatus.classList.add("active")
+		} else {
+			companyStatus.classList.add("inactive")
+		}
+
         clone = prototypeCard.cloneNode(true)
 
         clone.style.display = "block"
         clone.removeAttribute("id")
 
-        let companyName = clone.getElementsByClassName("company-name")[0]
-
-        companyName.textContent = firma.Nume
-
         prototypeCard.before(clone)
     }
 
-    /*
-
-
-    cards.forEach(card => {
-        const name =
-            card.dataset.name.toLowerCase();
-
-        const cui =
-            card.dataset.cui.toLowerCase();
-
-        const cardCounty =
-            card.dataset.county;
-
-        const cardStatus =
-            card.dataset.status;
-
-        const cardIndustry =
-            card.dataset.industry;
-
-
-        const matchesSearch =
-            query === "" ||
-            name.includes(query) ||
-            cui.includes(query);
-
-
-        const matchesCounty =
-            county === "" ||
-            cardCounty === county;
-
-
-        const matchesStatus =
-            status === "" ||
-            cardStatus === status;
-
-
-        const matchesIndustry =
-            industry === "" ||
-            cardIndustry === industry;
-
-
-        const visibleCard =
-            matchesSearch &&
-            matchesCounty &&
-            matchesStatus &&
-            matchesIndustry;
-
-
-        if (visibleCard) {
-            card.style.display = "block";
-            visible++;
-        } else {
-            card.style.display = "none";
-        }
-
-    });
-
-    */
-
     document
         .getElementById("resultCount")
-        .textContent = `${visible} rezultat${visible === 1 ? "" : "e"}`;
-
+        .textContent = `${resultCount} rezultat${resultCount === 1 ? "" : "e"}`;
 
     document
         .getElementById("emptyState")
-        .style.display = visible === 0 ? "block" : "none";
+        .style.display = resultCount === 0 ? "block" : "none";
 }
 
 

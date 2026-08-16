@@ -39,9 +39,7 @@
 
     <p>
         Caută informații publice despre societăți comerciale
-        folosind denumirea firmei, CUI-ul sau numărul de
-        înregistrare la Registrul Comerțului.
-    </p>
+        folosind denumirea firmei    </p>
 
     <div class="search-wrapper">
 
@@ -50,7 +48,7 @@
             <input
                 type="text"
                 id="searchInput"
-                placeholder="Caută după nume firmă, CUI sau nr. Registrul Comerțului..."
+                placeholder="Caută după nume firmă..."
                 onkeydown="handleEnter(event)"
             >
 
@@ -58,10 +56,6 @@
                 🔍 Caută
             </button>
 
-        </div>
-
-        <div class="search-help">
-            Exemplu: „Dedeman”, „RO12345678” sau „J22/1234/2020”
         </div>
 
     </div>
@@ -262,14 +256,14 @@
                             </div>
 
                             <div class="company-id">
-                                CUI: RO12345678
+								<span class="company-cui">CUI: RO12345678</span>
                                 &nbsp; • &nbsp;
-                                J22/1234/2020
+								<span class="company-inregistrare">J22/1234/2020</span>
                             </div>
 
                         </div>
 
-                        <span class="status active">
+                        <span class="company-status">
                             Activă
                         </span>
 
@@ -288,7 +282,7 @@
 
                             <small>Județ</small>
 
-                            <strong>
+                            <strong class="company-judet">
                                 Iași
                             </strong>
 
@@ -299,7 +293,7 @@
 
                             <small>CAEN principal</small>
 
-                            <strong>
+                            <strong class="company-caen">
                                 6201
                             </strong>
 
@@ -310,7 +304,7 @@
 
                             <small>Înființată</small>
 
-                            <strong>
+                            <strong class="company-date">
                                 2020
                             </strong>
 
@@ -321,7 +315,7 @@
 
                             <small>Tip societate</small>
 
-                            <strong>
+                            <strong class="company-tip">
                                 SRL
                             </strong>
 

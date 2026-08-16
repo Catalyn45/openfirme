@@ -289,7 +289,7 @@ main {
     font-size: 13px;
 }
 
-.status {
+.company-status {
     white-space: nowrap;
     height: fit-content;
     padding: 5px 11px;
@@ -298,12 +298,12 @@ main {
     font-weight: 700;
 }
 
-.status.active {
+.company-status.active {
     background: #dcfce7;
     color: #166534;
 }
 
-.status.inactive {
+.company-status.inactive {
     background: #fee2e2;
     color: #991b1b;
 }
