@@ -327,38 +327,25 @@ func (this *Repository) UpdateCaen(dataset []map[string]string) {
 	}
 }
 
-type InfoFirma struct {
+type InfoFirmaLight struct {
 	Nume string
 	CodInmatriculare string
 	FormaJuridica string
 	Cui int
-	Administratori []string
 	DataInregistrare string
 	Judet string
 	Status string
-	CoduriCaen []string
 }
 
-func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string, dataBefore string, dataAfter string) []*InfoFirma {
+func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string, formaJuridicaFilter string, dataBefore string, dataAfter string) []*InfoFirmaLight {
 	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
 				firme.forma_juridica,
 				firme.cui,
-				(
-					SELECT GROUP_CONCAT(r.persoana_imputernicita, ',')
-					FROM reprezentanti r
-					WHERE r.cod_inmatriculare = firme.cod_inmatriculare
-					  AND r.calitate = 'administrator'
-				) AS persoane_imputernicite,
 				firme.data_inmatriculare,
 				firme.judet,
-				stari.status,
-				(
-					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
-					FROM caen c
-					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
-				) AS coduri_caen
+				stari.status
 			FROM firme
 			JOIN firme_search
 				ON firme.rowid = firme_search.rowid
@@ -381,6 +368,11 @@ func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, st
 	if statusFilter != "" {
 		stmt += " AND stari.status = ? "
 		params = append(params, statusFilter)
+	}
+
+	if formaJuridicaFilter != "" {
+		stmt += " AND firme.forma_juridica = ? "
+		params = append(params, formaJuridicaFilter)
 	}
 
 	if dataAfter != "" {
@@ -413,24 +405,13 @@ func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, st
 
 	defer rows.Close()
 
-	listaFirme := []*InfoFirma{}
+	listaFirme := []*InfoFirmaLight{}
 	for rows.Next() {
-		var infoFirma InfoFirma
+		var infoFirma InfoFirmaLight
 
-		var administratori sql.NullString
-		var coduriCaen sql.NullString
-
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administratori, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &coduriCaen)
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
 		if err != nil {
 			panic(err)
-		}
-
-		if administratori.Valid {
-			infoFirma.Administratori = strings.Split(administratori.String, ",") 
-		}
-
-		if coduriCaen.Valid{
-			infoFirma.CoduriCaen = strings.Split(coduriCaen.String, ",")
 		}
 
 		listaFirme = append(listaFirme, &infoFirma)
@@ -439,6 +420,27 @@ func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, st
 	fmt.Println("finished searching in db!")
 
 	return listaFirme;
+}
+
+type InfoFirma struct {
+	Nume string
+	CodInmatriculare string
+	FormaJuridica string
+	Cui int
+	Administratori []string
+	DataInregistrare string
+	Judet string
+	Localitate string
+	Strada string
+	NrStrada string
+	Bloc string
+	Scara string
+	Etaj string
+	Apartament string
+	CodPostal string
+	Sector string
+	Status string
+	CoduriCaen []string
 }
 
 func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
@@ -455,6 +457,15 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 				) AS persoane_imputernicite,
 				firme.data_inmatriculare,
 				firme.judet,
+				firme.localitate,
+				firme.strada,
+				firme.nr_strada,
+				firme.bloc,
+				firme.scara,
+				firme.etaj,
+				firme.apartament,
+				firme.cod_postal,
+				firme.sector,
 				stari.status,
 				(
 					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
@@ -482,7 +493,15 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	for rows.Next() {
 		var administratori sql.NullString
 		var coduriCaen sql.NullString
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administratori, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &coduriCaen)
+		var strada sql.NullString
+		var nrStrada sql.NullString
+		var bloc sql.NullString
+		var scara sql.NullString
+		var etaj sql.NullString
+		var apartament sql.NullString
+		var codPostal sql.NullString
+		var sector sql.NullString
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administratori, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &strada, &nrStrada, &bloc, &scara, &etaj, &apartament, &codPostal, &sector, &infoFirma.Status, &coduriCaen)
 		if err != nil {
 			panic(err)
 		}
@@ -493,6 +512,38 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 
 		if coduriCaen.Valid {
 			infoFirma.CoduriCaen = strings.Split(coduriCaen.String, ",")
+		}
+
+		if strada.Valid {
+			infoFirma.Strada = strada.String
+		}
+
+		if nrStrada.Valid {
+			infoFirma.NrStrada = nrStrada.String
+		}
+
+		if bloc.Valid {
+			infoFirma.Bloc = bloc.String
+		}
+
+		if scara.Valid {
+			infoFirma.Scara = scara.String
+		}
+
+		if etaj.Valid {
+			infoFirma.Etaj = etaj.String
+		}
+
+		if apartament.Valid {
+			infoFirma.Apartament = apartament.String
+		}
+
+		if codPostal.Valid {
+			infoFirma.CodPostal = codPostal.String
+		}
+
+		if sector.Valid {
+			infoFirma.Sector = sector.String
 		}
 	}
 

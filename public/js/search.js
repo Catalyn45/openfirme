@@ -7,22 +7,12 @@ const companyInregistrare = prototypeCard.getElementsByClassName("company-inregi
 const companyTip = prototypeCard.getElementsByClassName("company-tip")[0]
 const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
 const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
-const companyCaen = prototypeCard.getElementsByClassName("company-caen")[0]
 
 async function main() {
-	// get parameters
 	let endpoint = `/firme${window.location.search}`
 
     const response = await fetch(endpoint)
-
     const data = await response.json()
-
-    const cards = document.getElementsByClassName("company-card")
-    for (let el of Array.from(cards)) {
-        if (el.id !== "prototype") {
-            el.remove()
-        }
-	}
 
     console.log(data)
 
@@ -31,12 +21,6 @@ async function main() {
     for (let firma of data) {
         companyName.textContent = firma.Nume
 		companyJudet.textContent = firma.Judet
-
-		if (firma.CoduriCaen) {
-			companyCaen.textContent = firma.CoduriCaen[0]
-		} else {
-			companyCaen.textContent = ""
-		}
 
 		companyTip.textContent = firma.FormaJuridica
 		companyCui.textContent = firma.Cui

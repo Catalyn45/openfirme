@@ -20,9 +20,9 @@ async function searchCompanies() {
             .getElementById("statusFilter")
             .value;
 
-    const industry =
+    const formaJuridica =
         document
-            .getElementById("industryFilter")
+            .getElementById("formaFilter")
             .value;
 
     // let endpoint = `/firme?nume_partial=${query}`
@@ -35,6 +35,10 @@ async function searchCompanies() {
     if (status) {
         endpoint = `${endpoint}&status=${status}`
     }
+
+	if (formaJuridica) {
+        endpoint = `${endpoint}&forma_juridica=${formaJuridica}`
+	}
 
 	window.location = endpoint
 }
@@ -71,12 +75,12 @@ function resetFilters() {
         .value = "";
 
     document
-        .getElementById("industryFilter")
-        .value = "";
-
-    document
         .getElementById("yearFilter")
         .value = "";
+
+	document
+		.getElementById("formaFilter")
+		.value = "";
 }
 
 

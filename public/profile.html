@@ -167,51 +167,28 @@
 
             </div>
 
-
             <div class="filter-group">
 
-                <label for="industryFilter">
-                    Domeniu / CAEN
+                <label for="formaFilter">
+                    Formă juridică
                 </label>
 
-                <select id="industryFilter">
+                <select id="formaFilter">
 
                     <option value="">
-                        Toate domeniile
+                        Oricare
                     </option>
 
-                    <option value="IT">
-                        IT & Software
+                    <option value="SRL">
+						SRL
                     </option>
 
-                    <option value="Construcții">
-                        Construcții
+                    <option value="PFA">
+                        PFA
                     </option>
-
-                    <option value="Comerț">
-                        Comerț
-                    </option>
-
-                    <option value="Transport">
-                        Transport
-                    </option>
-
-                    <option value="Financiar">
-                        Servicii financiare
-                    </option>
-
-                    <option value="Producție">
-                        Producție
-                    </option>
-
-                    <option value="Imobiliare">
-                        Imobiliare
-                    </option>
-
                 </select>
 
             </div>
-
 
             <div class="filter-group">
 
@@ -307,7 +284,7 @@
 										CUI / CIF
 									</small>
 
-									<strong>
+									<strong id="profileCompanyCui">
 										RO12345678
 									</strong>
 
@@ -320,7 +297,7 @@
 										Nr. Registrul Comerțului
 									</small>
 
-									<strong>
+									<strong id="profileCompanyId">
 										J22/1234/2020
 									</strong>
 
@@ -333,7 +310,7 @@
 										Formă juridică
 									</small>
 
-									<strong>
+									<strong id="profileCompanyForma">
 										Societate cu Răspundere Limitată
 									</strong>
 
@@ -346,7 +323,7 @@
 										Status
 									</small>
 
-									<strong>
+									<strong id="profileCompanyStatus">
 										Activă
 									</strong>
 
@@ -359,7 +336,7 @@
 										Data înființării
 									</small>
 
-									<strong>
+									<strong id="profileCompanyData">
 										15 iunie 2020
 									</strong>
 
@@ -386,7 +363,7 @@
 										Județ
 									</small>
 
-									<strong>
+									<strong id="profileCompanyJudet">
 										Iași
 									</strong>
 
@@ -399,7 +376,7 @@
 										Localitate
 									</small>
 
-									<strong>
+									<strong id="profileCompanyLocalitate">
 										Iași
 									</strong>
 
@@ -412,7 +389,7 @@
 										Adresă
 									</small>
 
-									<strong>
+									<strong id="profileCompanyAdresa">
 										Str. Exemplu nr. 10
 									</strong>
 
@@ -425,7 +402,7 @@
 										Cod poștal
 									</small>
 
-									<strong>
+									<strong id="profileCompanyCodPostal">
 										700000
 									</strong>
 
@@ -444,33 +421,19 @@
 								Activitate
 							</h3>
 
-							<div class="profile-grid">
+							<div class>
 
 								<div class="profile-field">
 
 									<small>
-										CAEN principal
+										coduri CAEN
 									</small>
 
-									<strong>
+									<strong id="profileCompanyCaen">
 										6201
 									</strong>
 
 								</div>
-
-
-								<div class="profile-field">
-
-									<small>
-										Activitate principală
-									</small>
-
-									<strong>
-										Activități de realizare a soft-ului la comandă
-									</strong>
-
-								</div>
-
 							</div>
 
 						</div>
@@ -492,7 +455,7 @@
 										Administratori
 									</small>
 
-									<strong>
+									<strong id="profileCompanyAdministratori">
 										Informație disponibilă
 									</strong>
 

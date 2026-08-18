@@ -316,11 +316,18 @@ main {
 
 .company-info {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-top: 20px;
     padding-top: 18px;
     border-top: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .info-item small {
