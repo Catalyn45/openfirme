@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="/public/css/style.css">
-    <link rel="stylesheet" href="/public/css/home.css">
+    <link rel="stylesheet" href="/public/css/search.css">
 
     <title>OpenFirme România — Informații despre companii</title>
 </head>
@@ -70,6 +70,8 @@
 ============================================================ -->
 
 <main>
+
+    <div class="layout">
 
 
         <!-- ====================================================
@@ -252,6 +254,142 @@
         </aside>
 
 
+        <!-- ====================================================
+             RESULTS
+        ==================================================== -->
+
+        <section>
+
+            <div class="results-header">
+
+                <h2>Companii</h2>
+
+                <span id="resultCount">
+                    0 rezultate
+                </span>
+
+            </div>
+
+
+            <div id="results">
+
+
+                <!-- ==================================================
+                     COMPANY 1
+                ================================================== -->
+
+                <div class="company-card" style="display: none;" id="prototype">
+                    <div class="company-top">
+                        <div>
+                            <div class="company-name">
+                                Example Technologies SRL
+                            </div>
+
+                            <div class="company-id">
+								<span class="company-cui">CUI: RO12345678</span>
+                                &nbsp; • &nbsp;
+								<span class="company-inregistrare">J22/1234/2020</span>
+                            </div>
+
+                        </div>
+
+                        <span class="company-status">
+                            Activă
+                        </span>
+
+                    </div>
+
+
+                    <div class="company-description">
+                        Activități de realizare a soft-ului la comandă,
+                        consultanță IT și servicii informatice.
+                    </div>
+
+
+                    <div class="company-info">
+
+                        <div class="info-item">
+
+                            <small>Județ</small>
+
+                            <strong class="company-judet">
+                                Iași
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <small>CAEN principal</small>
+
+                            <strong class="company-caen">
+                                6201
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <small>Înființată</small>
+
+                            <strong class="company-date">
+                                2020
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <small>Tip societate</small>
+
+                            <strong class="company-tip">
+                                SRL
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-footer">
+
+                        <span class="updated">
+                            Actualizat: 16 august 2026
+                        </span>
+
+                        <button class="view-button" onclick="openProfile(this)" >
+                            Vezi profilul →
+                        </button>
+
+                    </div>
+
+                </div>
+
+            <!-- EMPTY STATE -->
+
+            <div
+                class="empty-state"
+                id="emptyState"
+            >
+
+                <h3>
+                    Nu am găsit nicio companie
+                </h3>
+
+                <p>
+                    Încearcă o altă denumire, un CUI sau
+                    modifică filtrele de căutare.
+                </p>
+
+            </div>
+
+        </section>
+
+    </div>
+
 </main>
 
 
@@ -271,6 +409,7 @@
 </footer>
 
 <script src="/public/js/main.js"></script>
+<script src="/public/js/search.js"></script>
 
 </body>
 </html>

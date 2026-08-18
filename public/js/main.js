@@ -2,6 +2,42 @@
    SEARCH
 ============================================================ */
 
+async function searchCompanies() {
+    const query =
+        document
+            .getElementById("searchInput")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const county =
+        document
+            .getElementById("countyFilter")
+            .value;
+
+    const status =
+        document
+            .getElementById("statusFilter")
+            .value;
+
+    const industry =
+        document
+            .getElementById("industryFilter")
+            .value;
+
+    // let endpoint = `/firme?nume_partial=${query}`
+    let endpoint = `/search?nume_partial=${query}`
+
+    if (county) {
+        endpoint = `${endpoint}&judet=${county}`
+    }
+
+    if (status) {
+        endpoint = `${endpoint}&status=${status}`
+    }
+
+	window.location = endpoint
+}
 
 /* ============================================================
    ENTER KEY
@@ -41,9 +77,6 @@ function resetFilters() {
     document
         .getElementById("yearFilter")
         .value = "";
-
-    searchCompanies();
-
 }
 
 

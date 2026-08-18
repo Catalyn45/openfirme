@@ -35,6 +35,8 @@ func (self *Server) Start() {
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
 	router.GET("/", self.serveHtmlFunc("./public/index.html"))
+
+	router.GET("/search", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
 
 	router.GET("/firme", self.getFirme)

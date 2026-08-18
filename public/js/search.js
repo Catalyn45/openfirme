@@ -9,38 +9,9 @@ const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
 const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
 const companyCaen = prototypeCard.getElementsByClassName("company-caen")[0]
 
-async function searchCompanies() {
-    const query =
-        document
-            .getElementById("searchInput")
-            .value
-            .toLowerCase()
-            .trim();
-
-    const county =
-        document
-            .getElementById("countyFilter")
-            .value;
-
-    const status =
-        document
-            .getElementById("statusFilter")
-            .value;
-
-    const industry =
-        document
-            .getElementById("industryFilter")
-            .value;
-
-    let endpoint = `/firme?nume_partial=${query}`
-
-    if (county) {
-        endpoint = `${endpoint}&judet=${county}`
-    }
-
-    if (status) {
-        endpoint = `${endpoint}&status=${status}`
-    }
+async function main() {
+	// get parameters
+	let endpoint = `/firme${window.location.search}`
 
     const response = await fetch(endpoint)
 
@@ -99,3 +70,4 @@ async function searchCompanies() {
         .style.display = resultCount === 0 ? "block" : "none";
 }
 
+main()
