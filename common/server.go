@@ -71,7 +71,10 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httproute
 	judet := query.Get("judet")
 	status := query.Get("status")
 
-	firme := self.repository.GetFirme(nume_partial, judet, status)
+	data_after := query.Get("data_after")
+	data_before := query.Get("data_before")
+
+	firme := self.repository.GetFirme(nume_partial, judet, status, data_after, data_before)
 
 	self.returnSuccess(w, firme)
 }

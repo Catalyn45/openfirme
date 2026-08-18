@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -118,6 +119,24 @@ func (this *Repository) InitFirme() {
 	}
 }
 
+func convertDate(datetime string) string {
+	layouts := []string{
+		"02/01/2006 15:04",
+		"02/01/2006",
+	}
+
+	var err error
+	for _, layout := range layouts {
+		var t time.Time
+		t, err = time.Parse(layout, datetime)
+		if err == nil {
+			return t.Format("2006-01-02 15:04")
+		}
+	}
+
+	panic(err)
+}
+
 func (this *Repository) UpdateFirme(dataset []map[string]string) {
 	stmt := `
 		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
@@ -136,8 +155,9 @@ func (this *Repository) UpdateFirme(dataset []map[string]string) {
 	}
 	defer preparedStmt.Close()
 
+
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["DENUMIRE"], data["CUI"], data["COD_INMATRICULARE"], data["DATA_INMATRICULARE"], data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
+		_, err = preparedStmt.Exec(data["DENUMIRE"], data["CUI"], data["COD_INMATRICULARE"], convertDate(data["DATA_INMATRICULARE"]), data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
 		if err != nil {
 			fmt.Println(data["DENUMIRE"])
 			panic(err)
@@ -319,7 +339,7 @@ type InfoFirma struct {
 	CoduriCaen []string
 }
 
-func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string) []*InfoFirma {
+func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string, dataBefore string, dataAfter string) []*InfoFirma {
 	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
@@ -361,6 +381,16 @@ func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, st
 	if statusFilter != "" {
 		stmt += " AND stari.status = ? "
 		params = append(params, statusFilter)
+	}
+
+	if dataAfter != "" {
+		stmt += " AND fime.data_inmatriculare >= ? "
+		params = append(params, dataAfter)
+	}
+
+	if dataBefore != "" {
+		stmt += " AND fime.data_inmatriculare <= ? "
+		params = append(params, dataBefore)
 	}
 
 	stmt += "\n"
