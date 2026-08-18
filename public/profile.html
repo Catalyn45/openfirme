@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <title>OpenFirme România — Informații despre companii</title>
+</head>
+
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+
+<header>
+
+    <div class="logo">
+        OpenFirme<span> România</span>
+    </div>
+
+    <nav>
+        <a href="#">Căutare</a>
+        <a href="#">Companii</a>
+        <a href="#">Despre proiect</a>
+    </nav>
+
+</header>
+
+
+<!-- ============================================================
+     HERO / SEARCH
+============================================================ -->
+
+<section class="hero">
+
+    <h1>Găsește orice companie din România</h1>
+
+    <p>
+        Caută informații publice despre societăți comerciale
+        folosind denumirea firmei    </p>
+
+    <div class="search-wrapper">
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Caută după nume firmă..."
+                onkeydown="handleEnter(event)"
+            >
+
+            <button onclick="searchCompanies()">
+                🔍 Caută
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+
+<main>
+        <section>
+
+			<div class="modal" id="profileModal">
+
+				<div class="modal-content">
+
+					<div class="modal-header">
+						<h2 id="profileCompanyName">
+							Example Technologies SRL
+						</h2>
+
+						<p>
+							Profil companie • România
+						</p>
+
+					</div>
+
+
+					<div class="modal-body">
+
+
+						<!-- IDENTIFICATION -->
+
+						<div class="profile-section">
+
+							<h3>
+								Date de identificare
+							</h3>
+
+							<div class="profile-grid">
+
+								<div class="profile-field">
+
+									<small>
+										Denumire
+									</small>
+
+									<strong id="profileName">
+										Example Technologies SRL
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										CUI / CIF
+									</small>
+
+									<strong>
+										RO12345678
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Nr. Registrul Comerțului
+									</small>
+
+									<strong>
+										J22/1234/2020
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Formă juridică
+									</small>
+
+									<strong>
+										Societate cu Răspundere Limitată
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Status
+									</small>
+
+									<strong>
+										Activă
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Data înființării
+									</small>
+
+									<strong>
+										15 iunie 2020
+									</strong>
+
+								</div>
+
+							</div>
+
+						</div>
+
+
+						<!-- ADDRESS -->
+
+						<div class="profile-section">
+
+							<h3>
+								Sediu social
+							</h3>
+
+							<div class="profile-grid">
+
+								<div class="profile-field">
+
+									<small>
+										Județ
+									</small>
+
+									<strong>
+										Iași
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Localitate
+									</small>
+
+									<strong>
+										Iași
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Adresă
+									</small>
+
+									<strong>
+										Str. Exemplu nr. 10
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Cod poștal
+									</small>
+
+									<strong>
+										700000
+									</strong>
+
+								</div>
+
+							</div>
+
+						</div>
+
+
+						<!-- ACTIVITY -->
+
+						<div class="profile-section">
+
+							<h3>
+								Activitate
+							</h3>
+
+							<div class="profile-grid">
+
+								<div class="profile-field">
+
+									<small>
+										CAEN principal
+									</small>
+
+									<strong>
+										6201
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Activitate principală
+									</small>
+
+									<strong>
+										Activități de realizare a soft-ului la comandă
+									</strong>
+
+								</div>
+
+							</div>
+
+						</div>
+
+
+						<!-- PEOPLE -->
+
+						<div class="profile-section">
+
+							<h3>
+								Persoane / structura companiei
+							</h3>
+
+							<div class="profile-grid">
+
+								<div class="profile-field">
+
+									<small>
+										Administratori
+									</small>
+
+									<strong>
+										Informație disponibilă
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Asociați
+									</small>
+
+									<strong>
+										Informație disponibilă
+									</strong>
+
+								</div>
+
+							</div>
+
+						</div>
+
+
+						<!-- FINANCIAL -->
+
+						<div class="profile-section">
+
+							<h3>
+								Date financiare
+							</h3>
+
+							<div class="profile-grid">
+
+								<div class="profile-field">
+
+									<small>
+										Cifră de afaceri
+									</small>
+
+									<strong>
+										2.450.000 RON
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Profit net
+									</small>
+
+									<strong>
+										380.000 RON
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										Angajați
+									</small>
+
+									<strong>
+										24
+									</strong>
+
+								</div>
+
+
+								<div class="profile-field">
+
+									<small>
+										An financiar
+									</small>
+
+									<strong>
+										2025
+									</strong>
+
+								</div>
+
+							</div>
+
+						</div>
+
+
+						<!-- SOURCES -->
+
+						<div class="profile-section">
+
+							<h3>
+								Surse și actualizare
+							</h3>
+
+							<div class="source">
+
+								Informațiile afișate trebuie verificate
+								în sursele publice oficiale înainte de
+								utilizarea lor în scopuri juridice,
+								comerciale sau financiare.
+
+								<br><br>
+
+								Ultima verificare:
+								<strong>16 august 2026</strong>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+        </section>
+</main>
+
+
+<!-- ============================================================
+     COMPANY PROFILE MODAL
+============================================================ -->
+
+
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+
+<footer>
+
+    © 2026 OpenFirme România
+
+    <br><br>
+
+    Platformă de căutare și agregare a informațiilor
+    publice despre companii din România.
+
+</footer>
+
+<script src="/public/js/main.js"></script>
+<script src="/public/js/profile.js"></script>
+
+</body>
+</html>

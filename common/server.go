@@ -34,8 +34,11 @@ func (self *Server) Start() {
 
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
+	router.GET("/", self.serveHtmlFunc("./public/index.html"))
+	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
+
 	router.GET("/firme", self.getFirme)
-	router.GET("/firme/:nume_firma", self.getFirma)
+	router.GET("/firme/:numar_inmatriculare", self.getFirma)
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
 
@@ -53,20 +56,33 @@ func (self *Server) returnSuccess(w http.ResponseWriter, content any) {
     json.NewEncoder(w).Encode(content)
 }
 
-func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	nume_partial := r.URL.Query().Get("nume_partial")
+func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		http.ServeFile(w, r, path)
+	}
+}
 
-	firme := self.repository.GetFirme(nume_partial)
+func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	query := r.URL.Query()
+
+	fmt.Println(query)
+
+	nume_partial := query.Get("nume_partial")
+	judet := query.Get("judet")
+	status := query.Get("status")
+
+	firme := self.repository.GetFirme(nume_partial, judet, status)
 
 	self.returnSuccess(w, firme)
 }
 
 func (self *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	nume := strings.TrimSpace(ps.ByName("nume_firma"))
+	numar_inmatriculare := ps.ByName("numar_inmatriculare")
+	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
-	fmt.Println("firma:" + nume)
+	fmt.Println("firma:" + numar_inmatriculare)
 
-	firma := self.repository.GetFirma(nume);
+	firma := self.repository.GetFirma(numar_inmatriculare);
 
 	self.returnSuccess(w, firma)
 }

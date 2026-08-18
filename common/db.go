@@ -209,12 +209,10 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 func (this *Repository) InitStari() {
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS stari (
-			cod_inmatriculare TEXT NOT NULL,
+			cod_inmatriculare TEXT PRIMARY KEY,
 			cod INTEGER NOT NULL,
 			status TEXT NOT NULL
 		);
-		CREATE INDEX IF NOT EXISTS idx_stari_cod_inmatriculare
-		ON stari(cod_inmatriculare);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -225,7 +223,7 @@ func (this *Repository) InitStari() {
 
 func (this *Repository) UpdateStari(dataset []map[string]string) {
 	stmt := `
-		INSERT INTO stari (cod_inmatriculare, cod, status)
+		INSERT OR REPLACE INTO stari (cod_inmatriculare, cod, status)
 		VALUES (?,?,?);`
 
 	transaction, err := this.db.Begin()
@@ -321,32 +319,56 @@ type InfoFirma struct {
 	CoduriCaen []string
 }
 
-func (this *Repository) GetFirme(partialNumeFirma string) []*InfoFirma {
-stmt := `SELECT
-			firme.denumire,
-			firme.cod_inmatriculare,
-			firme.forma_juridica,
-			firme.cui,
-			(
-				SELECT GROUP_CONCAT(r.persoana_imputernicita, ',')
-				FROM reprezentanti r
-				WHERE r.cod_inmatriculare = firme.cod_inmatriculare
-				  AND r.calitate = 'administrator'
-			) AS persoane_imputernicite,
-			firme.data_inmatriculare,
-			firme.judet,
-			stari.status,
-			(
-				SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
-				FROM caen c
-				WHERE c.cod_inmatriculare = firme.cod_inmatriculare
-			) AS coduri_caen
-		FROM firme
-		JOIN firme_search
-			ON firme.rowid = firme_search.rowid
-		JOIN stari
-			ON firme.cod_inmatriculare = stari.cod_inmatriculare
-		WHERE firme_search MATCH ?;`
+func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string) []*InfoFirma {
+	stmt := `SELECT
+				firme.denumire,
+				firme.cod_inmatriculare,
+				firme.forma_juridica,
+				firme.cui,
+				(
+					SELECT GROUP_CONCAT(r.persoana_imputernicita, ',')
+					FROM reprezentanti r
+					WHERE r.cod_inmatriculare = firme.cod_inmatriculare
+					  AND r.calitate = 'administrator'
+				) AS persoane_imputernicite,
+				firme.data_inmatriculare,
+				firme.judet,
+				stari.status,
+				(
+					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
+					FROM caen c
+					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
+				) AS coduri_caen
+			FROM firme
+			JOIN firme_search
+				ON firme.rowid = firme_search.rowid
+			JOIN stari
+				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+			WHERE 1=1 `
+
+	params := []any{}
+
+	if partialNumeFirma != "" {
+		stmt += " AND firme_search MATCH ? "
+		params = append(params, partialNumeFirma)
+	}
+
+	if judetFilter != "" {
+		stmt += " AND firme.judet = ? "
+		params = append(params, judetFilter)
+	}
+
+	if statusFilter != "" {
+		stmt += " AND stari.status = ? "
+		params = append(params, statusFilter)
+	}
+
+	stmt += "\n"
+
+	stmt += "LIMIT 20";
+
+	fmt.Println(stmt)
+	fmt.Println(params)
 
 	preparedStmt, err := this.db.Prepare(stmt)
 	if err != nil {
@@ -354,7 +376,7 @@ stmt := `SELECT
 	}
 
 	fmt.Println("Started searching in db...")
-	rows, err := preparedStmt.Query(partialNumeFirma)
+	rows, err := preparedStmt.Query(params...)
 	if err != nil {
 		panic(err)
 	}
@@ -389,31 +411,37 @@ stmt := `SELECT
 	return listaFirme;
 }
 
-func (this *Repository) GetFirma(nume_firma string) *InfoFirma {
+func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
 				firme.forma_juridica,
 				firme.cui,
-				reprezentanti.persoana_imputernicita,
+				(
+					SELECT GROUP_CONCAT(r.persoana_imputernicita, ',')
+					FROM reprezentanti r
+					WHERE r.cod_inmatriculare = firme.cod_inmatriculare
+					  AND r.calitate = 'administrator'
+				) AS persoane_imputernicite,
 				firme.data_inmatriculare,
 				firme.judet,
 				stari.status,
-				GROUP_CONCAT(caen.cod_caen, ',') AS coduri_caen
-			from firme
-			join firme_search on firme.rowid = firme_search.rowid
-			left join reprezentanti on firme.cod_inmatriculare = reprezentanti.cod_inmatriculare
-									and reprezentanti.calitate = 'administrator'
-			join stari on firme.cod_inmatriculare = stari.cod_inmatriculare
-			join caen on firme.cod_inmatriculare = caen.cod_inmatriculare
-			where firme.denumire = ?`
+				(
+					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
+					FROM caen c
+					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
+				) AS coduri_caen
+			FROM firme
+			JOIN stari
+				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+			WHERE firme.cod_inmatriculare = ?;`
 
 	preparedStmt, err := this.db.Prepare(stmt)
 	if err != nil {
 		panic(err)
 	}
 
-	rows, err := preparedStmt.Query(nume_firma)
+	rows, err := preparedStmt.Query(numar_inmatriculare)
 	if err != nil {
 		panic(err)
 	}
