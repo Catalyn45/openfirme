@@ -120,9 +120,14 @@ func (this *Repository) InitFirme() {
 }
 
 func convertDate(datetime string) string {
+	if datetime == "" {
+		return ""
+	}
+
 	layouts := []string{
-		"02/01/2006 15:04",
 		"02/01/2006",
+		"02/01/2006 15:04",
+		"02/01/2006 15:04:05",
 	}
 
 	var err error
@@ -337,7 +342,7 @@ type InfoFirmaLight struct {
 	Status string
 }
 
-func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string, formaJuridicaFilter string, dataBefore string, dataAfter string) []*InfoFirmaLight {
+func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string, formaJuridicaFilter string, dataAfter string, dataBefore string) []*InfoFirmaLight {
 	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
@@ -376,12 +381,12 @@ func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, st
 	}
 
 	if dataAfter != "" {
-		stmt += " AND fime.data_inmatriculare >= ? "
+		stmt += " AND firme.data_inmatriculare >= ? "
 		params = append(params, dataAfter)
 	}
 
 	if dataBefore != "" {
-		stmt += " AND fime.data_inmatriculare <= ? "
+		stmt += " AND firme.data_inmatriculare <= ? "
 		params = append(params, dataBefore)
 	}
 

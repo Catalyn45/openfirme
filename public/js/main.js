@@ -25,6 +25,11 @@ async function searchCompanies() {
             .getElementById("formaFilter")
             .value;
 
+    const an =
+        document
+            .getElementById("yearFilter")
+            .value;
+
     // let endpoint = `/firme?nume_partial=${query}`
     let endpoint = `/search?nume_partial=${query}`
 
@@ -39,6 +44,18 @@ async function searchCompanies() {
 	if (formaJuridica) {
         endpoint = `${endpoint}&forma_juridica=${formaJuridica}`
 	}
+
+    if (an) {
+        [after, before] = an.split("/")
+
+        if (after) {
+            endpoint = `${endpoint}&data_after=${after}`
+        }
+
+        if (before) {
+            endpoint = `${endpoint}&data_before=${before}`
+        }
+    }
 
 	window.location = endpoint
 }
