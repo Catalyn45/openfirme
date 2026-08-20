@@ -1,0 +1,82 @@
+/* =========================
+   PAGINATION
+========================= */
+
+.pagination {
+    max-width: 1250px;
+    margin: 10px auto 60px;
+    padding: 0 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+.pagination-button {
+    min-width: 40px;
+    height: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--white);
+    color: var(--text);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.pagination-button:hover {
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: var(--primary);
+}
+
+.pagination-button.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.pagination-button.active:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.pagination-prev,
+.pagination-next {
+    font-size: 18px;
+}
+
+.pagination-dots {
+    min-width: 30px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    user-select: none;
+}
+.pagination {
+    gap: 4px;
+    padding: 0 15px;
+}
+
+.pagination-button {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 9px;
+}
+
+.pagination-dots {
+    min-width: 20px;
+}
