@@ -33,7 +33,9 @@ function createAddress(json) {
 }
 
 async function main() {
-	const profileId = window.location.href.split('/').pop();
+	const profileId = window.location.pathname.split('/').pop();
+
+	console.log(profileId)
 
 	let profileName = document.getElementById("profileName")
 	let profileCompanyName = document.getElementById("profileCompanyName")
@@ -49,7 +51,7 @@ async function main() {
 	let profileCompanyCaen = document.getElementById("profileCompanyCaen")
 	let profileCompanyAdministratori = document.getElementById("profileCompanyAdministratori")
 
-	const data = await fetch(`/firme/${profileId}`)
+	const data = await fetch(`/firma/${profileId}`)
 	const json = await data.json()
 
     console.log(json)

@@ -339,6 +339,9 @@ type FirmeFilters struct {
 	formaJuridica string
 	dataAfter string
 	dataBefore string
+}
+
+type FirmeOrdering struct {
 	sortBy string
 	sortOrder string
 }
@@ -353,6 +356,11 @@ type InfoFirmaLight struct {
 	Status string
 }
 
+type InfoFirmeResult struct {
+	Count int
+	Data []*InfoFirmaLight
+}
+
 func (this *Repository) mapSortFiled(sortBy string) string {
 	if sortBy == "status" {
 		return "stari.status"
@@ -365,16 +373,9 @@ func (this *Repository) mapSortFiled(sortBy string) string {
 	return ""
 }
 
-func (this *Repository) GetFirme(filters *FirmeFilters) []*InfoFirmaLight {
-	stmt := `SELECT
-				firme.denumire,
-				firme.cod_inmatriculare,
-				firme.forma_juridica,
-				firme.cui,
-				firme.data_inmatriculare,
-				firme.judet,
-				stari.status
-			FROM firme
+func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber *int) *sql.Rows {
+	stmt := `SELECT ` + fields +
+			` FROM firme
 			JOIN firme_search
 				ON firme.rowid = firme_search.rowid
 			JOIN stari
@@ -383,48 +384,59 @@ func (this *Repository) GetFirme(filters *FirmeFilters) []*InfoFirmaLight {
 
 	params := []any{}
 
-	if filters.numePartial != "" {
-		stmt += " AND firme_search MATCH ? "
-		params = append(params, filters.numePartial)
-	}
+	if filters != nil {
+		if filters.numePartial != "" {
+			stmt += " AND firme_search MATCH ? "
+			params = append(params, filters.numePartial)
+		}
 
-	if filters.judet != "" {
-		stmt += " AND firme.judet = ? "
-		params = append(params, filters.judet)
-	}
+		if filters.judet != "" {
+			stmt += " AND firme.judet = ? "
+			params = append(params, filters.judet)
+		}
 
-	if filters.status != "" {
-		stmt += " AND stari.status = ? "
-		params = append(params, filters.status)
-	}
+		if filters.status != "" {
+			stmt += " AND stari.status = ? "
+			params = append(params, filters.status)
+		}
 
-	if filters.formaJuridica != "" {
-		stmt += " AND firme.forma_juridica = ? "
-		params = append(params, filters.formaJuridica)
-	}
+		if filters.formaJuridica != "" {
+			stmt += " AND firme.forma_juridica = ? "
+			params = append(params, filters.formaJuridica)
+		}
 
-	if filters.dataAfter != "" {
-		stmt += " AND firme.data_inmatriculare >= ? "
-		params = append(params, filters.dataAfter)
-	}
+		if filters.dataAfter != "" {
+			stmt += " AND firme.data_inmatriculare >= ? "
+			params = append(params, filters.dataAfter)
+		}
 
-	if filters.dataBefore != "" {
-		stmt += " AND firme.data_inmatriculare <= ? "
-		params = append(params, filters.dataBefore)
-	}
+		if filters.dataBefore != "" {
+			stmt += " AND firme.data_inmatriculare <= ? "
+			params = append(params, filters.dataBefore)
+		}
 
-	stmt += "\n"
-
-	sortBy := this.mapSortFiled(filters.sortBy)
-	if sortBy != "" {
-		stmt += "ORDER BY " + sortBy + " " + filters.sortOrder + ";"
 		stmt += "\n"
 	}
 
-	stmt += "LIMIT 20";
+	if ordering != nil {
+		sortBy := this.mapSortFiled(ordering.sortBy)
+		if sortBy != "" {
+			stmt += "ORDER BY " + sortBy + " " + ordering.sortOrder
+			stmt += "\n"
+		}
+	}
 
-	fmt.Println(stmt)
-	fmt.Println(params)
+	if pageNumber != nil {
+		stmt += "LIMIT 20 OFFSET ?"
+		params = append(params, (*pageNumber - 1) * 20)
+
+		stmt += "\n"
+	}
+
+	stmt += ";"
+
+	fmt.Println("stmt ", stmt)
+	fmt.Println("params ", params)
 
 	preparedStmt, err := this.db.Prepare(stmt)
 	if err != nil {
@@ -437,9 +449,43 @@ func (this *Repository) GetFirme(filters *FirmeFilters) []*InfoFirmaLight {
 		panic(err)
 	}
 
+	return rows
+}
+
+func (this *Repository) getFirmeCount(filters *FirmeFilters) int {
+	rows := this.constructFirmeQuery(" COUNT(*) ", filters, nil, nil)
 	defer rows.Close()
 
-	listaFirme := []*InfoFirmaLight{}
+	count := 0
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return count
+}
+
+func (this *Repository) GetFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
+	result := &InfoFirmeResult {
+		Count: this.getFirmeCount(filters),
+		Data: []*InfoFirmaLight{},
+	}
+
+	fields := `
+				firme.denumire,
+				firme.cod_inmatriculare,
+				firme.forma_juridica,
+				firme.cui,
+				firme.data_inmatriculare,
+				firme.judet,
+				stari.status
+			`
+
+	rows := this.constructFirmeQuery(fields, filters, ordering, &pageNumber)
+	defer rows.Close()
+
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
 
@@ -448,12 +494,12 @@ func (this *Repository) GetFirme(filters *FirmeFilters) []*InfoFirmaLight {
 			panic(err)
 		}
 
-		listaFirme = append(listaFirme, &infoFirma)
+		result.Data = append(result.Data, &infoFirma)
 	}
 
 	fmt.Println("finished searching in db!")
 
-	return listaFirme;
+	return result;
 }
 
 type InfoFirma struct {

@@ -454,37 +454,51 @@
 
 <nav class="pagination" aria-label="Paginare" id="paginationContainer">
 
-    <button class="pagination-button pagination-prev" id="pageBack" type="button">
+    <button class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage()">
         ←
     </button>
 
-    <button class="pagination-button" type="button">
+    <button class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
         1
     </button>
 
-    <button class="pagination-button" type="button">
+    <button class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
         2
     </button>
 
-    <button class="pagination-button" type="button">
-        3
+    <span class="pagination-dots" id="pageFirstDots">...</span>
+
+    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        9
     </button>
 
-    <button class="pagination-button" type="button">
-        4
+    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        10
     </button>
 
-    <button class="pagination-button" type="button">
-        5
+    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        11
     </button>
 
-    <span class="pagination-dots">...</span>
+    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        12
+    </button>
 
-    <button class="pagination-button" type="button">
+    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        13
+    </button>
+
+    <span class="pagination-dots" id="pageSecondDots">...</span>
+
+    <button class="pagination-button right-page-number" type="button" onclick="goToPage(this)">
+        19
+    </button>
+
+    <button class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
         20
     </button>
 
-    <button class="pagination-button pagination-next" id="pageNext" type="button">
+    <button class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage()">
         →
     </button>
 

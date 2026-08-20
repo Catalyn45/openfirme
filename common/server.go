@@ -36,11 +36,11 @@ func (self *Server) Start() {
 
 	router.GET("/", self.serveHtmlFunc("./public/index.html"))
 
-	router.GET("/search", self.serveHtmlFunc("./public/search.html"))
+	router.GET("/search/:page_number", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
 
-	router.GET("/firme", self.getFirme)
-	router.GET("/firme/:numar_inmatriculare", self.getFirma)
+	router.GET("/firme/:page_number", self.getFirme)
+	router.GET("/firma/:numar_inmatriculare", self.getFirma)
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
 
@@ -64,11 +64,25 @@ func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *ht
 	}
 }
 
-func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	page_number := ps.ByName("page_number")
+
+	pageNumber := 1
+
+	if page_number != "" {
+		var err error
+
+		pageNumber, err = strconv.Atoi(page_number)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	fmt.Println(pageNumber)
+
 	query := r.URL.Query()
 
 	fmt.Println(query)
-
 
 	filters := FirmeFilters {
 		numePartial: query.Get("nume_partial"),
@@ -79,6 +93,8 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httproute
 		dataBefore: query.Get("data_before"),
 	}
 
+	ordering := FirmeOrdering{}
+
 	sort_by := query.Get("sort_by")
 	if sort_by != "" {
 		sort := "asc"
@@ -87,11 +103,11 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httproute
 			sort = "desc"
 		}
 
-		filters.sortBy = sort_by
-		filters.sortOrder = sort
+		ordering.sortBy = sort_by
+		ordering.sortOrder = sort
 	}
 
-	firme := self.repository.GetFirme(&filters)
+	firme := self.repository.GetFirme(&filters, &ordering, pageNumber)
 
 	self.returnSuccess(w, firme)
 }

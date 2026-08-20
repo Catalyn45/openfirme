@@ -8,17 +8,116 @@ const companyTip = prototypeCard.getElementsByClassName("company-tip")[0]
 const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
 const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
 
+const firstDots = document.getElementById("pageFirstDots")
+const secondDots = document.getElementById("pageSecondDots")
+
+const pagesContainer = document.getElementById("paginationContainer")
+
+const leftPages = document.getElementsByClassName("left-page-number")
+const middlePages = document.getElementsByClassName("middle-page-number")
+const rightPages = document.getElementsByClassName("right-page-number")
+
+const backButton = document.getElementById("pageBack")
+const nextButton = document.getElementById("pageNext")
+
+function updatePageNumbers(currentPage, totalResults) {
+	if (totalResults <= 20) {
+		return
+	}
+
+	const totalPages = Math.ceil(totalResults / 20);
+
+	if (currentPage == 1) {
+		backButton.style.display = "none"
+	} else if (currentPage == totalPages) {
+		nextButton.style.display = "none"
+	}
+
+	rightPages[rightPages.length - 1].textContent = totalPages
+	rightPages[rightPages.length - 2].textContent = totalPages - 1
+
+	if (totalPages <= 9) {
+		firstDots.style.display = "none"
+		secondDots.style.display = "none"
+
+		for (const [index, item] of [...leftPages, ...middlePages, ...rightPages].entries()) {
+			if (index + 1 > totalPages) {
+				item.style.display = "none"
+				continue
+			}
+
+			item.innerText = index + 1
+
+			if (index + 1 == currentPage) {
+				item.classList.add("active")
+			}
+		}
+
+		return
+	}
+
+	if (currentPage <= 5) {
+		firstDots.style.display = "none"
+	}
+
+	if (currentPage > totalPages - 5) {
+		secondDots.style.display = "none"
+	}
+
+	let startingPage = currentPage - 2
+	if (currentPage <= 5) {
+		startingPage = 3
+	} else if (currentPage > totalPages - 5) {
+		startingPage = totalPages - 7
+	}
+
+	for (let el of middlePages) {
+		el.innerText = startingPage
+
+		if (startingPage == currentPage) {
+			el.classList.add("active")
+		}
+
+		startingPage = startingPage + 1
+	}
+
+	if (currentPage <= 2) {
+		leftPages[currentPage-1].classList.add("active")
+	} else if (currentPage > totalPages - 2) {
+		rightPages[currentPage - totalPages + 1].classList.add("active")
+	}
+
+	pagesContainer.style.display = "flex"
+}
+
+function goToPage(pageButton) {
+	const pageNumber = parseInt(pageButton.innerText)
+    window.location = `/search/${pageNumber}${window.location.search}`
+}
+
+function goToNextPage() {
+	const pageNumber = parseInt(window.location.pathname.split('/').pop());
+    window.location = `/search/${pageNumber+1}${window.location.search}`
+}
+
+function goToPrevPage() {
+	const pageNumber = parseInt(window.location.pathname.split('/').pop());
+    window.location = `/search/${pageNumber-1}${window.location.search}`
+}
+
 async function main() {
-	let endpoint = `/firme${window.location.search}`
+	const pageNumber = window.location.pathname.split('/').pop();
+
+	let endpoint = `/firme/${pageNumber}${window.location.search}`
 
     const response = await fetch(endpoint)
     const data = await response.json()
 
     console.log(data)
 
-    let resultCount = data.length;
+    let resultCount = data.Count
 
-    for (let firma of data) {
+    for (let firma of data.Data) {
         companyName.textContent = firma.Nume
 		companyJudet.textContent = firma.Judet
 
@@ -52,6 +151,8 @@ async function main() {
     document
         .getElementById("emptyState")
         .style.display = resultCount === 0 ? "block" : "none";
+
+	updatePageNumbers(pageNumber, resultCount)
 }
 
 main()

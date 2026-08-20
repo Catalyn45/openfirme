@@ -40,8 +40,7 @@ async function searchCompanies() {
             .getElementById("sortDirection")
             .value;
 
-    // let endpoint = `/firme?nume_partial=${query}`
-    let endpoint = `/search?nume_partial=${query}`
+    let endpoint = `/search/1?nume_partial=${query}`
 
     if (county) {
         endpoint = `${endpoint}&judet=${county}`
