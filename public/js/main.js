@@ -30,6 +30,16 @@ async function searchCompanies() {
             .getElementById("yearFilter")
             .value;
 
+    const sortBy =
+        document
+            .getElementById("sortField")
+            .value;
+
+    const sortOrder =
+        document
+            .getElementById("sortDirection")
+            .value;
+
     // let endpoint = `/firme?nume_partial=${query}`
     let endpoint = `/search?nume_partial=${query}`
 
@@ -56,6 +66,14 @@ async function searchCompanies() {
             endpoint = `${endpoint}&data_before=${before}`
         }
     }
+
+	if (sortBy) {
+		endpoint = `${endpoint}&sort_by=${sortBy}`
+
+		if (sortOrder) {
+			endpoint = `${endpoint}&sort_order=${sortOrder}`
+		}
+	}
 
 	window.location = endpoint
 }

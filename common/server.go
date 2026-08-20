@@ -69,16 +69,29 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, _ httproute
 
 	fmt.Println(query)
 
-	nume_partial := query.Get("nume_partial")
-	judet := query.Get("judet")
-	status := query.Get("status")
 
-	forma_juridica := query.Get("forma_juridica")
+	filters := FirmeFilters {
+		numePartial: query.Get("nume_partial"),
+		judet: query.Get("judet"),
+		status: query.Get("status"),
+		formaJuridica: query.Get("forma_juridica"),
+		dataAfter: query.Get("data_after"),
+		dataBefore: query.Get("data_before"),
+	}
 
-	data_after := query.Get("data_after")
-	data_before := query.Get("data_before")
+	sort_by := query.Get("sort_by")
+	if sort_by != "" {
+		sort := "asc"
 
-	firme := self.repository.GetFirme(nume_partial, judet, status, forma_juridica, data_after, data_before)
+		if query.Get("sort_order") == "desc" {
+			sort = "desc"
+		}
+
+		filters.sortBy = sort_by
+		filters.sortOrder = sort
+	}
+
+	firme := self.repository.GetFirme(&filters)
 
 	self.returnSuccess(w, firme)
 }

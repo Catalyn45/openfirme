@@ -40,7 +40,8 @@
 
     <p>
         Caută informații publice despre societăți comerciale
-        folosind denumirea firmei    </p>
+        folosind denumirea firmei
+    </p>
 
     <div class="search-wrapper">
 
@@ -74,160 +75,261 @@
 
 
         <!-- ====================================================
-             FILTERS
+             SIDEBAR
         ==================================================== -->
 
-        <aside class="filters">
-
-            <h3>Filtre</h3>
+        <div class="sidebar">
 
 
-            <div class="filter-group">
+            <!-- ====================================================
+                 SORTING
+            ==================================================== -->
 
-                <label for="countyFilter">
-                    Județ
-                </label>
+            <aside class="sort-box">
 
-                <select id="countyFilter">
+                <h3>Sortare</h3>
 
-                    <option value="">Toate județele</option>
+                <div class="filter-group">
 
-                    <option value="Bucureşti">Bucureşti</option>
-                    <option value="Ilfov">Ilfov</option>
-                    <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
-                    <option value="Maramureş">Maramureş</option>
-                    <option value="Ialomiţa">Ialomiţa</option>
-                    <option value="Alba">Alba</option>
-                    <option value="Tulcea">Tulcea</option>
-                    <option value="Argeş">Argeş</option>
-                    <option value="Mehedinţi">Mehedinţi</option>
-                    <option value="Prahova">Prahova</option>
-                    <option value="Olt">Olt</option>
-                    <option value="Sălaj">Sălaj</option>
-                    <option value="Satu Mare">Satu Mare</option>
-                    <option value="Arad">Arad</option>
-                    <option value="Braşov">Braşov</option>
-                    <option value="Iaşi">Iaşi</option>
-                    <option value="Suceava">Suceava</option>
-                    <option value="Sibiu">Sibiu</option>
-                    <option value="Harghita">Harghita</option>
-                    <option value="Mureş">Mureş</option>
-                    <option value="Bacău">Bacău</option>
-                    <option value="Neamţ">Neamţ</option>
-                    <option value="Cluj">Cluj</option>
-                    <option value="Teleorman">Teleorman</option>
-                    <option value="Constanţa">Constanţa</option>
-                    <option value="Vrancea">Vrancea</option>
-                    <option value="Gorj">Gorj</option>
-                    <option value="Bihor">Bihor</option>
-                    <option value="Hunedoara">Hunedoara</option>
-                    <option value="Timiş">Timiş</option>
-                    <option value="Călăraşi">Călăraşi</option>
-                    <option value="Galaţi">Galaţi</option>
-                    <option value="Vaslui">Vaslui</option>
-                    <option value="Dâmboviţa">Dâmboviţa</option>
-                    <option value="Dolj">Dolj</option>
-                    <option value="Vâlcea">Vâlcea</option>
-                    <option value="Caraş-Severin">Caraş-Severin</option>
-                    <option value="Botoşani">Botoşani</option>
-                    <option value="Covasna">Covasna</option>
-                    <option value="Brăila">Brăila</option>
-                    <option value="Buzău">Buzău</option>
-                    <option value="Giurgiu">Giurgiu</option>
-                </select>
+                    <label for="sortField">
+                        Sortează după
+                    </label>
 
-            </div>
+                    <select id="sortField">
 
+                        <option value="">
+                            Implicit
+                        </option>
 
-            <div class="filter-group">
+                        <option value="name">
+                            Denumire
+                        </option>
 
-                <label for="statusFilter">
-                    Status firmă
-                </label>
+                        <option value="cui">
+                            CUI / CIF
+                        </option>
 
-                <select id="statusFilter">
+                        <option value="county">
+                            Județ
+                        </option>
 
-                    <option value="">
-                        Orice status
-                    </option>
+                        <option value="status">
+                            Status
+                        </option>
 
-                    <option value="funcțiune">
-                        Activă
-                    </option>
+                        <option value="legalForm">
+                            Formă juridică
+                        </option>
 
-                    <option value="radiată">
-                        Radiată
-                    </option>
+                        <option value="founded">
+                            An înființare
+                        </option>
 
-                    <option value="dizolvare">
-                        Dizolvată
-                    </option>
+                        <option value="turnover">
+                            Cifră de afaceri
+                        </option>
 
-                </select>
+                        <option value="profit">
+                            Profit net
+                        </option>
 
-            </div>
+                        <option value="employees">
+                            Angajați
+                        </option>
 
-            <div class="filter-group">
+                    </select>
 
-                <label for="formaFilter">
-                    Formă juridică
-                </label>
-
-                <select id="formaFilter">
-
-                    <option value="">
-                        Oricare
-                    </option>
-
-                    <option value="SRL">
-						SRL
-                    </option>
-
-                    <option value="PFA">
-                        PFA
-                    </option>
-                </select>
-
-            </div>
-
-            <div class="filter-group">
-
-                <label for="yearFilter">
-                    An înființare
-                </label>
-
-                <select id="yearFilter">
-
-                    <option value="">
-                        Orice an
-                    </option>
-
-                    <option value="2020-01-01/">
-                        2020 - prezent
-                    </option>
-
-                    <option value="2010-01-01/2019-12-31 23:59">
-                        2010 - 2019
-                    </option>
-
-                    <option value="2000-01-01/2009-12-31 23:59">
-                        2000 - 2009
-                    </option>
-
-                    <option value="/1999-31-12 23:59">
-                        Înainte de 2000
-                    </option>
-
-                </select>
-
-            </div>
+                </div>
 
 
-            <button class="reset-btn" onclick="resetFilters()" >
-                Resetează filtrele
-            </button>
+                <div class="filter-group">
 
-        </aside>
+                    <label for="sortDirection">
+                        Ordine
+                    </label>
+
+                    <select id="sortDirection">
+
+                        <option value="asc">
+                            Crescător
+                        </option>
+
+                        <option value="desc">
+                            Descrescător
+                        </option>
+
+                    </select>
+
+                </div>
+            </aside>
+
+
+            <!-- ====================================================
+                 FILTERS
+            ==================================================== -->
+
+            <aside class="filters">
+
+                <h3>Filtre</h3>
+
+
+                <div class="filter-group">
+
+                    <label for="countyFilter">
+                        Județ
+                    </label>
+
+                    <select id="countyFilter">
+
+                        <option value="">
+                            Toate județele
+                        </option>
+
+                        <option value="Bucureşti">Bucureşti</option>
+                        <option value="Ilfov">Ilfov</option>
+                        <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
+                        <option value="Maramureş">Maramureş</option>
+                        <option value="Ialomiţa">Ialomiţa</option>
+                        <option value="Alba">Alba</option>
+                        <option value="Tulcea">Tulcea</option>
+                        <option value="Argeş">Argeş</option>
+                        <option value="Mehedinţi">Mehedinţi</option>
+                        <option value="Prahova">Prahova</option>
+                        <option value="Olt">Olt</option>
+                        <option value="Sălaj">Sălaj</option>
+                        <option value="Satu Mare">Satu Mare</option>
+                        <option value="Arad">Arad</option>
+                        <option value="Braşov">Braşov</option>
+                        <option value="Iaşi">Iaşi</option>
+                        <option value="Suceava">Suceava</option>
+                        <option value="Sibiu">Sibiu</option>
+                        <option value="Harghita">Harghita</option>
+                        <option value="Mureş">Mureş</option>
+                        <option value="Bacău">Bacău</option>
+                        <option value="Neamţ">Neamţ</option>
+                        <option value="Cluj">Cluj</option>
+                        <option value="Teleorman">Teleorman</option>
+                        <option value="Constanţa">Constanţa</option>
+                        <option value="Vrancea">Vrancea</option>
+                        <option value="Gorj">Gorj</option>
+                        <option value="Bihor">Bihor</option>
+                        <option value="Hunedoara">Hunedoara</option>
+                        <option value="Timiş">Timiş</option>
+                        <option value="Călăraşi">Călăraşi</option>
+                        <option value="Galaţi">Galaţi</option>
+                        <option value="Vaslui">Vaslui</option>
+                        <option value="Dâmboviţa">Dâmboviţa</option>
+                        <option value="Dolj">Dolj</option>
+                        <option value="Vâlcea">Vâlcea</option>
+                        <option value="Caraş-Severin">Caraş-Severin</option>
+                        <option value="Botoşani">Botoşani</option>
+                        <option value="Covasna">Covasna</option>
+                        <option value="Brăila">Brăila</option>
+                        <option value="Buzău">Buzău</option>
+                        <option value="Giurgiu">Giurgiu</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="statusFilter">
+                        Status firmă
+                    </label>
+
+                    <select id="statusFilter">
+
+                        <option value="">
+                            Orice status
+                        </option>
+
+                        <option value="funcțiune">
+                            Activă
+                        </option>
+
+                        <option value="radiată">
+                            Radiată
+                        </option>
+
+                        <option value="dizolvare">
+                            Dizolvată
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="formaFilter">
+                        Formă juridică
+                    </label>
+
+                    <select id="formaFilter">
+
+                        <option value="">
+                            Oricare
+                        </option>
+
+                        <option value="SRL">
+                            SRL
+                        </option>
+
+                        <option value="PFA">
+                            PFA
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="yearFilter">
+                        An înființare
+                    </label>
+
+                    <select id="yearFilter">
+
+                        <option value="">
+                            Orice an
+                        </option>
+
+                        <option value="2020-01-01/">
+                            2020 - prezent
+                        </option>
+
+                        <option value="2010-01-01/2019-12-31 23:59">
+                            2010 - 2019
+                        </option>
+
+                        <option value="2000-01-01/2009-12-31 23:59">
+                            2000 - 2009
+                        </option>
+
+                        <option value="/1999-31-12 23:59">
+                            Înainte de 2000
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    class="reset-btn"
+                    onclick="resetFilters()"
+                >
+                    Resetează filtrele
+                </button>
+
+            </aside>
+
+        </div>
 
 
         <!-- ====================================================
@@ -236,344 +338,355 @@
 
         <section>
 
-			<div class="modal" id="profileModal">
+            <!-- ====================================================
+                 MODAL / COMPANY PROFILE
+            ==================================================== -->
 
-				<div class="modal-content">
+            <div
+                class="modal"
+                id="profileModal"
+            >
 
-					<div class="modal-header">
-						<h2 id="profileCompanyName">
-							Example Technologies SRL
-						</h2>
+                <div class="modal-content">
 
-						<p>
-							Profil companie • România
-						</p>
+                    <div class="modal-header">
 
-					</div>
+                        <h2 id="profileCompanyName">
+                            Example Technologies SRL
+                        </h2>
 
+                        <p>
+                            Profil companie • România
+                        </p>
+                    </div>
 
-					<div class="modal-body">
 
+                    <div class="modal-body">
 
-						<!-- IDENTIFICATION -->
 
-						<div class="profile-section">
+                        <!-- IDENTIFICATION -->
 
-							<h3>
-								Date de identificare
-							</h3>
+                        <div class="profile-section">
 
-							<div class="profile-grid">
+                            <h3>
+                                Date de identificare
+                            </h3>
 
-								<div class="profile-field">
+                            <div class="profile-grid">
 
-									<small>
-										Denumire
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileName">
-										Example Technologies SRL
-									</strong>
+                                    <small>
+                                        Denumire
+                                    </small>
 
-								</div>
+                                    <strong id="profileName">
+                                        Example Technologies SRL
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										CUI / CIF
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyCui">
-										RO12345678
-									</strong>
+                                    <small>
+                                        CUI / CIF
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyCui">
+                                        RO12345678
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Nr. Registrul Comerțului
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyId">
-										J22/1234/2020
-									</strong>
+                                    <small>
+                                        Nr. Registrul Comerțului
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyId">
+                                        J22/1234/2020
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Formă juridică
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyForma">
-										Societate cu Răspundere Limitată
-									</strong>
+                                    <small>
+                                        Formă juridică
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyForma">
+                                        Societate cu Răspundere Limitată
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Status
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyStatus">
-										Activă
-									</strong>
+                                    <small>
+                                        Status
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyStatus">
+                                        Activă
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Data înființării
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyData">
-										15 iunie 2020
-									</strong>
+                                    <small>
+                                        Data înființării
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyData">
+                                        15 iunie 2020
+                                    </strong>
 
-							</div>
+                                </div>
 
-						</div>
+                            </div>
 
+                        </div>
 
-						<!-- ADDRESS -->
 
-						<div class="profile-section">
+                        <!-- ADDRESS -->
 
-							<h3>
-								Sediu social
-							</h3>
+                        <div class="profile-section">
 
-							<div class="profile-grid">
+                            <h3>
+                                Sediu social
+                            </h3>
 
-								<div class="profile-field">
+                            <div class="profile-grid">
 
-									<small>
-										Județ
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyJudet">
-										Iași
-									</strong>
+                                    <small>
+                                        Județ
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyJudet">
+                                        Iași
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Localitate
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyLocalitate">
-										Iași
-									</strong>
+                                    <small>
+                                        Localitate
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyLocalitate">
+                                        Iași
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Adresă
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyAdresa">
-										Str. Exemplu nr. 10
-									</strong>
+                                    <small>
+                                        Adresă
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyAdresa">
+                                        Str. Exemplu nr. 10
+                                    </strong>
 
+                                </div>
 
-								<div class="profile-field">
 
-									<small>
-										Cod poștal
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyCodPostal">
-										700000
-									</strong>
+                                    <small>
+                                        Cod poștal
+                                    </small>
 
-								</div>
+                                    <strong id="profileCompanyCodPostal">
+                                        700000
+                                    </strong>
 
-							</div>
+                                </div>
 
-						</div>
+                            </div>
 
+                        </div>
 
-						<!-- ACTIVITY -->
 
-						<div class="profile-section">
+                        <!-- ACTIVITY -->
 
-							<h3>
-								Activitate
-							</h3>
+                        <div class="profile-section">
 
-							<div class>
+                            <h3>
+                                Activitate
+                            </h3>
 
-								<div class="profile-field">
+                            <div class="profile-grid">
 
-									<small>
-										coduri CAEN
-									</small>
+                                <div class="profile-field">
 
-									<strong id="profileCompanyCaen">
-										6201
-									</strong>
+                                    <small>
+                                        Coduri CAEN
+                                    </small>
 
-								</div>
-							</div>
+                                    <strong id="profileCompanyCaen">
+                                        6201
+                                    </strong>
 
-						</div>
+                                </div>
 
+                            </div>
 
-						<!-- PEOPLE -->
+                        </div>
 
-						<div class="profile-section">
 
-							<h3>
-								Persoane / structura companiei
-							</h3>
+                        <!-- PEOPLE -->
 
-							<div class="profile-grid">
+                        <div class="profile-section">
 
-								<div class="profile-field">
+                            <h3>
+                                Persoane / structura companiei
+                            </h3>
 
-									<small>
-										Administratori
-									</small>
+                            <div class="profile-grid">
 
-									<strong id="profileCompanyAdministratori">
-										Informație disponibilă
-									</strong>
+                                <div class="profile-field">
 
-								</div>
+                                    <small>
+                                        Administratori
+                                    </small>
 
+                                    <strong id="profileCompanyAdministratori">
+                                        Informație disponibilă
+                                    </strong>
 
-								<div class="profile-field">
+                                </div>
 
-									<small>
-										Asociați
-									</small>
 
-									<strong>
-										Informație disponibilă
-									</strong>
+                                <div class="profile-field">
 
-								</div>
+                                    <small>
+                                        Asociați
+                                    </small>
 
-							</div>
+                                    <strong>
+                                        Informație disponibilă
+                                    </strong>
 
-						</div>
+                                </div>
 
+                            </div>
 
-						<!-- FINANCIAL -->
+                        </div>
 
-						<div class="profile-section">
 
-							<h3>
-								Date financiare
-							</h3>
+                        <!-- FINANCIAL -->
 
-							<div class="profile-grid">
+                        <div class="profile-section">
 
-								<div class="profile-field">
+                            <h3>
+                                Date financiare
+                            </h3>
 
-									<small>
-										Cifră de afaceri
-									</small>
+                            <div class="profile-grid">
 
-									<strong>
-										2.450.000 RON
-									</strong>
+                                <div class="profile-field">
 
-								</div>
+                                    <small>
+                                        Cifră de afaceri
+                                    </small>
 
+                                    <strong>
+                                        2.450.000 RON
+                                    </strong>
 
-								<div class="profile-field">
+                                </div>
 
-									<small>
-										Profit net
-									</small>
 
-									<strong>
-										380.000 RON
-									</strong>
+                                <div class="profile-field">
 
-								</div>
+                                    <small>
+                                        Profit net
+                                    </small>
 
+                                    <strong>
+                                        380.000 RON
+                                    </strong>
 
-								<div class="profile-field">
+                                </div>
 
-									<small>
-										Angajați
-									</small>
 
-									<strong>
-										24
-									</strong>
+                                <div class="profile-field">
 
-								</div>
+                                    <small>
+                                        Angajați
+                                    </small>
 
+                                    <strong>
+                                        24
+                                    </strong>
 
-								<div class="profile-field">
+                                </div>
 
-									<small>
-										An financiar
-									</small>
 
-									<strong>
-										2025
-									</strong>
+                                <div class="profile-field">
 
-								</div>
+                                    <small>
+                                        An financiar
+                                    </small>
 
-							</div>
+                                    <strong>
+                                        2025
+                                    </strong>
 
-						</div>
+                                </div>
 
+                            </div>
 
-						<!-- SOURCES -->
+                        </div>
 
-						<div class="profile-section">
 
-							<h3>
-								Surse și actualizare
-							</h3>
+                        <!-- SOURCES -->
 
-							<div class="source">
+                        <div class="profile-section">
 
-								Informațiile afișate trebuie verificate
-								în sursele publice oficiale înainte de
-								utilizarea lor în scopuri juridice,
-								comerciale sau financiare.
+                            <h3>
+                                Surse și actualizare
+                            </h3>
 
-								<br><br>
+                            <div class="source">
 
-								Ultima verificare:
-								<strong>16 august 2026</strong>
+                                Informațiile afișate trebuie verificate
+                                în sursele publice oficiale înainte de
+                                utilizarea lor în scopuri juridice,
+                                comerciale sau financiare.
 
-							</div>
+                                <br><br>
 
-						</div>
+                                Ultima verificare:
+                                <strong>
+                                    16 august 2026
+                                </strong>
 
-					</div>
+                            </div>
 
-				</div>
+                        </div>
 
-			</div>
+                    </div>
+
+                </div>
+
+            </div>
+
         </section>
 
     </div>
@@ -596,12 +709,9 @@
 
 </footer>
 
+
 <script src="/public/js/main.js"></script>
 <script src="/public/js/profile.js"></script>
 
 </body>
 </html>
-
-
-
-

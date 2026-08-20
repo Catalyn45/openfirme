@@ -332,6 +332,17 @@ func (this *Repository) UpdateCaen(dataset []map[string]string) {
 	}
 }
 
+type FirmeFilters struct {
+	numePartial string
+	judet string
+	status string
+	formaJuridica string
+	dataAfter string
+	dataBefore string
+	sortBy string
+	sortOrder string
+}
+
 type InfoFirmaLight struct {
 	Nume string
 	CodInmatriculare string
@@ -342,7 +353,19 @@ type InfoFirmaLight struct {
 	Status string
 }
 
-func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, statusFilter string, formaJuridicaFilter string, dataAfter string, dataBefore string) []*InfoFirmaLight {
+func (this *Repository) mapSortFiled(sortBy string) string {
+	if sortBy == "status" {
+		return "stari.status"
+	}
+
+	if sortBy == "founded" {
+		return "firme.data_inmatriculare"
+	}
+
+	return ""
+}
+
+func (this *Repository) GetFirme(filters *FirmeFilters) []*InfoFirmaLight {
 	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
@@ -360,37 +383,43 @@ func (this *Repository) GetFirme(partialNumeFirma string, judetFilter string, st
 
 	params := []any{}
 
-	if partialNumeFirma != "" {
+	if filters.numePartial != "" {
 		stmt += " AND firme_search MATCH ? "
-		params = append(params, partialNumeFirma)
+		params = append(params, filters.numePartial)
 	}
 
-	if judetFilter != "" {
+	if filters.judet != "" {
 		stmt += " AND firme.judet = ? "
-		params = append(params, judetFilter)
+		params = append(params, filters.judet)
 	}
 
-	if statusFilter != "" {
+	if filters.status != "" {
 		stmt += " AND stari.status = ? "
-		params = append(params, statusFilter)
+		params = append(params, filters.status)
 	}
 
-	if formaJuridicaFilter != "" {
+	if filters.formaJuridica != "" {
 		stmt += " AND firme.forma_juridica = ? "
-		params = append(params, formaJuridicaFilter)
+		params = append(params, filters.formaJuridica)
 	}
 
-	if dataAfter != "" {
+	if filters.dataAfter != "" {
 		stmt += " AND firme.data_inmatriculare >= ? "
-		params = append(params, dataAfter)
+		params = append(params, filters.dataAfter)
 	}
 
-	if dataBefore != "" {
+	if filters.dataBefore != "" {
 		stmt += " AND firme.data_inmatriculare <= ? "
-		params = append(params, dataBefore)
+		params = append(params, filters.dataBefore)
 	}
 
 	stmt += "\n"
+
+	sortBy := this.mapSortFiled(filters.sortBy)
+	if sortBy != "" {
+		stmt += "ORDER BY " + sortBy + " " + filters.sortOrder + ";"
+		stmt += "\n"
+	}
 
 	stmt += "LIMIT 20";
 

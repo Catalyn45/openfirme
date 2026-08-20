@@ -64,168 +64,232 @@
 
 </section>
 
-
 <!-- ============================================================
      MAIN
 ============================================================ -->
 
 <main>
 
+<div class="home-layout">
 
-        <!-- ====================================================
-             FILTERS
-        ==================================================== -->
+    <aside class="sort-box">
 
-        <aside class="filters">
-
-            <h3>Filtre</h3>
-
-
-            <div class="filter-group">
-
-                <label for="countyFilter">
-                    Județ
-                </label>
-
-                <select id="countyFilter">
-
-                    <option value="">Toate județele</option>
-
-                    <option value="Bucureşti">Bucureşti</option>
-                    <option value="Ilfov">Ilfov</option>
-                    <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
-                    <option value="Maramureş">Maramureş</option>
-                    <option value="Ialomiţa">Ialomiţa</option>
-                    <option value="Alba">Alba</option>
-                    <option value="Tulcea">Tulcea</option>
-                    <option value="Argeş">Argeş</option>
-                    <option value="Mehedinţi">Mehedinţi</option>
-                    <option value="Prahova">Prahova</option>
-                    <option value="Olt">Olt</option>
-                    <option value="Sălaj">Sălaj</option>
-                    <option value="Satu Mare">Satu Mare</option>
-                    <option value="Arad">Arad</option>
-                    <option value="Braşov">Braşov</option>
-                    <option value="Iaşi">Iaşi</option>
-                    <option value="Suceava">Suceava</option>
-                    <option value="Sibiu">Sibiu</option>
-                    <option value="Harghita">Harghita</option>
-                    <option value="Mureş">Mureş</option>
-                    <option value="Bacău">Bacău</option>
-                    <option value="Neamţ">Neamţ</option>
-                    <option value="Cluj">Cluj</option>
-                    <option value="Teleorman">Teleorman</option>
-                    <option value="Constanţa">Constanţa</option>
-                    <option value="Vrancea">Vrancea</option>
-                    <option value="Gorj">Gorj</option>
-                    <option value="Bihor">Bihor</option>
-                    <option value="Hunedoara">Hunedoara</option>
-                    <option value="Timiş">Timiş</option>
-                    <option value="Călăraşi">Călăraşi</option>
-                    <option value="Galaţi">Galaţi</option>
-                    <option value="Vaslui">Vaslui</option>
-                    <option value="Dâmboviţa">Dâmboviţa</option>
-                    <option value="Dolj">Dolj</option>
-                    <option value="Vâlcea">Vâlcea</option>
-                    <option value="Caraş-Severin">Caraş-Severin</option>
-                    <option value="Botoşani">Botoşani</option>
-                    <option value="Covasna">Covasna</option>
-                    <option value="Brăila">Brăila</option>
-                    <option value="Buzău">Buzău</option>
-                    <option value="Giurgiu">Giurgiu</option>
-                </select>
-
+        <div class="sidebar-title">
+            <div>
+                <h3>Sortare</h3>
             </div>
+        </div>
 
+        <div class="sort-fields">
 
             <div class="filter-group">
-
-                <label for="statusFilter">
-                    Status firmă
+                <label for="sortField">
+                    Sortează după
                 </label>
 
-                <select id="statusFilter">
-
-                    <option value="">
-                        Orice status
-                    </option>
-
-                    <option value="funcțiune">
-                        Activă
-                    </option>
-
-                    <option value="radiată">
-                        Radiată
-                    </option>
-
-                    <option value="dizolvare">
-                        Dizolvată
-                    </option>
-
+                <select id="sortField">
+                    <option value="">Implicit</option>
+                    <option value="name">Denumire</option>
+                    <option value="cui">CUI / CIF</option>
+                    <option value="county">Județ</option>
+                    <option value="status">Status</option>
+                    <option value="legalForm">Formă juridică</option>
+                    <option value="founded">An înființare</option>
+                    <option value="turnover">Cifră de afaceri</option>
+                    <option value="profit">Profit net</option>
+                    <option value="employees">Angajați</option>
                 </select>
-
             </div>
 
             <div class="filter-group">
-
-                <label for="formaFilter">
-                    Formă juridică
+                <label for="sortDirection">
+                    Ordine
                 </label>
 
-                <select id="formaFilter">
-
-                    <option value="">
-                        Oricare
+                <select id="sortDirection">
+                    <option value="asc">
+                        Crescător
                     </option>
 
-                    <option value="SRL">
-						SRL
-                    </option>
-
-                    <option value="PFA">
-                        PFA
+                    <option value="desc">
+                        Descrescător
                     </option>
                 </select>
-
             </div>
+        </div>
 
-            <div class="filter-group">
+    </aside>
 
-                <label for="yearFilter">
-                    An înființare
-                </label>
 
-                <select id="yearFilter">
+            <aside class="filters">
 
-                    <option value="">
-                        Orice an
-                    </option>
+                <h3>Filtre</h3>
 
-                    <option value="2020-01-01/">
-                        2020 - prezent
-                    </option>
 
-                    <option value="2010-01-01/2019-12-31 23:59">
-                        2010 - 2019
-                    </option>
+                <div class="filter-group">
 
-                    <option value="2000-01-01/2009-12-31 23:59">
-                        2000 - 2009
-                    </option>
+                    <label for="countyFilter">
+                        Județ
+                    </label>
 
-                    <option value="/1999-31-12 23:59">
-                        Înainte de 2000
-                    </option>
+                    <select id="countyFilter">
 
-                </select>
+                        <option value="">
+                            Toate județele
+                        </option>
 
-            </div>
-            <button class="reset-btn" onclick="resetFilters()" >
-                Resetează filtrele
-            </button>
+                        <option value="Bucureşti">Bucureşti</option>
+                        <option value="Ilfov">Ilfov</option>
+                        <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
+                        <option value="Maramureş">Maramureş</option>
+                        <option value="Ialomiţa">Ialomiţa</option>
+                        <option value="Alba">Alba</option>
+                        <option value="Tulcea">Tulcea</option>
+                        <option value="Argeş">Argeş</option>
+                        <option value="Mehedinţi">Mehedinţi</option>
+                        <option value="Prahova">Prahova</option>
+                        <option value="Olt">Olt</option>
+                        <option value="Sălaj">Sălaj</option>
+                        <option value="Satu Mare">Satu Mare</option>
+                        <option value="Arad">Arad</option>
+                        <option value="Braşov">Braşov</option>
+                        <option value="Iaşi">Iaşi</option>
+                        <option value="Suceava">Suceava</option>
+                        <option value="Sibiu">Sibiu</option>
+                        <option value="Harghita">Harghita</option>
+                        <option value="Mureş">Mureş</option>
+                        <option value="Bacău">Bacău</option>
+                        <option value="Neamţ">Neamţ</option>
+                        <option value="Cluj">Cluj</option>
+                        <option value="Teleorman">Teleorman</option>
+                        <option value="Constanţa">Constanţa</option>
+                        <option value="Vrancea">Vrancea</option>
+                        <option value="Gorj">Gorj</option>
+                        <option value="Bihor">Bihor</option>
+                        <option value="Hunedoara">Hunedoara</option>
+                        <option value="Timiş">Timiş</option>
+                        <option value="Călăraşi">Călăraşi</option>
+                        <option value="Galaţi">Galaţi</option>
+                        <option value="Vaslui">Vaslui</option>
+                        <option value="Dâmboviţa">Dâmboviţa</option>
+                        <option value="Dolj">Dolj</option>
+                        <option value="Vâlcea">Vâlcea</option>
+                        <option value="Caraş-Severin">Caraş-Severin</option>
+                        <option value="Botoşani">Botoşani</option>
+                        <option value="Covasna">Covasna</option>
+                        <option value="Brăila">Brăila</option>
+                        <option value="Buzău">Buzău</option>
+                        <option value="Giurgiu">Giurgiu</option>
 
-        </aside>
+                    </select>
 
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="statusFilter">
+                        Status firmă
+                    </label>
+
+                    <select id="statusFilter">
+
+                        <option value="">
+                            Orice status
+                        </option>
+
+                        <option value="funcțiune">
+                            Activă
+                        </option>
+
+                        <option value="radiată">
+                            Radiată
+                        </option>
+
+                        <option value="dizolvare">
+                            Dizolvată
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="formaFilter">
+                        Formă juridică
+                    </label>
+
+                    <select id="formaFilter">
+
+                        <option value="">
+                            Oricare
+                        </option>
+
+                        <option value="SRL">
+                            SRL
+                        </option>
+
+                        <option value="PFA">
+                            PFA
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="yearFilter">
+                        An înființare
+                    </label>
+
+                    <select id="yearFilter">
+
+                        <option value="">
+                            Orice an
+                        </option>
+
+                        <option value="2020-01-01/">
+                            2020 - prezent
+                        </option>
+
+                        <option value="2010-01-01/2019-12-31 23:59">
+                            2010 - 2019
+                        </option>
+
+                        <option value="2000-01-01/2009-12-31 23:59">
+                            2000 - 2009
+                        </option>
+
+                        <option value="/1999-31-12 23:59">
+                            Înainte de 2000
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    class="reset-btn"
+                    onclick="resetFilters()"
+                >
+                    Resetează filtrele
+                </button>
+
+            </aside>
+
+
+    <section class="home-content">
+
+        <!-- Future company results -->
+
+    </section>
+
+</div>
 
 </main>
 

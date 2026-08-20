@@ -26,6 +26,7 @@ body {
     line-height: 1.5;
 }
 
+
 /* =========================
    HEADER
 ========================= */
@@ -70,6 +71,7 @@ nav a:hover {
     color: var(--primary);
 }
 
+
 /* =========================
    HERO
 ========================= */
@@ -105,6 +107,7 @@ nav a:hover {
     color: #dbeafe;
     font-size: 17px;
 }
+
 
 /* =========================
    SEARCH BAR
@@ -154,6 +157,7 @@ nav a:hover {
     color: #bfdbfe;
 }
 
+
 /* =========================
    MAIN
 ========================= */
@@ -170,6 +174,61 @@ main {
     gap: 30px;
 }
 
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    /*
+       Keep Sortare + Filtre together
+       while scrolling.
+    */
+    position: sticky;
+    top: 95px;
+    height: fit-content;
+}
+
+
+/* =========================
+   SORTING
+========================= */
+
+.sort-box {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    height: fit-content;
+}
+
+.sort-box h3 {
+    color: var(--dark);
+    margin-bottom: 22px;
+}
+
+.sort-btn {
+    width: 100%;
+    border: none;
+    background: var(--primary);
+    color: white;
+    padding: 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+.sort-btn:hover {
+    background: var(--primary-dark);
+}
+
+
 /* =========================
    FILTERS
 ========================= */
@@ -180,8 +239,6 @@ main {
     border-radius: 12px;
     padding: 22px;
     height: fit-content;
-    position: sticky;
-    top: 95px;
 }
 
 .filters h3 {
@@ -191,6 +248,10 @@ main {
 
 .filter-group {
     margin-bottom: 20px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
 }
 
 .filter-group label {
@@ -209,6 +270,8 @@ main {
     padding: 10px;
     background: white;
     outline: none;
+    color: var(--text);
+    font-size: 14px;
 }
 
 .filter-group select:focus,
@@ -225,11 +288,13 @@ main {
     border-radius: 7px;
     cursor: pointer;
     font-weight: 600;
+    font-size: 14px;
 }
 
 .reset-btn:hover {
     background: #e5e7eb;
 }
+
 
 /* =========================
    RESULTS HEADER
@@ -251,6 +316,7 @@ main {
     color: var(--muted);
     font-size: 14px;
 }
+
 
 /* =========================
    COMPANY CARD
@@ -370,6 +436,7 @@ main {
     background: #dbeafe;
 }
 
+
 /* =========================
    EMPTY STATE
 ========================= */
@@ -391,6 +458,7 @@ main {
 .empty-state p {
     color: var(--muted);
 }
+
 
 /* =========================
    MODAL
@@ -489,6 +557,7 @@ main {
     border-radius: 7px;
 }
 
+
 /* =========================
    FOOTER
 ========================= */
@@ -503,6 +572,7 @@ footer {
     margin-top: 60px;
 }
 
+
 /* =========================
    RESPONSIVE
 ========================= */
@@ -513,7 +583,10 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    .filters {
+    /*
+       Disable sticky sidebar on tablet/mobile.
+    */
+    .sidebar {
         position: static;
     }
 
@@ -525,6 +598,7 @@ footer {
         font-size: 36px;
     }
 }
+
 
 @media (max-width: 600px) {
 
