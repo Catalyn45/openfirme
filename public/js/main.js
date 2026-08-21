@@ -87,25 +87,16 @@ function handleEnter(event) {
 ============================================================ */
 
 function resetFilters() {
-    document
-        .getElementById("searchInput")
-        .value = "";
+    query.value = "";
+    county.value = "";
+    status.value = ""
+    an.value = ""
+    formaJuridica.value = ""
 
-    document
-        .getElementById("countyFilter")
-        .value = "";
+    sortBy.value = ""
+    sortOrder.value = "asc"
 
-    document
-        .getElementById("statusFilter")
-        .value = "";
-
-    document
-        .getElementById("yearFilter")
-        .value = "";
-
-	document
-		.getElementById("formaFilter")
-		.value = "";
+    window.location = window.location.pathname
 }
 
 
@@ -119,7 +110,7 @@ async function openProfile(button) {
 	let inregistrare = card.getElementsByClassName("company-inregistrare")[0].textContent
 	inregistrare = inregistrare.replaceAll("/", "-")
 
-    window.location = `/profile/${inregistrare}`
+    window.location = `/profile/${inregistrare}${window.location.search}`
 }
 
 function updateFilters() {
@@ -139,7 +130,7 @@ function updateFilters() {
     an.value = anFormatted
 
     sortBy.value = params.get("sort_by") ?? ""
-    sortOrder.value = params.get("sort_order") ?? ""
+    sortOrder.value = params.get("sort_order") ?? "asc"
 }
 
 updateFilters()
