@@ -1,61 +1,53 @@
 /* ============================================================
    SEARCH
 ============================================================ */
+const query =
+    document
+        .getElementById("searchInput")
+
+const county =
+    document
+        .getElementById("countyFilter")
+
+const status =
+    document
+        .getElementById("statusFilter")
+
+const formaJuridica =
+    document
+        .getElementById("formaFilter")
+
+const an =
+    document
+        .getElementById("yearFilter")
+
+const sortBy =
+    document
+        .getElementById("sortField")
+
+const sortOrder =
+    document
+        .getElementById("sortDirection")
+
 
 async function searchCompanies() {
-    const query =
-        document
-            .getElementById("searchInput")
-            .value
-            .toLowerCase()
-            .trim();
+    let endpoint = `/search/1?nume_partial=${query.value.toLowerCase().trim()}`
 
-    const county =
-        document
-            .getElementById("countyFilter")
-            .value;
 
-    const status =
-        document
-            .getElementById("statusFilter")
-            .value;
-
-    const formaJuridica =
-        document
-            .getElementById("formaFilter")
-            .value;
-
-    const an =
-        document
-            .getElementById("yearFilter")
-            .value;
-
-    const sortBy =
-        document
-            .getElementById("sortField")
-            .value;
-
-    const sortOrder =
-        document
-            .getElementById("sortDirection")
-            .value;
-
-    let endpoint = `/search/1?nume_partial=${query}`
-
-    if (county) {
-        endpoint = `${endpoint}&judet=${county}`
+    if (county.value) {
+        endpoint = `${endpoint}&judet=${county.value}`
     }
 
-    if (status) {
-        endpoint = `${endpoint}&status=${status}`
+    if (status.value) {
+        endpoint = `${endpoint}&status=${status.value}`
     }
 
-	if (formaJuridica) {
-        endpoint = `${endpoint}&forma_juridica=${formaJuridica}`
+	if (formaJuridica.value) {
+        endpoint = `${endpoint}&forma_juridica=${formaJuridica.value}`
 	}
 
-    if (an) {
-        [after, before] = an.split("/")
+    if (an.value) {
+        [after, before] = an.value.split("/")
 
         if (after) {
             endpoint = `${endpoint}&data_after=${after}`
@@ -66,11 +58,11 @@ async function searchCompanies() {
         }
     }
 
-	if (sortBy) {
-		endpoint = `${endpoint}&sort_by=${sortBy}`
+	if (sortBy.value) {
+		endpoint = `${endpoint}&sort_by=${sortBy.value}`
 
 		if (sortOrder) {
-			endpoint = `${endpoint}&sort_order=${sortOrder}`
+			endpoint = `${endpoint}&sort_order=${sortOrder.value}`
 		}
 	}
 
@@ -95,7 +87,6 @@ function handleEnter(event) {
 ============================================================ */
 
 function resetFilters() {
-
     document
         .getElementById("searchInput")
         .value = "";
@@ -130,3 +121,25 @@ async function openProfile(button) {
 
     window.location = `/profile/${inregistrare}`
 }
+
+function updateFilters() {
+    const params = new URLSearchParams(window.location.search);
+
+    query.value = params.get("nume_partial") ?? ""
+
+    county.value = params.get("judet") ?? ""
+    status.value = params.get("status") ?? ""
+    formaJuridica.value = params.get("forma_juridica") ?? ""
+
+    let anFormatted = `${params.get('data_after') ?? ''}/${params.get('data_before') ?? ''}`
+    if (anFormatted == "/") {
+        anFormatted = ""
+    }
+
+    an.value = anFormatted
+
+    sortBy.value = params.get("sort_by") ?? ""
+    sortOrder.value = params.get("sort_order") ?? ""
+}
+
+updateFilters()
