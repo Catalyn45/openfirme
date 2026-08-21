@@ -32,6 +32,14 @@ function createAddress(json) {
 	return adresa
 }
 
+function formatMoney(amount) {
+	return new Intl.NumberFormat('de-DE', {
+	  style: 'currency',
+	  currency: 'RON',
+	  maximumFractionDigits: 0
+	}).format(amount);
+}
+
 async function main() {
 	const profileId = window.location.pathname.split('/').pop();
 
@@ -69,6 +77,50 @@ async function main() {
 	profileCompanyCodPostal.textContent = json.CodPostal
 	profileCompanyCaen.textContent = json.CoduriCaen?.join(", ") ?? ""
 	profileCompanyAdministratori.textContent = json.Administratori?.join(", ") ?? "Fără administratori"
+
+	if (!json.BilanturiFirma) {
+		return
+	}
+
+	const bilanturiFirmaContainer = document.getElementById("dateFinanciareContainer")
+
+	const table = document.getElementById("dateFinanciareTable")
+
+	const prototype = document.getElementById("dateFinanciareRowPrototype")
+
+	const financiarAn = prototype.getElementsByClassName("dateFinanciareAn")[0]
+	const financiarCifraAfaceri = prototype.getElementsByClassName("dateFinanciareCifraAfaceri")[0]
+	const financiarProfit = prototype.getElementsByClassName("dateFinanciareProfit")[0]
+	const financiarDatorii = prototype.getElementsByClassName("dateFinanciareDatorii")[0]
+	const financiarActiveImobilizate = prototype.getElementsByClassName("dateFinanciareActiveImobilizate")[0]
+	const financiarActiveCirculante = prototype.getElementsByClassName("dateFinanciareActiveCirculante")[0]
+	const financiarCapitaluriProprii = prototype.getElementsByClassName("DateFinanciareCapitaluriProprii")[0]
+	const financiarCapitaluriAngajati = prototype.getElementsByClassName("DateFinanciareAngajati")[0]
+
+	for (let bilant of json.BilanturiFirma) {
+		financiarAn.textContent = bilant.An
+		financiarCifraAfaceri.textContent = formatMoney(bilant.CifraAfaceri)
+
+		let profitNet = bilant.ProfitNet
+		if (profitNet == 0) {
+			profitNet = -1 * bilant.PierdereNeta
+		}
+
+		financiarProfit.textContent = formatMoney(profitNet)
+		financiarDatorii.textContent = formatMoney(bilant.Datorii)
+		financiarActiveImobilizate.textContent = formatMoney(bilant.ActiveImobilizate)
+		financiarActiveCirculante.textContent = formatMoney(bilant.ActiveCirculante)
+		financiarCapitaluriProprii.textContent = formatMoney(bilant.Capitaluri)
+		financiarCapitaluriAngajati.textContent = bilant.Angajati
+
+		let clone = prototype.cloneNode(true)
+        clone.style.display = "table-row"
+        clone.removeAttribute("id")
+
+        prototype.before(clone)
+	}
+
+	bilanturiFirmaContainer.style.display = "block"
 }
 
 main()

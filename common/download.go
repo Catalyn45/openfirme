@@ -23,47 +23,47 @@ func NewDownloader(url string, outputDir string) *Downloader {
 	}
 }
 
-func (this *Downloader) findDatasets() (string, string){
+func (this *Downloader) findDatasets(organization string, patterns []string) map[string]string {
 	c := colly.NewCollector()
 
-	var firme string = ""
-	c.OnHTML(`a[href*="/dataset/firme"]`, func(e *colly.HTMLElement) {
-		if firme == "" {
-			fmt.Println("Found:", e.Attr("href"))
-			firme = e.Attr("href")
-		}
-	})
+	results := make(map[string]string)
 
-	var nomenclatoare string = ""
-	c.OnHTML(`a[href*="/dataset/nomenclatoare"]`, func(e *colly.HTMLElement) {
+	for _, pattern := range patterns {
+		c.OnHTML(pattern, func(e *colly.HTMLElement) {
+			_, ok := results[pattern]
+			if !ok {
+				fmt.Println("Found:", e.Attr("href"))
+				results[pattern] = e.Attr("href")
+			}
+		})
+	}
 
-		if nomenclatoare == "" {
-			fmt.Println("Found:", e.Attr("href"))
-			nomenclatoare = e.Attr("href")
-		}
-	})
-
-	err := c.Visit(this.url + "/organization/onrc")
+	err := c.Visit(this.url + organization)
 	if err != nil {
 		panic(err)
 	}
 
-	return firme, nomenclatoare
+	return results
 }
 
-func (this *Downloader) findResources(url string) []string {
+func (this *Downloader) findResources(url string, filter string) []string {
 	c := colly.NewCollector()
 
 	resources := []string{}
 	c.OnHTML(`ul.resource-list`, func(e *colly.HTMLElement) {
 		hrefs := e.ChildAttrs("a", "href")
+		titles := e.ChildAttrs("a", "title")
 
-		for _, href := range hrefs {
+		for index, href := range hrefs {
 			if !strings.Contains(href, "dataset") {
 				continue
 			}
 
 			if !strings.Contains(href, "download") {
+				continue
+			}
+
+			if !strings.Contains(titles[index], filter) {
 				continue
 			}
 
@@ -112,10 +112,22 @@ func (this *Downloader) downloadFile(url string) (err error) {
 }
 
 func (this *Downloader) DownloadResources() {
-	firme, nomenclatoare := this.findDatasets()
+	patterns := []string{`a[href*="/dataset/firme"]`, `a[href*="/dataset/nomenclatoare"]`}
 
-	resources := this.findResources(this.url + firme)
-	resources = append(resources, this.findResources(this.url + nomenclatoare)...)
+	results  := this.findDatasets("/organization/onrc", patterns)
+
+	firme := results[patterns[0]]
+	nomenclatoare := results[patterns[1]]
+
+	patterns = []string{`a[href*="/dataset/situatii_financiare_2025"]`}
+	results = this.findDatasets("/organization/mfp", patterns)
+
+	financiare_2025 := results[patterns[0]]
+
+	resources := this.findResources(this.url + firme, "")
+
+	resources = append(resources, this.findResources(this.url + nomenclatoare, "")...)
+	resources = append(resources, this.findResources(this.url + financiare_2025, "WEB_BL_BS_SL_AN2025.txt")...)
 
 	for _, resource := range resources {
 		fmt.Println("Downloading file: ", resource)
