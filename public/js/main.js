@@ -31,7 +31,12 @@ const sortOrder =
 
 
 async function searchCompanies() {
-    let endpoint = `/search/1?nume_partial=${query.value.toLowerCase().trim()}`
+	let nume_partial = query.value.toLowerCase().trim()
+	if (!nume_partial) {
+		return
+	}
+
+    let endpoint = `/search/1?nume_partial=${}`
 
 
     if (county.value) {

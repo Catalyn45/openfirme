@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,6 +36,31 @@ func (this *Repository) Init() {
 	this.InitBilanturi()
 }
 
+func (this *Repository) convert_values_to_string(oldmaps []map[string]string) []map[string]int {
+	newMaps := []map[string]int{}
+
+	for _, m := range oldmaps {
+		newMap := make(map[string]int)
+		for key, value := range m {
+			newValue := 0
+
+			if value != "" {
+				var err error
+				newValue, err = strconv.Atoi(value)
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			newMap[key] = newValue
+		}
+
+		newMaps = append(newMaps, newMap)
+	}
+
+	return newMaps
+}
+
 func (this *Repository) Update() {
 	parsed := read_data("./data/od_firme.csv")
 	this.UpdateFirme(parsed)
@@ -53,10 +79,12 @@ func (this *Repository) Update() {
 	this.UpdateCaen(parsed)
 
 	parsed = read_data_delimiter("./data/web_bl_bs_sl_an2025.txt", ",")
-	this.UpdateBilanturi(parsed, 2025)
+	intParsed := this.convert_values_to_string(parsed)
+
+	this.UpdateBilanturi(intParsed, 2025)
 
 	parsed = read_data_delimiter("./data/web_bl_bs_sl_an2024.txt", ",")
-	this.UpdateBilanturi(parsed, 2024)
+	this.UpdateBilanturi(intParsed, 2024)
 }
 
 func resolve_nomenclatura(dataset []map[string]string, nomenclatura []map[string]string) {
@@ -377,7 +405,7 @@ func (this *Repository) InitBilanturi() {
 	}
 }
 
-func (this *Repository) UpdateBilanturi(dataset []map[string]string, an int) {
+func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	stmt := `
 		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, pierdere_bruta, profit_net, pierdere_neta, numar_mediu_salariati, an)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
@@ -439,12 +467,20 @@ type InfoFirmeResult struct {
 }
 
 func (this *Repository) mapSortFiled(sortBy string) string {
-	if sortBy == "status" {
-		return "stari.status"
+	if sortBy == "infiintare" {
+		return "firme.data_inmatriculare"
 	}
 
-	if sortBy == "founded" {
-		return "firme.data_inmatriculare"
+	if sortBy == "profit" {
+		return "bilanturi.profit_net - bilanturi.pierdere_neta"
+	}
+
+	if sortBy == "angajati" {
+		return "bilanturi.numar_mediu_salariati"
+	}
+
+	if sortBy == "cifra_afaceri" {
+		return "bilanturi.cifra_afaceri"
 	}
 
 	return ""
@@ -455,8 +491,15 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 			` FROM firme
 			JOIN firme_search
 				ON firme.rowid = firme_search.rowid
-			JOIN stari
+			LEFT JOIN stari
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+			LEFT JOIN bilanturi
+				ON firme.cui = bilanturi.cui
+				AND bilanturi.an = (
+					SELECT MAX(an)
+					FROM bilanturi
+					WHERE cui = firme.cui
+				)
 			WHERE 1=1 `
 
 	params := []any{}
@@ -508,6 +551,9 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 		params = append(params, (*pageNumber - 1) * 20)
 
 		stmt += "\n"
+	} else {
+		stmt += "LIMIT 200"
+		stmt += "\n"
 	}
 
 	stmt += ";"
@@ -530,15 +576,12 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 }
 
 func (this *Repository) getFirmeCount(filters *FirmeFilters) int {
-	rows := this.constructFirmeQuery(" COUNT(*) ", filters, nil, nil)
+	rows := this.constructFirmeQuery("1 ", filters, nil, nil)
 	defer rows.Close()
 
 	count := 0
 	for rows.Next() {
-		err := rows.Scan(&count)
-		if err != nil {
-			panic(err)
-		}
+		count++
 	}
 
 	return count
@@ -602,7 +645,7 @@ type InfoFirma struct {
 }
 
 type BilantFirma struct {
-	An string
+	An int
 	CifraAfaceri int
 	ProfitNet int
 	PierdereNeta int
@@ -643,7 +686,7 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
 				) AS coduri_caen
 			FROM firme
-			JOIN stari
+			LEFT JOIN stari
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			WHERE firme.cod_inmatriculare = ?;`
 
@@ -723,14 +766,14 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 	stmt := `SELECT
 				an,
-				COALESCE(cifra_afaceri, 0),
-				COALESCE(profit_net, 0),
-				COALESCE(pierdere_neta, 0),
-				COALESCE(datorii, 0),
-				COALESCE(active_imobilizate, 0),
-				COALESCE(active_circulante, 0),
-				COALESCE(capitaluri, 0),
-				COALESCE(numar_mediu_salariati, 0)
+				cifra_afaceri,
+				profit_net,
+				pierdere_neta,
+				datorii,
+				active_imobilizate,
+				active_circulante,
+				capitaluri,
+				numar_mediu_salariat
 			FROM bilanturi
 			WHERE cui = ?
 			ORDER BY an desc;`

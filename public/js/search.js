@@ -146,11 +146,13 @@ async function main() {
 
     document
         .getElementById("resultCount")
-        .textContent = `${resultCount} rezultat${resultCount === 1 ? "" : "e"}`;
+        .textContent = `${resultCount} rezultate`
 
-    document
-        .getElementById("emptyState")
-        .style.display = resultCount === 0 ? "block" : "none";
+	if (resultCount === 0) {
+		document
+			.getElementById("emptyState")
+			.style.display = "block"
+	}
 
 	updatePageNumbers(pageNumber, resultCount)
 }

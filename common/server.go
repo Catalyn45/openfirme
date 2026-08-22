@@ -78,6 +78,10 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprout
 		}
 	}
 
+	if pageNumber > 10 {
+		panic(fmt.Errorf("can't have more than 200 results"))
+	}
+
 	fmt.Println(pageNumber)
 
 	query := r.URL.Query()
