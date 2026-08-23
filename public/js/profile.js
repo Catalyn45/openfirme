@@ -100,13 +100,7 @@ async function main() {
 	for (let bilant of json.BilanturiFirma) {
 		financiarAn.textContent = bilant.An
 		financiarCifraAfaceri.textContent = formatMoney(bilant.CifraAfaceri)
-
-		let profitNet = bilant.ProfitNet
-		if (profitNet == 0) {
-			profitNet = -1 * bilant.PierdereNeta
-		}
-
-		financiarProfit.textContent = formatMoney(profitNet)
+		financiarProfit.textContent = formatMoney(bolant.ProfitNet)
 		financiarDatorii.textContent = formatMoney(bilant.Datorii)
 		financiarActiveImobilizate.textContent = formatMoney(bilant.ActiveImobilizate)
 		financiarActiveCirculante.textContent = formatMoney(bilant.ActiveCirculante)

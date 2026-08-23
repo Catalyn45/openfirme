@@ -84,6 +84,7 @@ func (this *Repository) Update() {
 	this.UpdateBilanturi(intParsed, 2025)
 
 	parsed = read_data_delimiter("./data/web_bl_bs_sl_an2024.txt", ",")
+	intParsed = this.convert_values_to_string(parsed)
 	this.UpdateBilanturi(intParsed, 2024)
 }
 
@@ -118,6 +119,15 @@ func (this *Repository) InitFirme() {
 			web TEXT,
 			tara_firma_mama TEXT
 		);
+
+		CREATE INDEX IF NOT EXISTS idx_firme_judet
+		ON firme(judet);
+
+		CREATE INDEX IF NOT EXISTS idx_firme_forma_juridica
+		ON firme(forma_juridica);
+
+		CREATE INDEX IF NOT EXISTS idx_firme_forma_data_inmatriculare
+		ON firme(data_inmatriculare);
 
 		CREATE VIRTUAL TABLE IF NOT EXISTS firme_search USING fts5(
 			denumire,
@@ -273,6 +283,9 @@ func (this *Repository) InitStari() {
 			cod INTEGER NOT NULL,
 			status TEXT NOT NULL
 		);
+
+		CREATE INDEX IF NOT EXISTS idx_stari_cod_status
+		ON stari(cod_inmatriculare, status);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -388,15 +401,13 @@ func (this *Repository) InitBilanturi() {
 			venituri INTEGER,
 			cheltuieli INTEGER,
 			profit_brut INTEGER,
-			pierdere_bruta INTEGER,
 			profit_net INTEGER,
-			pierdere_neta INTEGER,
 			numar_mediu_salariati INTEGER,
 			an INTEGER NOT NULL
 		);
 
-		CREATE INDEX IF NOT EXISTS idx_bilanturi_cui
-		ON bilanturi(cui);
+		CREATE INDEX IF NOT EXISTS idx_bilanturi_cui_an
+		ON bilanturi(cui, an);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -407,8 +418,8 @@ func (this *Repository) InitBilanturi() {
 
 func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	stmt := `
-		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, pierdere_bruta, profit_net, pierdere_neta, numar_mediu_salariati, an)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -425,7 +436,7 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	defer preparedStmt.Close()
 
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["CUI"], data["CAEN"], data["I1"], data["I2"], data["I3"], data["I4"], data["I5"], data["I6"], data["I7"], data["I8"], data["I9"], data["I10"], data["I11"], data["I12"], data["I13"], data["I14"], data["I15"], data["I16"], data["I17"], data["I18"], data["I19"], data["I20"], an)
+		_, err = preparedStmt.Exec(data["CUI"], data["CAEN"], data["I1"], data["I2"], data["I3"], data["I4"], data["I5"], data["I6"], data["I7"], data["I8"], data["I9"], data["I10"], data["I11"], data["I12"], data["I13"], data["I14"], data["I15"], data["I16"] - data["I17"], data["I18"] - data["I19"], data["I20"], an)
 		if err != nil {
 			panic(err)
 		}
@@ -472,7 +483,7 @@ func (this *Repository) mapSortFiled(sortBy string) string {
 	}
 
 	if sortBy == "profit" {
-		return "bilanturi.profit_net - bilanturi.pierdere_neta"
+		return "bilanturi.profit_net"
 	}
 
 	if sortBy == "angajati" {
@@ -495,11 +506,7 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			LEFT JOIN bilanturi
 				ON firme.cui = bilanturi.cui
-				AND bilanturi.an = (
-					SELECT MAX(an)
-					FROM bilanturi
-					WHERE cui = firme.cui
-				)
+				AND bilanturi.an = 2025
 			WHERE 1=1 `
 
 	params := []any{}
@@ -515,11 +522,6 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 			params = append(params, filters.judet)
 		}
 
-		if filters.status != "" {
-			stmt += " AND stari.status = ? "
-			params = append(params, filters.status)
-		}
-
 		if filters.formaJuridica != "" {
 			stmt += " AND firme.forma_juridica = ? "
 			params = append(params, filters.formaJuridica)
@@ -533,6 +535,11 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 		if filters.dataBefore != "" {
 			stmt += " AND firme.data_inmatriculare <= ? "
 			params = append(params, filters.dataBefore)
+		}
+
+		if filters.status != "" {
+			stmt += " AND stari.status = ? "
+			params = append(params, filters.status)
 		}
 
 		stmt += "\n"
@@ -648,7 +655,6 @@ type BilantFirma struct {
 	An int
 	CifraAfaceri int
 	ProfitNet int
-	PierdereNeta int
 	Datorii int
 	ActiveImobilizate int
 	ActiveCirculante int
@@ -768,12 +774,11 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 				an,
 				cifra_afaceri,
 				profit_net,
-				pierdere_neta,
 				datorii,
 				active_imobilizate,
 				active_circulante,
 				capitaluri,
-				numar_mediu_salariat
+				numar_mediu_salariati
 			FROM bilanturi
 			WHERE cui = ?
 			ORDER BY an desc;`
@@ -793,7 +798,7 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 	var bilanturiFirma []*BilantFirma
 	for rows.Next() {
 		var bilantFirma BilantFirma
-		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.PierdereNeta, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati)
+		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati)
 		if err != nil {
 			panic(err)
 		}

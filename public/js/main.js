@@ -36,8 +36,7 @@ async function searchCompanies() {
 		return
 	}
 
-    let endpoint = `/search/1?nume_partial=${}`
-
+    let endpoint = `/search/1?nume_partial=${nume_partial}`
 
     if (county.value) {
         endpoint = `${endpoint}&judet=${county.value}`
