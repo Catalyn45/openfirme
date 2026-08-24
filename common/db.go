@@ -129,6 +129,18 @@ func (this *Repository) InitFirme() {
 		CREATE INDEX IF NOT EXISTS idx_firme_forma_data_inmatriculare
 		ON firme(data_inmatriculare);
 
+		CREATE INDEX IF NOT EXISTS idx_firme_judet_forma_juridica
+		ON firme(judet, forma_juridica);
+
+		CREATE INDEX IF NOT EXISTS idx_firme_judet_data_inmatriculara
+		ON firme(judet, data_inmatriculare);
+
+		CREATE INDEX IF NOT EXISTS idx_firme_forma_juridica_data_inmatriculara
+		ON firme(forma_juridica, data_inmatriculare);
+
+		CREATE INDEX IF NOT EXISTS idx_firme_judet_forma_juridica_data_inmatriculara
+		ON firme(judet, forma_juridica, data_inmatriculare);
+
 		CREATE VIRTUAL TABLE IF NOT EXISTS firme_search USING fts5(
 			denumire,
 			content='firme',
@@ -408,6 +420,18 @@ func (this *Repository) InitBilanturi() {
 
 		CREATE INDEX IF NOT EXISTS idx_bilanturi_cui_an
 		ON bilanturi(cui, an);
+
+		CREATE INDEX IF NOT EXISTS idx_bilanuri_an_cifra_afaceri_cui
+		ON bilanturi(an, cifra_afaceri DESC, cui);
+
+		CREATE INDEX IF NOT EXISTS idx_bilanuri_an_profit_cui
+		ON bilanturi(an, profit_net DESC, cui);
+
+		CREATE INDEX IF NOT EXISTS idx_bilanuri_an_active_imobilizate_cui
+		ON bilanturi(an, active_imobilizate DESC, cui);
+
+		CREATE INDEX IF NOT EXISTS idx_bilanuri_an_angajati_cui
+		ON bilanturi(an, numar_mediu_salariati DESC, cui);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
