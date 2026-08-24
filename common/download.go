@@ -176,6 +176,8 @@ func (this *Downloader) DownloadResources() {
 	firmeResources := this.findResources(firme, nil)
 	firmeResources = append(firmeResources, this.findResources(nomenclatoare, nil)...)
 
+	os.Mkdir("./data", 0755)
+
 	for _, resource := range firmeResources {
 		fmt.Println("Downloading file: ", resource)
 		this.downloadFile(resource, true)
