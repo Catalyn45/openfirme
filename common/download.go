@@ -1,14 +1,13 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"path"
-
-	"github.com/gocolly/colly/v2"
+	"strings"
 )
 
 type Downloader struct {
@@ -23,69 +22,108 @@ func NewDownloader(url string, outputDir string) *Downloader {
 	}
 }
 
-func (this *Downloader) findDatasets(organization string, patterns []string) map[string]string {
-	c := colly.NewCollector()
-
-	results := make(map[string]string)
-
-	for _, pattern := range patterns {
-		c.OnHTML(pattern, func(e *colly.HTMLElement) {
-			_, ok := results[pattern]
-			if !ok {
-				fmt.Println("Found:", e.Attr("href"))
-				results[pattern] = e.Attr("href")
-			}
-		})
-	}
-
-	err := c.Visit(this.url + organization)
+func (this *Downloader) getJson(url string) map[string]any {
+	resp, err := http.Get(this.url + url)
 	if err != nil {
 		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		panic(fmt.Sprintf("HTTP error: %s", resp.Status))
+	}
+
+	var data map[string]any
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		panic(err)
+	}
+
+	if data["success"].(bool) != true {
+		panic(fmt.Errorf("fail"))
+	}
+
+	return data
+}
+
+func findId(data []any, filter string) string {
+	for _, pkg := range data {
+		el := pkg.(map[string]any)
+		if strings.Contains(el["name"].(string), filter) {
+			fmt.Println("found name: ", el["name"].(string))
+			return el["id"].(string)
+		}
+	}
+
+	return ""
+}
+
+func findIds(data []any, filter string) []string {
+	results := []string{}
+	for _, pkg := range data {
+		el := pkg.(map[string]any)
+		if strings.Contains(el["name"].(string), filter) {
+			fmt.Println("found name: ", el["name"].(string))
+			results = append(results, el["id"].(string))
+		}
 	}
 
 	return results
 }
 
-func (this *Downloader) findResources(url string, filter string) []string {
-	c := colly.NewCollector()
+func (this *Downloader) findFirmeNomenclaturaDatasets() (string, string) {
+	data := this.getJson("/organization_show?include_datasets=true&id=onrc")
 
-	resources := []string{}
-	c.OnHTML(`ul.resource-list`, func(e *colly.HTMLElement) {
-		hrefs := e.ChildAttrs("a", "href")
-		titles := e.ChildAttrs("a", "title")
+	result := data["result"].(map[string]any)
 
-		for index, href := range hrefs {
-			if !strings.Contains(href, "dataset") {
-				continue
-			}
+	firme := findId(result["packages"].([]any), "firme-")
+	nomenclatoare := findId(result["packages"].([]any), "nomenclatoare")
 
-			if !strings.Contains(href, "download") {
-				continue
-			}
-
-			if !strings.Contains(titles[index], filter) {
-				continue
-			}
-
-			fmt.Println("Found:", href)
-			resources = append(resources, href)
-		}
-	})
-
-	err := c.Visit(url)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Resources: ", resources)
-
-	return resources
+	return firme, nomenclatoare
 }
 
-func (this *Downloader) downloadFile(url string) (err error) {
+func (this *Downloader) findBilanturiDatasets() []string {
+	data := this.getJson("/organization_show?include_datasets=true&id=mfp")
+
+	result := data["result"].(map[string]any)
+
+	return findIds(result["packages"].([]any), "situatii_financiare_2")
+}
+
+func (this *Downloader) findResources(id string, filter string) []string {
+	data := this.getJson("/package_show?id=" + id)
+
+	result := data["result"].(map[string]any)
+
+	downloadLinks := []string{}
+	for _, el := range result["resources"].([]any) {
+		resource := el.(map[string]any)
+
+		if !strings.Contains(resource["name"].(string), filter) {
+			continue
+		}
+
+		downloadLinks = append(downloadLinks, resource["datagovro_download_url"].(string))
+	}
+
+	fmt.Println("Download links: ", downloadLinks)
+
+	return downloadLinks
+}
+
+func (this *Downloader) downloadFile(url string, replaceExisting bool) (err error) {
 	fileName := path.Base(url)
 	fmt.Println(fileName)
 	filePath := this.outputDir + "/" + fileName
+
+	if !replaceExisting {
+		_, err := os.Stat(filePath)
+		if err != nil {
+			// file already exists, skip
+			return nil
+		}
+	}
 
 	out, err := os.Create(filePath)
 	if err != nil  {
@@ -112,26 +150,30 @@ func (this *Downloader) downloadFile(url string) (err error) {
 }
 
 func (this *Downloader) DownloadResources() {
-	patterns := []string{`a[href*="/dataset/firme"]`, `a[href*="/dataset/nomenclatoare"]`}
+	firme, nomenclatoare := this.findFirmeNomenclaturaDatasets()
 
-	results  := this.findDatasets("/organization/onrc", patterns)
+	fmt.Println(firme, nomenclatoare)
 
-	firme := results[patterns[0]]
-	nomenclatoare := results[patterns[1]]
+	bilanturi := this.findBilanturiDatasets()
+	fmt.Println(bilanturi)
 
-	patterns = []string{`a[href*="/dataset/situatii_financiare_2025"]`}
-	results = this.findDatasets("/organization/mfp", patterns)
+	firmeResources := this.findResources(firme, "")
+	firmeResources = append(firmeResources, this.findResources(nomenclatoare, "")...)
 
-	financiare_2025 := results[patterns[0]]
-
-	resources := this.findResources(this.url + firme, "")
-
-	resources = append(resources, this.findResources(this.url + nomenclatoare, "")...)
-	resources = append(resources, this.findResources(this.url + financiare_2025, "WEB_BL_BS_SL_AN2025.txt")...)
-
-	for _, resource := range resources {
+	for _, resource := range firmeResources {
 		fmt.Println("Downloading file: ", resource)
-		this.downloadFile(resource)
+		this.downloadFile(resource, true)
+		fmt.Println("Finished file: ", resource)
+	}
+
+	bilanturiResources := []string{}
+	for _, bilant := range bilanturi {
+		bilanturiResources = append(bilanturiResources, this.findResources(bilant, "WEB_BL_BS_SL_AN")...)
+	}
+
+	for _, resource := range bilanturiResources {
+		fmt.Println("Downloading file: ", resource)
+		this.downloadFile(resource, false)
 		fmt.Println("Finished file: ", resource)
 	}
 }
