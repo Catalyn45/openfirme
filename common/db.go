@@ -3,6 +3,7 @@ package common
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -78,14 +79,18 @@ func (this *Repository) Update() {
 	parsed = read_data("./data/od_caen_autorizat.csv")
 	this.UpdateCaen(parsed)
 
-	parsed = read_data_delimiter("./data/web_bl_bs_sl_an2025.txt", ",")
-	intParsed := this.convert_values_to_string(parsed)
+	for i := 2011; ; i++ {
+		filePath := "./data/web_bl_bs_sl_an" + strconv.Itoa(i) + ".txt"
+		_, err := os.Stat(filePath)
+		if err != nil {
+			break
+		}
 
-	this.UpdateBilanturi(intParsed, 2025)
+		parsed = read_data_delimiter(filePath, ",")
+		intParsed := this.convert_values_to_string(parsed)
 
-	parsed = read_data_delimiter("./data/web_bl_bs_sl_an2024.txt", ",")
-	intParsed = this.convert_values_to_string(parsed)
-	this.UpdateBilanturi(intParsed, 2024)
+		this.UpdateBilanturi(intParsed, i)
+	}
 }
 
 func resolve_nomenclatura(dataset []map[string]string, nomenclatura []map[string]string) {

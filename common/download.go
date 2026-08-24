@@ -59,13 +59,20 @@ func findId(data []any, filter string) string {
 	return ""
 }
 
-func findIds(data []any, filter string) []string {
-	results := []string{}
-	for _, pkg := range data {
-		el := pkg.(map[string]any)
-		if strings.Contains(el["name"].(string), filter) {
-			fmt.Println("found name: ", el["name"].(string))
-			results = append(results, el["id"].(string))
+func findIds(data []any, filter string) []Dataset {
+	results := []Dataset{}
+	for _, el := range data {
+		pkg := el.(map[string]any)
+
+		name := pkg["name"].(string)
+		id := pkg["id"].(string)
+
+		if strings.Contains(name, filter) {
+			fmt.Println("found name: ", name)
+			results = append(results, Dataset{
+				name: name,
+				id: id,
+			})
 		}
 	}
 
@@ -83,25 +90,34 @@ func (this *Downloader) findFirmeNomenclaturaDatasets() (string, string) {
 	return firme, nomenclatoare
 }
 
-func (this *Downloader) findBilanturiDatasets() []string {
+type Dataset struct {
+	name string
+	id string
+}
+
+func (this *Downloader) findBilanturiDatasets() []Dataset {
 	data := this.getJson("/organization_show?include_datasets=true&id=mfp")
 
 	result := data["result"].(map[string]any)
 
-	return findIds(result["packages"].([]any), "situatii_financiare_2")
+	return findIds(result["packages"].([]any), "situatii_financiare")
 }
 
-func (this *Downloader) findResources(id string, filter string) []string {
+func (this *Downloader) findResources(id string, filters []string) []string {
 	data := this.getJson("/package_show?id=" + id)
 
 	result := data["result"].(map[string]any)
 
 	downloadLinks := []string{}
+
+	outer:
 	for _, el := range result["resources"].([]any) {
 		resource := el.(map[string]any)
 
-		if !strings.Contains(resource["name"].(string), filter) {
-			continue
+		for _, filter := range filters {
+			if !strings.Contains(resource["name"].(string), filter) {
+				continue outer
+			}
 		}
 
 		downloadLinks = append(downloadLinks, resource["datagovro_download_url"].(string))
@@ -119,7 +135,7 @@ func (this *Downloader) downloadFile(url string, replaceExisting bool) (err erro
 
 	if !replaceExisting {
 		_, err := os.Stat(filePath)
-		if err != nil {
+		if err == nil {
 			// file already exists, skip
 			return nil
 		}
@@ -157,8 +173,8 @@ func (this *Downloader) DownloadResources() {
 	bilanturi := this.findBilanturiDatasets()
 	fmt.Println(bilanturi)
 
-	firmeResources := this.findResources(firme, "")
-	firmeResources = append(firmeResources, this.findResources(nomenclatoare, "")...)
+	firmeResources := this.findResources(firme, nil)
+	firmeResources = append(firmeResources, this.findResources(nomenclatoare, nil)...)
 
 	for _, resource := range firmeResources {
 		fmt.Println("Downloading file: ", resource)
@@ -168,7 +184,24 @@ func (this *Downloader) DownloadResources() {
 
 	bilanturiResources := []string{}
 	for _, bilant := range bilanturi {
-		bilanturiResources = append(bilanturiResources, this.findResources(bilant, "WEB_BL_BS_SL_AN")...)
+		// there is situatii_financiare_2024_actualizat
+		if bilant.name == "situatii_financiare_2024" {
+			continue
+		}
+
+		// dataset 2020, also contains entries for under 2020
+		if strings.Contains(bilant.name, "situatii_financiare_201") {
+			continue
+		}
+
+		if strings.Contains(bilant.name, "situatii_financiare_200") {
+			continue
+		}
+
+		bilanturiResources = append(
+			bilanturiResources,
+			this.findResources(bilant.id, []string{"WEB_BL_BS_SL_AN", ".txt"})...
+		)
 	}
 
 	for _, resource := range bilanturiResources {

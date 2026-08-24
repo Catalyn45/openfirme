@@ -18,7 +18,8 @@ func read_csv(file_path string, delimiter string) [][]string {
 
 	data := [][]string{}
 
-	for scanner.Scan() {
+	for lineNumber := 0; scanner.Scan(); lineNumber++ {
+
 		line := scanner.Text()
 		splitted := strings.Split(line, delimiter)
 
@@ -36,7 +37,14 @@ func read_csv(file_path string, delimiter string) [][]string {
 
 		normalized := []string{}
 
-		for _, el := range splitted {
+		splitted_len := len(splitted)
+		for index, el := range splitted {
+			// some old datasets have an additional column we don't care about
+			// but it will break the expected order so we just skip
+			if lineNumber > 0 && splitted_len == 23 && index == 14 {
+				continue
+			}
+
 			el = strings.TrimPrefix(el, "\uFEFF")
 			normalized = append(normalized, strings.TrimSpace(el))
 		}
