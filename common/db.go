@@ -86,7 +86,12 @@ func (this *Repository) Update() {
 			break
 		}
 
-		parsed = read_data_delimiter(filePath, ",")
+		skipIndex := -1
+		if i > 2015 {
+			skipIndex = 14
+		}
+
+		parsed = read_data_delimiter(filePath, ",", skipIndex)
 		intParsed := this.convert_values_to_string(parsed)
 
 		this.UpdateBilanturi(intParsed, i)

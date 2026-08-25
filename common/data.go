@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func read_csv(file_path string, delimiter string) [][]string {
+func read_csv(file_path string, delimiter string, skipIndex int) [][]string {
 	file, err := os.Open(file_path)
 	if err != nil {
 		panic(err)
@@ -37,11 +37,10 @@ func read_csv(file_path string, delimiter string) [][]string {
 
 		normalized := []string{}
 
-		splitted_len := len(splitted)
 		for index, el := range splitted {
 			// some old datasets have an additional column we don't care about
 			// but it will break the expected order so we just skip
-			if lineNumber > 0 && splitted_len == 23 && index == 14 {
+			if index == skipIndex && lineNumber > 0 {
 				continue
 			}
 
@@ -71,8 +70,8 @@ func parse_csv(data [][]string) []map[string]string {
 	return parsed
 }
 
-func read_data_delimiter(file_path string, delimiter string) []map[string]string {
-	data := read_csv(file_path, delimiter)
+func read_data_delimiter(file_path string, delimiter string, skipIndex int) []map[string]string {
+	data := read_csv(file_path, delimiter, skipIndex)
 
 	parsed := parse_csv(data)
 
@@ -80,5 +79,5 @@ func read_data_delimiter(file_path string, delimiter string) []map[string]string
 }
 
 func read_data(file_path string) []map[string]string {
-	return read_data_delimiter(file_path, "^")
+	return read_data_delimiter(file_path, "^", -1)
 }
