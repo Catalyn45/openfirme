@@ -51,7 +51,7 @@ func (this *Downloader) getJson(url string) map[string]any {
 func (this *Downloader) getMetadata() map[string]string {
 	metadataPath := this.outputDir + "/metadata.json"
 
-	var obj map[string]string
+	obj := make(map[string]string)
 
 	_, err := os.Stat(metadataPath)
 	if err != nil {
@@ -199,11 +199,16 @@ func (this *Downloader) downloadFile(url string, fileName string) {
 	}
 }
 
-func (this *Downloader) downloadResources(dataset *Dataset, resources []string) {
+func (this *Downloader) downloadResources(dataset *Dataset, resources []string, addOnly bool) {
 	for _, resource := range resources {
 		fileName := path.Base(resource)
 
 		val, ok := this.metadata[fileName]
+
+		if addOnly && ok {
+			continue
+		}
+
 		if ok && val == dataset.name {
 			// skip as we already have the latest data
 			continue
@@ -214,6 +219,7 @@ func (this *Downloader) downloadResources(dataset *Dataset, resources []string) 
 		fmt.Println("Finished file: ", resource)
 
 		this.metadata[fileName] = dataset.name
+		this.saveMetadata(this.metadata)
 	}
 }
 
@@ -231,8 +237,8 @@ func (this *Downloader) DownloadData() {
 
 	os.Mkdir(this.outputDir, 0755)
 
-	this.downloadResources(firme, firmeResources)
-	this.downloadResources(nomenclatoare, nomenclatoareResources)
+	this.downloadResources(firme, firmeResources, false)
+	this.downloadResources(nomenclatoare, nomenclatoareResources, false)
 
 	for _, bilant := range bilanturi {
 		// there is situatii_financiare_2024_actualizat
@@ -250,8 +256,6 @@ func (this *Downloader) DownloadData() {
 		}
 
 		bilanturiResources := this.findResources(bilant.id, []string{"WEB_BL_BS_SL_AN", ".txt"})
-		this.downloadResources(&bilant, bilanturiResources)
+		this.downloadResources(&bilant, bilanturiResources, true)
 	}
-
-	this.saveMetadata(this.metadata)
 }

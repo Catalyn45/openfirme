@@ -63,6 +63,8 @@ func (this *Repository) convert_values_to_string(oldmaps []map[string]string) []
 }
 
 func (this *Repository) Update() {
+	fmt.Println("Updating tables")
+
 	parsed := read_data("./data/od_firme.csv")
 	this.UpdateFirme(parsed)
 
@@ -210,6 +212,8 @@ func convertDate(datetime string) string {
 }
 
 func (this *Repository) UpdateFirme(dataset []map[string]string) {
+	fmt.Println("Updating firme")
+
 	stmt := `
 		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
@@ -267,6 +271,8 @@ func (this *Repository) InitReprezentanti() {
 }
 
 func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
+	fmt.Println("Updating reprezentanti")
+
 	stmt := `
 		INSERT INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara)
 		VALUES (?,?,?,?,?,?,?,?,?,?);`
@@ -317,6 +323,8 @@ func (this *Repository) InitStari() {
 }
 
 func (this *Repository) UpdateStari(dataset []map[string]string) {
+	fmt.Println("Updating stari")
+
 	stmt := `
 		INSERT OR REPLACE INTO stari (cod_inmatriculare, cod, status)
 		VALUES (?,?,?);`
@@ -366,6 +374,8 @@ func (this *Repository) InitCaen() {
 }
 
 func (this *Repository) UpdateCaen(dataset []map[string]string) {
+	fmt.Println("Updating caen")
+
 	stmt := `
 		INSERT INTO caen (cod_inmatriculare, cod_caen, versiune_caen)
 		VALUES (?,?,?);`
@@ -451,6 +461,8 @@ func (this *Repository) InitBilanturi() {
 }
 
 func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
+	fmt.Println("Updating bilanturi")
+
 	stmt := `
 		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
