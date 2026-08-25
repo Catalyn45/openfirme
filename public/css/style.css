@@ -170,7 +170,7 @@ main {
 
 .layout {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 260px minmax(0, 1fr);
     gap: 30px;
 }
 
@@ -188,7 +188,7 @@ main {
        Keep Sortare + Filtre together
        while scrolling.
     */
-    position: sticky;
+    /* position: sticky; */
     top: 95px;
     height: fit-content;
 }
@@ -580,7 +580,7 @@ footer {
 @media (max-width: 900px) {
 
     .layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     /*
