@@ -89,7 +89,7 @@ func (this *Repository) Update() {
 		}
 
 		skipIndex := -1
-		if i > 2015 {
+		if i <= 2015 {
 			skipIndex = 14
 		}
 

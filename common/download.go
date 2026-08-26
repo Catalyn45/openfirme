@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"strings"
 )
 
@@ -130,8 +131,10 @@ func (this *Downloader) findFirmeNomenclaturaDatasets() (*Dataset, *Dataset) {
 
 	result := data["result"].(map[string]any)
 
-	firme := findDataset(result["packages"].([]any), "firme-")
-	nomenclatoare := findDataset(result["packages"].([]any), "nomenclatoare")
+	packages := result["packages"].([]any)
+
+	firme := findDataset(packages, "firme-")
+	nomenclatoare := findDataset(packages, "nomenclatoare")
 
 	return firme, nomenclatoare
 }
@@ -154,19 +157,40 @@ func (this *Downloader) findResources(id string, filters []string) []string {
 
 	result := data["result"].(map[string]any)
 
+	resources := result["resources"].([]any)
+
 	downloadLinks := []string{}
+	actualizatDownloadlinks := []string{}
 
 	outer:
-	for _, el := range result["resources"].([]any) {
+	for _, el := range resources {
 		resource := el.(map[string]any)
 
+		resourceName := resource["name"].(string)
+
+		// files with -actualizat are missing extension
+		isActualizat := strings.Contains(resourceName, " - actualizat")
+		if isActualizat {
+			resourceName += ".txt"
+		}
+
 		for _, filter := range filters {
-			if !strings.Contains(resource["name"].(string), filter) {
+			if !strings.Contains(resourceName, filter) {
 				continue outer
 			}
 		}
 
-		downloadLinks = append(downloadLinks, resource["datagovro_download_url"].(string))
+		downloadUrl := resource["datagovro_download_url"].(string)
+
+		if isActualizat {
+			actualizatDownloadlinks = append(actualizatDownloadlinks, downloadUrl)
+		} else {
+			downloadLinks = append(downloadLinks, downloadUrl)
+		}
+	}
+
+	if len(actualizatDownloadlinks) > 0 {
+		downloadLinks = actualizatDownloadlinks
 	}
 
 	fmt.Println("Download links: ", downloadLinks)
@@ -239,6 +263,12 @@ func (this *Downloader) DownloadData() {
 
 	this.downloadResources(firme, firmeResources, false)
 	this.downloadResources(nomenclatoare, nomenclatoareResources, false)
+
+	sort.Slice(bilanturi, func(i, j int) bool {
+		return bilanturi[i].name > bilanturi[j].name
+	})
+
+	fmt.Println("sorted: ", bilanturi)
 
 	for _, bilant := range bilanturi {
 		// there is situatii_financiare_2024_actualizat
