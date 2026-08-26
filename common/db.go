@@ -499,8 +499,6 @@ type FirmeFilters struct {
 	judet string
 	status string
 	formaJuridica string
-	dataAfter string
-	dataBefore string
 }
 
 type FirmeOrdering struct {
@@ -571,16 +569,6 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 		if filters.formaJuridica != "" {
 			stmt += " AND firme.forma_juridica = ? "
 			params = append(params, filters.formaJuridica)
-		}
-
-		if filters.dataAfter != "" {
-			stmt += " AND firme.data_inmatriculare >= ? "
-			params = append(params, filters.dataAfter)
-		}
-
-		if filters.dataBefore != "" {
-			stmt += " AND firme.data_inmatriculare <= ? "
-			params = append(params, filters.dataBefore)
 		}
 
 		if filters.status != "" {

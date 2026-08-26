@@ -93,9 +93,7 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprout
 		numePartial: query.Get("nume_partial"),
 		judet: query.Get("judet"),
 		status: query.Get("status"),
-		formaJuridica: query.Get("forma_juridica"),
-		dataAfter: query.Get("data_after"),
-		dataBefore: query.Get("data_before"),
+		formaJuridica: query.Get("forma_juridica")
 	}
 
 	ordering := FirmeOrdering{}

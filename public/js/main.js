@@ -17,9 +17,13 @@ const formaJuridica =
     document
         .getElementById("formaFilter")
 
-const an =
+const sortBy =
     document
-        .getElementById("yearFilter")
+        .getElementById("sortField")
+
+const sortOrder =
+    document
+        .getElementById("sortDirection")
 
 async function searchCompanies() {
 	let nume_partial = query.value.toLowerCase().trim()
@@ -40,18 +44,6 @@ async function searchCompanies() {
 	if (formaJuridica.value) {
         endpoint = `${endpoint}&forma_juridica=${formaJuridica.value}`
 	}
-
-    if (an.value) {
-        [after, before] = an.value.split("/")
-
-        if (after) {
-            endpoint = `${endpoint}&data_after=${after}`
-        }
-
-        if (before) {
-            endpoint = `${endpoint}&data_before=${before}`
-        }
-    }
 
 	window.location = endpoint
 }
@@ -99,19 +91,19 @@ async function openProfile(button) {
 
 function updateFilters() {
     const params = new URLSearchParams(window.location.search);
-
-    query.value = params.get("nume_partial") ?? ""
+	
+	if (query) {
+		query.value = params.get("nume_partial") ?? ""
+	}
 
     county.value = params.get("judet") ?? ""
     status.value = params.get("status") ?? ""
     formaJuridica.value = params.get("forma_juridica") ?? ""
 
-    let anFormatted = `${params.get('data_after') ?? ''}/${params.get('data_before') ?? ''}`
-    if (anFormatted == "/") {
-        anFormatted = ""
-    }
-
-    an.value = anFormatted
+	if (sortBy) {
+		sortBy.value = params.get("sort_by") ?? "infiintare"
+		sortOrder.value = params.get("sort_order") ?? "desc"
+	}
 }
 
 updateFilters()
