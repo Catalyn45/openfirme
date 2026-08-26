@@ -72,7 +72,7 @@
                         Sortează după
                     </label>
 
-                    <select id="sortField">
+                    <select id="sortField" onchange="changeFilter(this)">
                         <option value="infiintare">
                             An înființare
                         </option>
@@ -100,7 +100,7 @@
                         Ordine
                     </label>
 
-                    <select id="sortDirection">
+                    <select id="sortDirection" onchange="changeFilter(this)">
                         <option value="desc">
                             Descrescător
                         </option>
@@ -133,7 +133,7 @@
                         Județ
                     </label>
 
-                    <select id="countyFilter">
+                    <select id="countyFilter" onchange="changeFilter(this)">
 
                         <option value="">
                             Toate județele
@@ -193,7 +193,7 @@
                         Status firmă
                     </label>
 
-                    <select id="statusFilter">
+                    <select id="statusFilter" onchange="changeFilter(this)">
 
                         <option value="">
                             Orice status
@@ -222,7 +222,7 @@
                         Formă juridică
                     </label>
 
-                    <select id="formaFilter">
+                    <select id="formaFilter" onchange="changeFilter(this)">
 
                         <option value="">
                             Oricare

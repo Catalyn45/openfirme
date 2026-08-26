@@ -25,27 +25,50 @@ const sortOrder =
     document
         .getElementById("sortDirection")
 
-async function searchCompanies() {
+function searchWithFilters(endpoint) {
+    const params = new URLSearchParams();
+
+	let nume_partial = query?.value?.toLowerCase().trim()
+	if (nume_partial) {
+        params.set('nume_partial', nume_partial)
+	}
+
+    if (county.value) {
+        params.set('judet', county.value)
+    }
+
+    if (status.value) {
+        params.set('status', status.value)
+    }
+
+	if (formaJuridica.value) {
+        params.set('forma_juridica', formaJuridica.value)
+    }
+
+	if (sortBy?.value) {
+		params.set('sort_by', sortBy.value)
+
+		if (sortOrder) {
+            params.set('sort_order', sortOrder.value)
+		}
+	}
+
+	window.location = `/${endpoint}/1?${params}`
+}
+
+function searchCompanies() {
 	let nume_partial = query.value.toLowerCase().trim()
 	if (!nume_partial) {
 		return
 	}
 
-    let endpoint = `/search/1?nume_partial=${nume_partial}`
+    searchWithFilters('search')
+}
 
-    if (county.value) {
-        endpoint = `${endpoint}&judet=${county.value}`
-    }
+function changeFilter(el) {
+    let endpoint = window.location.pathname.split("/")[1]
 
-    if (status.value) {
-        endpoint = `${endpoint}&status=${status.value}`
-    }
-
-	if (formaJuridica.value) {
-        endpoint = `${endpoint}&forma_juridica=${formaJuridica.value}`
-	}
-
-	window.location = endpoint
+    searchWithFilters(endpoint)
 }
 
 /* ============================================================
@@ -66,12 +89,6 @@ function handleEnter(event) {
 ============================================================ */
 
 function resetFilters() {
-    query.value = "";
-    county.value = "";
-    status.value = ""
-    an.value = ""
-    formaJuridica.value = ""
-
     window.location = window.location.pathname
 }
 
