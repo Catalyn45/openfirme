@@ -1,0 +1,74 @@
+.company-info {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+
+    .layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /*
+       Disable sticky sidebar on tablet/mobile.
+    */
+    .sidebar {
+        position: static;
+    }
+
+    .company-info {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero h1 {
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 0 20px;
+    }
+
+    nav {
+        display: none;
+    }
+
+    .hero {
+        padding: 55px 15px 65px;
+    }
+
+    .hero h1 {
+        font-size: 30px;
+    }
+
+    .search-box {
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .search-box button {
+        padding: 14px;
+    }
+
+    .company-info,
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .company-top {
+        flex-direction: column;
+    }
+
+    .card-footer {
+        align-items: flex-start;
+        gap: 12px;
+        flex-direction: column;
+    }
+}

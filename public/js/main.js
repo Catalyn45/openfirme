@@ -21,15 +21,6 @@ const an =
     document
         .getElementById("yearFilter")
 
-const sortBy =
-    document
-        .getElementById("sortField")
-
-const sortOrder =
-    document
-        .getElementById("sortDirection")
-
-
 async function searchCompanies() {
 	let nume_partial = query.value.toLowerCase().trim()
 	if (!nume_partial) {
@@ -62,14 +53,6 @@ async function searchCompanies() {
         }
     }
 
-	if (sortBy.value) {
-		endpoint = `${endpoint}&sort_by=${sortBy.value}`
-
-		if (sortOrder) {
-			endpoint = `${endpoint}&sort_order=${sortOrder.value}`
-		}
-	}
-
 	window.location = endpoint
 }
 
@@ -96,9 +79,6 @@ function resetFilters() {
     status.value = ""
     an.value = ""
     formaJuridica.value = ""
-
-    sortBy.value = ""
-    sortOrder.value = "asc"
 
     window.location = window.location.pathname
 }
@@ -132,9 +112,6 @@ function updateFilters() {
     }
 
     an.value = anFormatted
-
-    sortBy.value = params.get("sort_by") ?? ""
-    sortOrder.value = params.get("sort_order") ?? "asc"
 }
 
 updateFilters()

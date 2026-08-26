@@ -6,6 +6,7 @@
 
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/search.css">
+    <link rel="stylesheet" href="/public/css/topfirme.css">
 
     <title>OpenFirme România — Informații despre companii</title>
 </head>
@@ -43,25 +44,6 @@
         Caută informații publice despre societăți comerciale
         folosind denumirea firmei    </p>
 
-    <div class="search-wrapper">
-
-        <div class="search-box">
-
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Caută după nume firmă..."
-                onkeydown="handleEnter(event)"
-            >
-
-            <button onclick="searchCompanies()">
-                🔍 Caută
-            </button>
-
-        </div>
-
-    </div>
-
 </section>
 
 
@@ -75,6 +57,66 @@
 
 
         <div class="sidebar">
+
+            <!-- ====================================================
+                 SORTING
+            ==================================================== -->
+
+            <aside class="sort-box">
+
+                <h3>Sortare</h3>
+
+                <div class="filter-group">
+
+                    <label for="sortField">
+                        Sortează după
+                    </label>
+
+                    <select id="sortField">
+                        <option value="infiintare">
+                            An înființare
+                        </option>
+
+                        <option value="cifra_afaceri">
+                            Cifră de afaceri
+                        </option>
+
+                        <option value="profit">
+                            Profit net
+                        </option>
+
+                        <option value="angajati">
+                            Angajați
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="sortDirection">
+                        Ordine
+                    </label>
+
+                    <select id="sortDirection">
+                        <option value="desc">
+                            Descrescător
+                        </option>
+
+                        <option value="asc">
+                            Crescător
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </aside>
+
+
+
 
             <!-- ====================================================
                  FILTERS
@@ -318,6 +360,16 @@
 
                             <strong class="company-tip">
                                 SRL
+                            </strong>
+
+                        </div>
+
+                        <div class="info-item">
+
+                            <small>Angajati</small>
+
+                            <strong class="company-custom">
+                                10
                             </strong>
 
                         </div>

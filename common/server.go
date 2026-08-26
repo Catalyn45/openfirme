@@ -38,6 +38,7 @@ func (self *Server) Start() {
 
 	router.GET("/search/:page_number", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
+	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
 
 	router.GET("/firme/:page_number", self.getFirme)
 	router.GET("/firma/:numar_inmatriculare", self.getFirma)
