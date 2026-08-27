@@ -8,6 +8,10 @@ const companyTip = prototypeCard.getElementsByClassName("company-tip")[0]
 const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
 const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
 
+const companyAngajati = prototypeCard.getElementsByClassName("company-angajati")?.[0]
+const companyProfit = prototypeCard.getElementsByClassName("company-profit")?.[0]
+const companyCifraAfaceri = prototypeCard.getElementsByClassName("company-cifra-afaceri")?.[0]
+
 const firstDots = document.getElementById("pageFirstDots")
 const secondDots = document.getElementById("pageSecondDots")
 
@@ -134,6 +138,18 @@ async function main() {
 			companyStatus.classList.add("active")
 		} else {
 			companyStatus.classList.add("inactive")
+		}
+
+		if (companyProfit) {
+			companyProfit.textContent = firma.ProfitNet ?? 0
+		}
+
+		if (companyCifraAfaceri) {
+			companyCifraAfaceri.textContent = firma.CifraAfaceri ?? 0
+		}
+
+		if (companyAngajati) {
+			companyAngajati.textContent = firma.Angajati ?? 0
 		}
 
         clone = prototypeCard.cloneNode(true)

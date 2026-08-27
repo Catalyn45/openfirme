@@ -110,16 +110,16 @@ function updateFilters() {
     const params = new URLSearchParams(window.location.search);
 	
 	if (query) {
-		query.value = params.get("nume_partial") ?? ""
+		query.value = params.get("nume_partial") ?? query.value
 	}
 
-    county.value = params.get("judet") ?? ""
-    status.value = params.get("status") ?? ""
-    formaJuridica.value = params.get("forma_juridica") ?? ""
+    county.value = params.get("judet") ?? county.value
+    status.value = params.get("status") ?? status.value
+    formaJuridica.value = params.get("forma_juridica") ?? formaJuridica.value
 
 	if (sortBy) {
-		sortBy.value = params.get("sort_by") ?? "infiintare"
-		sortOrder.value = params.get("sort_order") ?? "desc"
+		sortBy.value = params.get("sort_by") ?? sortBy.value
+		sortOrder.value = params.get("sort_order") ?? sortOrder.value
 	}
 }
 

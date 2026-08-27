@@ -514,6 +514,9 @@ type InfoFirmaLight struct {
 	DataInregistrare string
 	Judet string
 	Status string
+	ProfitNet *int
+	CifraAfaceri *int
+	Angajati *int
 }
 
 type InfoFirmeResult struct {
@@ -542,15 +545,17 @@ func (this *Repository) mapSortFiled(sortBy string) string {
 }
 
 func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber *int) *sql.Rows {
-	stmt := `SELECT ` + fields +
-			` FROM firme
+	stmt := `SELECT ` +
+			fields + `
+			FROM firme
 			JOIN firme_search
 				ON firme.rowid = firme_search.rowid
 			LEFT JOIN stari
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			LEFT JOIN bilanturi
-				ON firme.cui = bilanturi.cui
+				ON firme.forma_juridica != 'PFA'
 				AND bilanturi.an = 2025
+				AND firme.cui = bilanturi.cui
 			WHERE 1=1 `
 
 	params := []any{}
@@ -644,13 +649,27 @@ func (this *Repository) GetFirme(filters *FirmeFilters, ordering *FirmeOrdering,
 				stari.status
 			`
 
+	if ordering.sortBy != "" {
+		fields += `,
+			bilanturi.cifra_afaceri,
+			bilanturi.profit_net,
+			bilanturi.numar_mediu_salariati
+		`
+	}
+
 	rows := this.constructFirmeQuery(fields, filters, ordering, &pageNumber)
 	defer rows.Close()
 
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
 
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
+		params := []any{&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status}
+
+		if ordering.sortBy != "" {
+			params = append(params, &infoFirma.CifraAfaceri, &infoFirma.ProfitNet, &infoFirma.Angajati)
+		}
+
+		err := rows.Scan(params...)
 		if err != nil {
 			panic(err)
 		}

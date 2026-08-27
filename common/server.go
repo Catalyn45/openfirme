@@ -99,6 +99,11 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprout
 	ordering := FirmeOrdering{}
 
 	sort_by := query.Get("sort_by")
+
+	if sort_by != "" && filters.numePartial != "" {
+		panic(fmt.Errorf("can't have both"))
+	}
+
 	if sort_by != "" {
 		sort := "asc"
 
