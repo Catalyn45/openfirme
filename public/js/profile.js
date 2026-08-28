@@ -32,14 +32,6 @@ function createAddress(json) {
 	return adresa
 }
 
-function formatMoney(amount) {
-	return new Intl.NumberFormat('de-DE', {
-	  style: 'currency',
-	  currency: 'RON',
-	  maximumFractionDigits: 0
-	}).format(amount);
-}
-
 async function main() {
 	const profileId = window.location.pathname.split('/').pop();
 

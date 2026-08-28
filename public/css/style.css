@@ -49,6 +49,7 @@ header {
     font-weight: 800;
     color: var(--primary);
     letter-spacing: -0.5px;
+	text-decoration: none;
 }
 
 .logo span {
@@ -163,7 +164,7 @@ nav a:hover {
 ========================= */
 
 main {
-    max-width: 1250px;
+    max-width: 1500px;
     margin: 40px auto;
     padding: 0 20px;
 }

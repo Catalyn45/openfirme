@@ -653,7 +653,7 @@ func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilt
 
 	var topStmt string
 
-	if sortBy == "firme.data_inmatriculare" {
+	if pageNumber == nil || sortBy == "firme.data_inmatriculare" {
 		topStmt = dataInmatriculareOrderEfficientStmt
 	} else {
 		topStmt = bilanturiEfficientStmt

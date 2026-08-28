@@ -89,6 +89,13 @@ function handleEnter(event) {
 
 }
 
+function formatMoney(amount) {
+	return new Intl.NumberFormat('de-DE', {
+	  style: 'currency',
+	  currency: 'RON',
+	  maximumFractionDigits: 0
+	}).format(amount);
+}
 
 /* ============================================================
    RESET FILTERS

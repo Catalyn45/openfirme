@@ -94,19 +94,26 @@ function updatePageNumbers(currentPage, totalResults) {
 	pagesContainer.style.display = "flex"
 }
 
+let pageEndpoint = ''
+if (window.location.pathname.includes("top")) {
+	pageEndpoint = `top`
+} else {
+	pageEndpoint = `search`
+}
+
 function goToPage(pageButton) {
 	const pageNumber = parseInt(pageButton.innerText)
-    window.location = `/search/${pageNumber}?${getFilterParameters()}`
+    window.location = `/${pageEndpoint}/${pageNumber}?${getFilterParameters()}`
 }
 
 function goToNextPage() {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    window.location = `/search/${pageNumber+1}?${getFilterParameters()}`
+    window.location = `/${pageEndpoint}/${pageNumber+1}?${getFilterParameters()}`
 }
 
 function goToPrevPage() {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    window.location = `/search/${pageNumber-1}?${getFilterParameters()}`
+    window.location = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
 }
 
 async function main() {
@@ -149,11 +156,11 @@ async function main() {
 		}
 
 		if (companyProfit) {
-			companyProfit.textContent = firma.ProfitNet ?? 0
+			companyProfit.textContent = formatMoney(firma.ProfitNet)
 		}
 
 		if (companyCifraAfaceri) {
-			companyCifraAfaceri.textContent = firma.CifraAfaceri ?? 0
+			companyCifraAfaceri.textContent = formatMoney(firma.CifraAfaceri)
 		}
 
 		if (companyAngajati) {
