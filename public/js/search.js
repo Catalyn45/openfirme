@@ -96,23 +96,31 @@ function updatePageNumbers(currentPage, totalResults) {
 
 function goToPage(pageButton) {
 	const pageNumber = parseInt(pageButton.innerText)
-    window.location = `/search/${pageNumber}${window.location.search}`
+    window.location = `/search/${pageNumber}?${getFilterParameters()}`
 }
 
 function goToNextPage() {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    window.location = `/search/${pageNumber+1}${window.location.search}`
+    window.location = `/search/${pageNumber+1}?${getFilterParameters()}`
 }
 
 function goToPrevPage() {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    window.location = `/search/${pageNumber-1}${window.location.search}`
+    window.location = `/search/${pageNumber-1}?${getFilterParameters()}`
 }
 
 async function main() {
 	const pageNumber = window.location.pathname.split('/').pop();
 
-	let endpoint = `/firme/${pageNumber}${window.location.search}`
+    let endpoint = ''
+
+    if (window.location.pathname.includes("top")) {
+        endpoint = `/topFirme`
+    } else {
+        endpoint = `/firme`
+    }
+
+    endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
 
     const response = await fetch(endpoint)
     const data = await response.json()

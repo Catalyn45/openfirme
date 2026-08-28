@@ -42,6 +42,7 @@ func (self *Server) Start() {
 
 	router.GET("/firme/:page_number", self.getFirme)
 	router.GET("/firma/:numar_inmatriculare", self.getFirma)
+	router.GET("/topFirme/:page_number", self.getTopFirme)
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
 
@@ -65,7 +66,7 @@ func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *ht
 	}
 }
 
-func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
 	page_number := ps.ByName("page_number")
 
 	pageNumber := 1
@@ -115,7 +116,23 @@ func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprout
 		ordering.sortOrder = sort
 	}
 
-	firme := self.repository.GetFirme(&filters, &ordering, pageNumber)
+	return pageNumber, &filters, &ordering
+}
+
+func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pageNumber, filters, _ := self.getFilters(r, ps)
+
+	firme := self.repository.GetFirme(filters, pageNumber)
+
+	self.returnSuccess(w, firme)
+}
+
+var allowedFormeJuridiceForBilanturi = []string{"SRL", "SA", "SNC", "SCS", "SCA", "RA"}
+
+func (self *Server) getTopFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pageNumber, filters, ordering := self.getFilters(r, ps)
+
+	firme := self.repository.GetTopFirme(filters, ordering, pageNumber)
 
 	self.returnSuccess(w, firme)
 }

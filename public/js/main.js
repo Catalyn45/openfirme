@@ -25,7 +25,7 @@ const sortOrder =
     document
         .getElementById("sortDirection")
 
-function searchWithFilters(endpoint) {
+function getFilterParameters() {
     const params = new URLSearchParams();
 
 	let nume_partial = query?.value?.toLowerCase().trim()
@@ -52,6 +52,12 @@ function searchWithFilters(endpoint) {
             params.set('sort_order', sortOrder.value)
 		}
 	}
+
+    return params
+}
+
+function searchWithFilters(endpoint) {
+    const params = getFilterParameters()
 
 	window.location = `/${endpoint}/1?${params}`
 }
@@ -103,7 +109,7 @@ async function openProfile(button) {
 	let inregistrare = card.getElementsByClassName("company-inregistrare")[0].textContent
 	inregistrare = inregistrare.replaceAll("/", "-")
 
-    window.location = `/profile/${inregistrare}${window.location.search}`
+    window.location = `/profile/${inregistrare}?${getFilterParameters()}`
 }
 
 function updateFilters() {
