@@ -232,6 +232,10 @@
                             SRL
                         </option>
 
+                        <option value="SA">
+                            SA
+                        </option>
+
                         <option value="PFA">
                             PFA
                         </option>
@@ -370,9 +374,9 @@
                             Actualizat: 16 august 2026
                         </span>
 
-                        <button class="view-button" onclick="openProfile(this)" >
+                        <a href = "/" class="view-button" onclick="openProfile(this)" >
                             Vezi profilul →
-                        </button>
+                        </a>
 
                     </div>
 
@@ -393,67 +397,68 @@
 
             </div>
 
+			<!-- ============================================================
+				 PAGINATION
+			============================================================ -->
+
+			<nav class="pagination" aria-label="Paginare" id="paginationContainer">
+
+				<a href="/" class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage(this)">
+					←
+				</a>
+
+				<a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+					1
+				</a>
+
+				<a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+					2
+				</a>
+
+				<span class="pagination-dots" id="pageFirstDots">...</span>
+
+				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+					9
+				</a>
+
+				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+					10
+				</a>
+
+				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+					11
+				</a>
+
+				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+					12
+				</a>
+
+				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+					13
+				</a>
+
+				<span class="pagination-dots" id="pageSecondDots">...</span>
+
+				<a href="/" class="pagination-button right-page-number" type="button" onclick="goToPage(this)">
+					19
+				</a>
+
+				<a href="/" class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
+					20
+				</a>
+
+				<a href="/" class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage(this)">
+					→
+				</a>
+
+			</nav>
+
+
         </section>
 
     </div>
 
 </main>
-
-<!-- ============================================================
-     PAGINATION
-============================================================ -->
-
-<nav class="pagination" aria-label="Paginare" id="paginationContainer">
-
-    <button class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage()">
-        ←
-    </button>
-
-    <button class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
-        1
-    </button>
-
-    <button class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
-        2
-    </button>
-
-    <span class="pagination-dots" id="pageFirstDots">...</span>
-
-    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-        9
-    </button>
-
-    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-        10
-    </button>
-
-    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-        11
-    </button>
-
-    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-        12
-    </button>
-
-    <button class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-        13
-    </button>
-
-    <span class="pagination-dots" id="pageSecondDots">...</span>
-
-    <button class="pagination-button right-page-number" type="button" onclick="goToPage(this)">
-        19
-    </button>
-
-    <button class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
-        20
-    </button>
-
-    <button class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage()">
-        →
-    </button>
-
-</nav>
 
 
 <!-- ============================================================

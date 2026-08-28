@@ -192,13 +192,13 @@ main {
 
 .reset-btn {
     grid-column: 4;
-    grid-row: 1;
+    grid-row: 2;
 
     justify-self: end;
     align-self: center;
 
     width: auto;
-    height: 34px;
+    height: 50px;
 
     padding: 0 14px;
 

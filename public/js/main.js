@@ -103,6 +103,18 @@ function formatMoney(amount) {
 	}).format(amount);
 }
 
+function formatDate(d) {
+	const [date, time] = d.split(" ");
+	const [year, month, day] = date.split("-");
+
+	let formatted = `${day}/${month}/${year}`
+	if (time) {
+		formatted = `${formatted} ${time}`
+	}
+
+	return formatted
+}
+
 /* ============================================================
    RESET FILTERS
 ============================================================ */

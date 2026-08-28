@@ -638,6 +638,7 @@ func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilt
 					FROM bilanturi b
 				)
 				AND firme.cui = bilanturi.cui
+			WHERE 1=1
 	`
 
 	bilanturiEfficientStmt := `

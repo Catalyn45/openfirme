@@ -104,17 +104,17 @@ if (window.location.pathname.includes("top")) {
 
 function goToPage(pageButton) {
 	const pageNumber = parseInt(pageButton.innerText)
-    window.location = `/${pageEndpoint}/${pageNumber}?${getFilterParameters()}`
+    pageButton.href = `/${pageEndpoint}/${pageNumber}?${getFilterParameters()}`
 }
 
-function goToNextPage() {
+function goToNextPage(pageButton) {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    window.location = `/${pageEndpoint}/${pageNumber+1}?${getFilterParameters()}`
+    pageButton.href = `/${pageEndpoint}/${pageNumber+1}?${getFilterParameters()}`
 }
 
-function goToPrevPage() {
+function goToPrevPage(pageButton) {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    window.location = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
+    pageButton = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
 }
 
 async function main() {
@@ -144,7 +144,7 @@ async function main() {
 		companyTip.textContent = firma.FormaJuridica
 		companyCui.textContent = firma.Cui
 		companyInregistrare.textContent = firma.CodInmatriculare
-		companyDate.textContent = firma.DataInregistrare
+		companyDate.textContent = formatDate(firma.DataInregistrare)
 
 		companyStatus.textContent = firma.Status
 
