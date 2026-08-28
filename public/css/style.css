@@ -137,7 +137,8 @@ nav a:hover {
     min-width: 0;
 }
 
-.search-box button {
+.search-box a {
+    display: block;
     border: none;
     background: var(--primary);
     color: white;
@@ -146,9 +147,11 @@ nav a:hover {
     font-weight: 700;
     cursor: pointer;
     font-size: 15px;
+    padding: 15px 40px;
+    text-decoration: none;
 }
 
-.search-box button:hover {
+.search-box a:hover {
     background: var(--primary-dark);
 }
 
@@ -427,10 +430,12 @@ main {
     border: none;
     background: #eff6ff;
     color: var(--primary);
-    padding: 9px 15px;
+    padding: 9px 10px;
     border-radius: 7px;
     cursor: pointer;
     font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
 }
 
 .view-button:hover {

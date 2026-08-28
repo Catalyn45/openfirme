@@ -7,6 +7,7 @@ const companyInregistrare = prototypeCard.getElementsByClassName("company-inregi
 const companyTip = prototypeCard.getElementsByClassName("company-tip")[0]
 const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
 const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
+const companyVeziProfil = prototypeCard.getElementsByClassName("view-button")[0]
 
 const companyAngajati = prototypeCard.getElementsByClassName("company-angajati")?.[0]
 const companyProfit = prototypeCard.getElementsByClassName("company-profit")?.[0]

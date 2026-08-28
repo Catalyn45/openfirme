@@ -62,13 +62,15 @@ function searchWithFilters(endpoint) {
 	window.location = `/${endpoint}/1?${params}`
 }
 
-function searchCompanies() {
+function searchCompanies(event, el) {
 	let nume_partial = query.value.toLowerCase().trim()
 	if (!nume_partial) {
+        event.preventDefault()
 		return
 	}
 
-    searchWithFilters('search')
+    const params = getFilterParameters()
+    el.href = `/search/1?${params}`
 }
 
 function changeFilter(el) {
@@ -82,11 +84,15 @@ function changeFilter(el) {
 ============================================================ */
 
 function handleEnter(event) {
-
     if (event.key === "Enter") {
-        searchCompanies();
-    }
+        let nume_partial = query.value.toLowerCase().trim()
+        if (!nume_partial) {
+            return
+        }
 
+        const params = getFilterParameters()
+        window.location = `/search/1?${params}`
+    }
 }
 
 function formatMoney(amount) {
@@ -116,7 +122,7 @@ async function openProfile(button) {
 	let inregistrare = card.getElementsByClassName("company-inregistrare")[0].textContent
 	inregistrare = inregistrare.replaceAll("/", "-")
 
-    window.location = `/profile/${inregistrare}?${getFilterParameters()}`
+    button.href = `/profile/${inregistrare}?${getFilterParameters()}`
 }
 
 function updateFilters() {
