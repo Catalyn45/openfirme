@@ -633,7 +633,10 @@ func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilt
 			LEFT JOIN stari
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			LEFT JOIN bilanturi
-				ON bilanturi.an = 2025
+				ON bilanturi.an = (
+					SELECT MAX(b.an)
+					FROM bilanturi b
+				)
 				AND firme.cui = bilanturi.cui
 	`
 
@@ -643,7 +646,11 @@ func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilt
 				ON firme.cui = bilanturi.cui
 			LEFT JOIN stari
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
-			WHERE bilanturi.an = 2025 
+			WHERE bilanturi.an = (
+					SELECT MAX(b.an)
+					FROM bilanturi b
+				)
+ 
 	`
 
 	sortBy := ""
