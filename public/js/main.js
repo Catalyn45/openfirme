@@ -75,6 +75,9 @@ function searchCompanies(event, el) {
 
 function changeFilter(el) {
     let endpoint = window.location.pathname.split("/")[1]
+    if (!endpoint) {
+        return
+    }
 
     searchWithFilters(endpoint)
 }
