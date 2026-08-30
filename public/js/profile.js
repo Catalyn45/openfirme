@@ -68,7 +68,20 @@ async function main() {
 	profileCompanyAdresa.textContent = createAddress(json)
 	profileCompanyCodPostal.textContent = json.CodPostal
 	profileCompanyCaen.textContent = json.CoduriCaen?.join(", ") ?? ""
-	profileCompanyAdministratori.textContent = json.Administratori?.join(", ") ?? "Fără administratori"
+
+	if (json.Administratori) {
+		profileCompanyAdministratori.textContent = ""
+
+		for (let admin of json.Administratori) {
+			const link = document.createElement("a");
+
+			link.href = `/admins/${profileId}/${admin}/1`
+			link.textContent = admin
+
+			profileCompanyAdministratori.appendChild(link)
+			profileCompanyAdministratori.appendChild(document.createElement("br"))
+		}
+	}
 
 	if (!json.BilanturiFirma) {
 		return

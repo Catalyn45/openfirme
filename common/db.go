@@ -263,8 +263,12 @@ func (this *Repository) InitReprezentanti() {
 			judet TEXT,
 			tara TEXT
 		);
+
 		CREATE INDEX IF NOT EXISTS idx_reprezentanti_cod_inmatriculare
-		ON reprezentanti(cod_inmatriculare);
+		ON reprezentanti(cod_inmatriculare, calitate);
+
+		CREATE INDEX IF NOT EXISTS idx_reprezentanti_persoana_imputernicita
+		ON reprezentanti(persoana_imputernicita, calitate, cod_inmatriculare);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -597,10 +601,6 @@ func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters
 				ON firme.rowid = firme_search.rowid
 			LEFT JOIN stari
 				ON firme.cod_inmatriculare = stari.cod_inmatriculare
-			LEFT JOIN bilanturi
-				ON firme.forma_juridica != 'PFA'
-				AND bilanturi.an = 2025
-				AND firme.cui = bilanturi.cui
 			WHERE 1=1 `
 
 	params := []any{}
@@ -702,6 +702,18 @@ func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilt
 
 func (this *Repository) getFirmeCount(filters *FirmeFilters) int {
 	rows := this.constructFirmeQuery("1 ", filters, nil)
+	defer rows.Close()
+
+	count := 0
+	for rows.Next() {
+		count++
+	}
+
+	return count
+}
+
+func (this *Repository) getAdminsCount(cod_inmatriculare string, admin string) int {
+	rows := this.constructAdminsQuery("1 ", cod_inmatriculare, admin, nil)
 	defer rows.Close()
 
 	count := 0
@@ -997,4 +1009,80 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	}
 
 	return infoFirma
+}
+
+func (this *Repository) constructAdminsQuery(fields string, cod_inmatriculare string, admin string, pageNumber *int) *sql.Rows {
+	stmt := `
+		SELECT ` + fields + `
+		FROM firme
+		JOIN stari
+			ON stari.cod_inmatriculare = firme.cod_inmatriculare
+		JOIN reprezentanti
+			ON reprezentanti.cod_inmatriculare = firme.cod_inmatriculare
+		JOIN (
+			SELECT *
+			FROM reprezentanti
+			WHERE cod_inmatriculare = ? AND persoana_imputernicita = ? and calitate = 'administrator'
+			LIMIT 1
+		) r ON reprezentanti.persoana_imputernicita = r.persoana_imputernicita
+			AND reprezentanti.calitate = r.calitate
+			AND reprezentanti.data_nastere = r.data_nastere
+			AND reprezentanti.judet_nastere = r.judet_nastere
+	`
+
+	params := []any{cod_inmatriculare, admin}
+	stmt = this.addLimitToQuery(stmt, pageNumber, &params)
+
+	stmt += ";"
+
+	fmt.Println("stmt ", stmt)
+	fmt.Println("params ", params)
+
+	preparedStmt, err := this.db.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Started searching in db...")
+	rows, err := preparedStmt.Query(params...)
+	if err != nil {
+		panic(err)
+	}
+
+	return rows
+}
+
+func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pageNumber int) *InfoFirmeResult {
+	fields := `
+			firme.denumire,
+			firme.cod_inmatriculare,
+			firme.forma_juridica,
+			firme.cui,
+			firme.data_inmatriculare,
+			firme.judet,
+			stari.status
+	`
+
+	rows := this.constructAdminsQuery(fields, cod_inmatriculare, admin, &pageNumber)
+	defer rows.Close()
+
+	result := &InfoFirmeResult {
+		Count: this.getAdminsCount(cod_inmatriculare, admin),
+		Data: []*InfoFirmaLight{},
+	}
+
+	for rows.Next() {
+		var infoFirma InfoFirmaLight
+
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
+		if err != nil {
+			panic(err)
+		}
+
+		result.Data = append(result.Data, &infoFirma)
+	}
+
+	fmt.Println("finished searching in db!")
+
+	return result;
 }

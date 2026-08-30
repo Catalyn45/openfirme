@@ -36,13 +36,17 @@ func (self *Server) Start() {
 
 	router.GET("/", self.serveHtmlFunc("./public/index.html"))
 
-	router.GET("/search/:page_number", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
+
+	router.GET("/search/:page_number", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
+	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
 
 	router.GET("/firme/:page_number", self.getFirme)
 	router.GET("/firma/:numar_inmatriculare", self.getFirma)
 	router.GET("/topFirme/:page_number", self.getTopFirme)
+	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.getAdminsFirme)
+
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
 
@@ -146,4 +150,36 @@ func (self *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprout
 	firma := self.repository.GetFirma(numar_inmatriculare);
 
 	self.returnSuccess(w, firma)
+}
+
+func (self *Server) getAdminsFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	numar_inmatriculare := ps.ByName("cod_inmatriculare")
+	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+
+	fmt.Println("firma:" + numar_inmatriculare)
+
+	page_number := ps.ByName("page_number")
+
+	pageNumber := 1
+
+	if page_number != "" {
+		var err error
+
+		pageNumber, err = strconv.Atoi(page_number)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if pageNumber > 10 {
+		panic(fmt.Errorf("can't have more than 200 results"))
+	}
+
+	fmt.Println(pageNumber)
+
+	admin := ps.ByName("admin")
+
+	firme := self.repository.GetAdminFirme(numar_inmatriculare, admin, pageNumber)
+
+	self.returnSuccess(w, firme)
 }

@@ -95,12 +95,7 @@ function updatePageNumbers(currentPage, totalResults) {
 	pagesContainer.style.display = "flex"
 }
 
-let pageEndpoint = ''
-if (window.location.pathname.includes("top")) {
-	pageEndpoint = `top`
-} else {
-	pageEndpoint = `search`
-}
+let pageEndpoint = window.location.pathname.split('/').slice(1, -1)
 
 function goToPage(pageButton) {
 	const pageNumber = parseInt(pageButton.innerText)
@@ -118,15 +113,20 @@ function goToPrevPage(pageButton) {
 }
 
 async function main() {
-	const pageNumber = window.location.pathname.split('/').pop();
+	let path = window.location.pathname.split('/')
+
+	const pageNumber = path.pop();
 
     let endpoint = ''
 
-    if (window.location.pathname.includes("top")) {
+    if (pageEndpoint.includes("top")) {
         endpoint = `/topFirme`
-    } else {
+    } else if (pageEndpoint.includes("search")) {
         endpoint = `/firme`
-    }
+    } else {
+		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
+		document.getElementById("company-administrator").textContent += decodeURIComponent(path[3])
+	}
 
     endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
 
