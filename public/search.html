@@ -1,20 +1,21 @@
+
 <!DOCTYPE html>
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/search.css">
+
 
     <title>OpenFirme România — Informații despre companii</title>
 </head>
 
 <body>
 
-<!-- ============================================================
-     HEADER
-============================================================ -->
+
 
 <header>
 
@@ -31,9 +32,7 @@
 </header>
 
 
-<!-- ============================================================
-     HERO / SEARCH
-============================================================ -->
+
 
 <section class="hero">
 
@@ -43,42 +42,45 @@
         Caută informații publice despre societăți comerciale
         folosind denumirea firmei    </p>
 
+    
     <div class="search-wrapper">
 
-        <div class="search-box">
+    <div class="search-box">
 
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Caută după nume firmă..."
-                onkeydown="handleEnter(event)"
-            >
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Caută după nume firmă..."
+            onkeydown="handleEnter(event)"
+        >
 
-            <a href="/" onclick="searchCompanies(event, this)">
-                🔍 Caută
-            </a>
-
-        </div>
+        <a href="/" onclick="searchCompanies(event, this)">
+            🔍 Caută
+        </a>
 
     </div>
+
+</div>
+
+
 
 </section>
 
 
-<!-- ============================================================
-     MAIN
-============================================================ -->
+
 
 <main>
 
     <div class="layout">
+        
+    <div class="sidebar">
+
+    
+	
 
 
-        <div class="sidebar">
-
-            <!-- ====================================================
-                 FILTERS
-            ==================================================== -->
+    
+                    
 
             <aside class="filters">
 
@@ -211,184 +213,184 @@
 
             </aside>
 
-        </div>
+    
+
+</div>
 
 
-        <!-- ====================================================
-             RESULTS
-        ==================================================== -->
 
-        <section>
+		
+    
 
-            <div class="results-header">
+<section>
 
-                <h2>Companii</h2>
+    <div class="results-header">
 
-                <span id="resultCount">
-                    0 rezultate
-                </span>
+		<h2 id="company-administrator">Companii</h2>
 
-            </div>
+        <span id="resultCount">
+            0 rezultate
+        </span>
 
-
-            <div id="results">
+    </div>
 
 
-                <!-- ==================================================
-                     COMPANY 1
-                ================================================== -->
+    <div id="results">
 
-                <div class="company-card" style="display: none;" id="prototype">
-                    <div class="company-top">
-                        <div>
-                            <div class="company-name">
-                                Example Technologies SRL
-                            </div>
 
-                            <div class="company-id">
-								<span class="company-cui">CUI: RO12345678</span>
-                                &nbsp; • &nbsp;
-								<span class="company-inregistrare">J22/1234/2020</span>
-                            </div>
+        
 
-                        </div>
-
-                        <span class="company-status">
-                            Activă
-                        </span>
-
+        <div class="company-card" style="display: none;" id="prototype">
+            <div class="company-top">
+                <div>
+                    <div class="company-name">
+                        Example Technologies SRL
                     </div>
 
-                    <div class="company-info">
-
-                        <div class="info-item">
-
-                            <small>Județ</small>
-
-                            <strong class="company-judet">
-                                Iași
-                            </strong>
-
-                        </div>
-
-                        <div class="info-item">
-
-                            <small>Înființată</small>
-
-                            <strong class="company-date">
-                                2020
-                            </strong>
-
-                        </div>
-
-
-                        <div class="info-item">
-
-                            <small>Tip societate</small>
-
-                            <strong class="company-tip">
-                                SRL
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="card-footer">
-
-                        <span class="updated">
-                            Actualizat: 16 august 2026
-                        </span>
-
-                        <a href="/" class="view-button" onclick="openProfile(this)" >
-                            Vezi profilul →
-                        </a>
-
+                    <div class="company-id">
+                        <span class="company-cui">CUI: RO12345678</span>
+                        &nbsp; • &nbsp;
+                        <span class="company-inregistrare">J22/1234/2020</span>
                     </div>
 
                 </div>
 
-            <!-- EMPTY STATE -->
-
-            <div class="empty-state" id="emptyState" style="display: none;">
-
-                <h3>
-                    Nu am găsit nicio companie
-                </h3>
-
-                <p>
-                    Încearcă o altă denumire, un CUI sau
-                    modifică filtrele de căutare.
-                </p>
+                <span class="company-status">
+                    Activă
+                </span>
 
             </div>
 
-			<!-- ============================================================
-				 PAGINATION
-			============================================================ -->
+            <div class="company-info">
 
-			<nav class="pagination" aria-label="Paginare" id="paginationContainer">
+                <div class="info-item">
 
-				<a href="/" class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage(this)">
-					←
-				</a>
+                    <small>Județ</small>
 
-				<a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
-					1
-				</a>
+                    <strong class="company-judet">
+                        Iași
+                    </strong>
 
-				<a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
-					2
-				</a>
+                </div>
 
-				<span class="pagination-dots" id="pageFirstDots">...</span>
+                <div class="info-item">
 
-				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-					9
-				</a>
+                    <small>Înființată</small>
 
-				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-					10
-				</a>
+                    <strong class="company-date">
+                        2020
+                    </strong>
 
-				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-					11
-				</a>
+                </div>
 
-				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-					12
-				</a>
 
-				<a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
-					13
-				</a>
+                <div class="info-item">
 
-				<span class="pagination-dots" id="pageSecondDots">...</span>
+                    <small>Tip societate</small>
 
-				<a href="/" class="pagination-button right-page-number" type="button" onclick="goToPage(this)">
-					19
-				</a>
+                    <strong class="company-tip">
+                        SRL
+                    </strong>
 
-				<a href="/" class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
-					20
-				</a>
+                </div>
 
-				<a href="/" class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage(this)">
-					→
-				</a>
+			
+            
 
-			</nav>
-        </section>
+            </div>
+
+
+            <div class="card-footer">
+
+                <span class="updated">
+                    Actualizat: 16 august 2026
+                </span>
+
+                <a href="/" class="view-button" onclick="openProfile(this)" >
+                    Vezi profilul →
+                </a>
+
+            </div>
+
+        </div>
+
+    
+
+    <div class="empty-state" id="emptyState" style="display: none;">
+
+        <h3>
+            Nu am găsit nicio companie
+        </h3>
+
+        <p>
+            Încearcă o altă denumire, un CUI sau
+            modifică filtrele de căutare.
+        </p>
+
+    </div>
+
+    
+
+    <nav class="pagination" aria-label="Paginare" id="paginationContainer">
+
+        <a href="/" class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage(this)">
+            ←
+        </a>
+
+        <a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+            1
+        </a>
+
+        <a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+            2
+        </a>
+
+        <span class="pagination-dots" id="pageFirstDots">...</span>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            9
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            10
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            11
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            12
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            13
+        </a>
+
+        <span class="pagination-dots" id="pageSecondDots">...</span>
+
+        <a href="/" class="pagination-button right-page-number" type="button" onclick="goToPage(this)">
+            19
+        </a>
+
+        <a href="/" class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
+            20
+        </a>
+
+        <a href="/" class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage(this)">
+            →
+        </a>
+
+    </nav>
+</section>
+
 
     </div>
 
 </main>
 
 
-<!-- ============================================================
-     FOOTER
-============================================================ -->
+
 
 <footer>
 
@@ -401,8 +403,25 @@
 
 </footer>
 
+	
 <script src="/public/js/main.js"></script>
 <script src="/public/js/search.js"></script>
 
+
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

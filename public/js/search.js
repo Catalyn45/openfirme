@@ -125,7 +125,7 @@ async function main() {
         endpoint = `/firme`
     } else {
 		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
-		document.getElementById("company-administrator").textContent += decodeURIComponent(path[3])
+		document.getElementById("company-administrator").textContent = `Companii admnistrate de: ${decodeURIComponent(path[3])}`
 	}
 
     endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`

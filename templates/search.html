@@ -1,0 +1,29 @@
+{{ template "base.html" }}
+
+{{ define "styles"}}
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/search.css">
+{{ end }}
+
+
+{{ define "scripts" }}
+<script src="/public/js/main.js"></script>
+<script src="/public/js/search.js"></script>
+{{ end }}
+
+{{ define "searchbar" }}
+    {{ template "searchbar.html" }}
+{{ end }}
+
+{{ define "sidebar" }}
+    {{ template "sidebar.html" }}
+{{ end }}
+
+{{ define "sorting" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "content" }}
+    {{ template "results.html" }}
+{{ end }}
+

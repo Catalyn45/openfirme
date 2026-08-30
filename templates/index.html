@@ -1,0 +1,19 @@
+{{ template "base.html" }}
+
+{{ define "styles"}}
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/home.css">
+{{ end }}
+
+
+{{ define "scripts" }}
+<script src="/public/js/main.js"></script>
+{{ end }}
+
+{{ define "searchbar" }}
+    {{ template "searchbar.html" }}
+{{ end }}
+
+{{ define "content" }}
+    {{ template "filters.html" }}
+{{ end }}

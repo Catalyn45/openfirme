@@ -1,20 +1,21 @@
+
 <!DOCTYPE html>
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/home.css">
+
 
     <title>OpenFirme România — Informații despre companii</title>
 </head>
 
 <body>
 
-<!-- ============================================================
-     HEADER
-============================================================ -->
+
 
 <header>
 
@@ -31,9 +32,7 @@
 </header>
 
 
-<!-- ============================================================
-     HERO / SEARCH
-============================================================ -->
+
 
 <section class="hero">
 
@@ -43,34 +42,41 @@
         Caută informații publice despre societăți comerciale
         folosind denumirea firmei    </p>
 
+    
     <div class="search-wrapper">
 
-        <div class="search-box">
+    <div class="search-box">
 
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Caută după nume firmă..."
-                onkeydown="handleEnter(event)"
-            >
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Caută după nume firmă..."
+            onkeydown="handleEnter(event)"
+        >
 
-            <a href="/" onclick="searchCompanies(event, this)">
-                🔍 Caută
-            </a>
-
-        </div>
+        <a href="/" onclick="searchCompanies(event, this)">
+            🔍 Caută
+        </a>
 
     </div>
 
+</div>
+
+
+
 </section>
 
-<!-- ============================================================
-     MAIN
-============================================================ -->
+
+
 
 <main>
 
-<div class="home-layout">
+    <div class="layout">
+        
+        
+
+		
+                
 
             <aside class="filters">
 
@@ -83,54 +89,54 @@
                         Județ
                     </label>
 
-                    <select id="countyFilter">
+                    <select id="countyFilter" onchange="changeFilter(this)">
 
                         <option value="">
                             Toate județele
                         </option>
 
-                        <option value="Alba">Alba</option>
-                        <option value="Arad">Arad</option>
-                        <option value="Argeş">Argeş</option>
-                        <option value="Bacău">Bacău</option>
-                        <option value="Bihor">Bihor</option>
-                        <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
-                        <option value="Botoşani">Botoşani</option>
-                        <option value="Brăila">Brăila</option>
-                        <option value="Braşov">Braşov</option>
                         <option value="Bucureşti">Bucureşti</option>
-                        <option value="Buzău">Buzău</option>
-                        <option value="Călăraşi">Călăraşi</option>
-                        <option value="Caraş-Severin">Caraş-Severin</option>
-                        <option value="Cluj">Cluj</option>
-                        <option value="Constanţa">Constanţa</option>
-                        <option value="Covasna">Covasna</option>
-                        <option value="Dâmboviţa">Dâmboviţa</option>
-                        <option value="Dolj">Dolj</option>
-                        <option value="Galaţi">Galaţi</option>
-                        <option value="Giurgiu">Giurgiu</option>
-                        <option value="Gorj">Gorj</option>
-                        <option value="Harghita">Harghita</option>
-                        <option value="Hunedoara">Hunedoara</option>
-                        <option value="Ialomiţa">Ialomiţa</option>
-                        <option value="Iaşi">Iaşi</option>
                         <option value="Ilfov">Ilfov</option>
+                        <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
                         <option value="Maramureş">Maramureş</option>
+                        <option value="Ialomiţa">Ialomiţa</option>
+                        <option value="Alba">Alba</option>
+                        <option value="Tulcea">Tulcea</option>
+                        <option value="Argeş">Argeş</option>
                         <option value="Mehedinţi">Mehedinţi</option>
-                        <option value="Mureş">Mureş</option>
-                        <option value="Neamţ">Neamţ</option>
-                        <option value="Olt">Olt</option>
                         <option value="Prahova">Prahova</option>
+                        <option value="Olt">Olt</option>
                         <option value="Sălaj">Sălaj</option>
                         <option value="Satu Mare">Satu Mare</option>
-                        <option value="Sibiu">Sibiu</option>
+                        <option value="Arad">Arad</option>
+                        <option value="Braşov">Braşov</option>
+                        <option value="Iaşi">Iaşi</option>
                         <option value="Suceava">Suceava</option>
+                        <option value="Sibiu">Sibiu</option>
+                        <option value="Harghita">Harghita</option>
+                        <option value="Mureş">Mureş</option>
+                        <option value="Bacău">Bacău</option>
+                        <option value="Neamţ">Neamţ</option>
+                        <option value="Cluj">Cluj</option>
                         <option value="Teleorman">Teleorman</option>
-                        <option value="Timiş">Timiş</option>
-                        <option value="Tulcea">Tulcea</option>
-                        <option value="Vâlcea">Vâlcea</option>
-                        <option value="Vaslui">Vaslui</option>
+                        <option value="Constanţa">Constanţa</option>
                         <option value="Vrancea">Vrancea</option>
+                        <option value="Gorj">Gorj</option>
+                        <option value="Bihor">Bihor</option>
+                        <option value="Hunedoara">Hunedoara</option>
+                        <option value="Timiş">Timiş</option>
+                        <option value="Călăraşi">Călăraşi</option>
+                        <option value="Galaţi">Galaţi</option>
+                        <option value="Vaslui">Vaslui</option>
+                        <option value="Dâmboviţa">Dâmboviţa</option>
+                        <option value="Dolj">Dolj</option>
+                        <option value="Vâlcea">Vâlcea</option>
+                        <option value="Caraş-Severin">Caraş-Severin</option>
+                        <option value="Botoşani">Botoşani</option>
+                        <option value="Covasna">Covasna</option>
+                        <option value="Brăila">Brăila</option>
+                        <option value="Buzău">Buzău</option>
+                        <option value="Giurgiu">Giurgiu</option>
 
                     </select>
 
@@ -143,7 +149,7 @@
                         Status firmă
                     </label>
 
-                    <select id="statusFilter">
+                    <select id="statusFilter" onchange="changeFilter(this)">
 
                         <option value="">
                             Orice status
@@ -172,7 +178,7 @@
                         Formă juridică
                     </label>
 
-                    <select id="formaFilter">
+                    <select id="formaFilter" onchange="changeFilter(this)">
 
                         <option value="">
                             Oricare
@@ -204,20 +210,12 @@
             </aside>
 
 
-    <section class="home-content">
-
-        <!-- Future company results -->
-
-    </section>
-
-</div>
+    </div>
 
 </main>
 
 
-<!-- ============================================================
-     FOOTER
-============================================================ -->
+
 
 <footer>
 
@@ -230,7 +228,19 @@
 
 </footer>
 
+	
 <script src="/public/js/main.js"></script>
+
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+

@@ -11,7 +11,9 @@ main {
    SORT + FILTER LAYOUT
 ========================= */
 
-.home-layout {
+.layout {
+      all: unset;
+
     display: grid;
 
     /*
@@ -299,7 +301,8 @@ main {
 
 @media (max-width: 1100px) {
 
-    .home-layout {
+    .layout {
+          all: unset;
         /*grid-template-columns: 320px 1fr;*/
     }
 
@@ -315,7 +318,8 @@ main {
 
 @media (max-width: 900px) {
 
-    .home-layout {
+    .layout {
+          all: unset;
         /*grid-template-columns: 1fr;*/
     }
 
@@ -339,7 +343,7 @@ main {
         margin: 25px auto;
     }
 
-    .home-layout {
+    .layout {
         /*grid-template-columns: 1fr;*/
     }
 

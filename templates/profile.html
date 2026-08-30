@@ -1,228 +1,34 @@
+{{ template "base.html" }}
 
-<!DOCTYPE html>
-<html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    
+{{ define "styles"}}
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/profile.css">
+{{ end }}
 
 
-    <title>OpenFirme România — Informații despre companii</title>
-</head>
+{{ define "scripts" }}
+<script src="/public/js/main.js"></script>
+<script src="/public/js/profile.js"></script>
+{{ end }}
 
-<body>
+{{ define "sorting"}}
+	<!-- empty -->
+{{ end }}
 
+{{ define "sidebar" }}
+    {{ template "sidebar.html" }}
+{{ end }}
 
+{{ define "searchbar" }}
+    {{ template "searchbar.html" }}
+{{ end }}
 
-<header>
-
-    <a href="/" class="logo">
-        OpenFirme<span> România</span>
-    </a>
-
-    <nav>
-        <a href="/">Căutare</a>
-        <a href="/top/1">Companii</a>
-        <a href="#">Despre proiect</a>
-    </nav>
-
-</header>
-
-
-
-
-<section class="hero">
-
-    <h1>Găsește orice companie din România</h1>
-
-    <p>
-        Caută informații publice despre societăți comerciale
-        folosind denumirea firmei    </p>
-
-    
-    <div class="search-wrapper">
-
-    <div class="search-box">
-
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Caută după nume firmă..."
-            onkeydown="handleEnter(event)"
-        >
-
-        <a href="/" onclick="searchCompanies(event, this)">
-            🔍 Caută
-        </a>
-
-    </div>
-
-</div>
-
-
-
-</section>
-
-
-
-
-<main>
-
-    <div class="layout">
-        
-    <div class="sidebar">
-
-    
-	
-
-
-    
-                    
-
-            <aside class="filters">
-
-                <h3>Filtre</h3>
-
-
-                <div class="filter-group">
-
-                    <label for="countyFilter">
-                        Județ
-                    </label>
-
-                    <select id="countyFilter" onchange="changeFilter(this)">
-
-                        <option value="">
-                            Toate județele
-                        </option>
-
-                        <option value="Bucureşti">Bucureşti</option>
-                        <option value="Ilfov">Ilfov</option>
-                        <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
-                        <option value="Maramureş">Maramureş</option>
-                        <option value="Ialomiţa">Ialomiţa</option>
-                        <option value="Alba">Alba</option>
-                        <option value="Tulcea">Tulcea</option>
-                        <option value="Argeş">Argeş</option>
-                        <option value="Mehedinţi">Mehedinţi</option>
-                        <option value="Prahova">Prahova</option>
-                        <option value="Olt">Olt</option>
-                        <option value="Sălaj">Sălaj</option>
-                        <option value="Satu Mare">Satu Mare</option>
-                        <option value="Arad">Arad</option>
-                        <option value="Braşov">Braşov</option>
-                        <option value="Iaşi">Iaşi</option>
-                        <option value="Suceava">Suceava</option>
-                        <option value="Sibiu">Sibiu</option>
-                        <option value="Harghita">Harghita</option>
-                        <option value="Mureş">Mureş</option>
-                        <option value="Bacău">Bacău</option>
-                        <option value="Neamţ">Neamţ</option>
-                        <option value="Cluj">Cluj</option>
-                        <option value="Teleorman">Teleorman</option>
-                        <option value="Constanţa">Constanţa</option>
-                        <option value="Vrancea">Vrancea</option>
-                        <option value="Gorj">Gorj</option>
-                        <option value="Bihor">Bihor</option>
-                        <option value="Hunedoara">Hunedoara</option>
-                        <option value="Timiş">Timiş</option>
-                        <option value="Călăraşi">Călăraşi</option>
-                        <option value="Galaţi">Galaţi</option>
-                        <option value="Vaslui">Vaslui</option>
-                        <option value="Dâmboviţa">Dâmboviţa</option>
-                        <option value="Dolj">Dolj</option>
-                        <option value="Vâlcea">Vâlcea</option>
-                        <option value="Caraş-Severin">Caraş-Severin</option>
-                        <option value="Botoşani">Botoşani</option>
-                        <option value="Covasna">Covasna</option>
-                        <option value="Brăila">Brăila</option>
-                        <option value="Buzău">Buzău</option>
-                        <option value="Giurgiu">Giurgiu</option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="filter-group">
-
-                    <label for="statusFilter">
-                        Status firmă
-                    </label>
-
-                    <select id="statusFilter" onchange="changeFilter(this)">
-
-                        <option value="">
-                            Orice status
-                        </option>
-
-                        <option value="funcțiune" selected>
-                            Activă
-                        </option>
-
-                        <option value="radiată">
-                            Radiată
-                        </option>
-
-                        <option value="dizolvare">
-                            Dizolvată
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="filter-group">
-
-                    <label for="formaFilter">
-                        Formă juridică
-                    </label>
-
-                    <select id="formaFilter" onchange="changeFilter(this)">
-
-                        <option value="">
-                            Oricare
-                        </option>
-
-                        <option value="SRL">
-                            SRL
-                        </option>
-
-                        <option value="SA">
-                            SA
-                        </option>
-
-                        <option value="PFA">
-                            PFA
-                        </option>
-
-                    </select>
-
-                </div>
-
-                <button
-                    class="reset-btn"
-                    onclick="resetFilters()"
-                >
-                    Resetează filtrele
-                </button>
-
-            </aside>
-
-    
-
-</div>
-
-
-
-		
+{{ define "content" }}
         <section>
 
-            
+            <!-- ====================================================
+                 MODAL / COMPANY PROFILE
+            ==================================================== -->
 
             <div class="modal" id="profileModal" >
 
@@ -243,7 +49,7 @@
                     <div class="modal-body">
 
 
-                        
+                        <!-- IDENTIFICATION -->
 
                         <div class="profile-section">
 
@@ -335,7 +141,7 @@
                         </div>
 
 
-                        
+                        <!-- ADDRESS -->
 
                         <div class="profile-section">
 
@@ -401,7 +207,7 @@
                         </div>
 
 
-                        
+                        <!-- ACTIVITY -->
 
                         <div class="profile-section">
 
@@ -428,7 +234,7 @@
                         </div>
 
 
-                        
+                        <!-- PEOPLE -->
 
                         <div class="profile-section">
 
@@ -468,7 +274,7 @@
                         </div>
 
 
-						
+						<!-- FINANCIAL -->
 
 						<div class="profile-section financial-section" id="dateFinanciareContainer" style="display: none;">
 
@@ -512,7 +318,7 @@
 
 						</div>
 
-                        
+                        <!-- SOURCES -->
 
                         <div class="profile-section">
 
@@ -545,43 +351,4 @@
             </div>
 
         </section>
-
-    </div>
-
-</main>
-
-
-
-
-<footer>
-
-    © 2026 OpenFirme România
-
-    <br><br>
-
-    Platformă de căutare și agregare a informațiilor
-    publice despre companii din România.
-
-</footer>
-
-	
-<script src="/public/js/main.js"></script>
-<script src="/public/js/profile.js"></script>
-
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{{ end }}

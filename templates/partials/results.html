@@ -1,0 +1,169 @@
+<!-- ====================================================
+     RESULTS
+==================================================== -->
+
+<section>
+
+    <div class="results-header">
+
+		<h2 id="company-administrator">Companii</h2>
+
+        <span id="resultCount">
+            0 rezultate
+        </span>
+
+    </div>
+
+
+    <div id="results">
+
+
+        <!-- ==================================================
+             COMPANY 1
+        ================================================== -->
+
+        <div class="company-card" style="display: none;" id="prototype">
+            <div class="company-top">
+                <div>
+                    <div class="company-name">
+                        Example Technologies SRL
+                    </div>
+
+                    <div class="company-id">
+                        <span class="company-cui">CUI: RO12345678</span>
+                        &nbsp; • &nbsp;
+                        <span class="company-inregistrare">J22/1234/2020</span>
+                    </div>
+
+                </div>
+
+                <span class="company-status">
+                    Activă
+                </span>
+
+            </div>
+
+            <div class="company-info">
+
+                <div class="info-item">
+
+                    <small>Județ</small>
+
+                    <strong class="company-judet">
+                        Iași
+                    </strong>
+
+                </div>
+
+                <div class="info-item">
+
+                    <small>Înființată</small>
+
+                    <strong class="company-date">
+                        2020
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <small>Tip societate</small>
+
+                    <strong class="company-tip">
+                        SRL
+                    </strong>
+
+                </div>
+
+			{{ block "extraResultsInfo" .}}
+            {{ end }}
+
+            </div>
+
+
+            <div class="card-footer">
+
+                <span class="updated">
+                    Actualizat: 16 august 2026
+                </span>
+
+                <a href="/" class="view-button" onclick="openProfile(this)" >
+                    Vezi profilul →
+                </a>
+
+            </div>
+
+        </div>
+
+    <!-- EMPTY STATE -->
+
+    <div class="empty-state" id="emptyState" style="display: none;">
+
+        <h3>
+            Nu am găsit nicio companie
+        </h3>
+
+        <p>
+            Încearcă o altă denumire, un CUI sau
+            modifică filtrele de căutare.
+        </p>
+
+    </div>
+
+    <!-- ============================================================
+         PAGINATION
+    ============================================================ -->
+
+    <nav class="pagination" aria-label="Paginare" id="paginationContainer">
+
+        <a href="/" class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage(this)">
+            ←
+        </a>
+
+        <a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+            1
+        </a>
+
+        <a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+            2
+        </a>
+
+        <span class="pagination-dots" id="pageFirstDots">...</span>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            9
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            10
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            11
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            12
+        </a>
+
+        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+            13
+        </a>
+
+        <span class="pagination-dots" id="pageSecondDots">...</span>
+
+        <a href="/" class="pagination-button right-page-number" type="button" onclick="goToPage(this)">
+            19
+        </a>
+
+        <a href="/" class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
+            20
+        </a>
+
+        <a href="/" class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage(this)">
+            →
+        </a>
+
+    </nav>
+</section>

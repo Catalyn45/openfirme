@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {{ block "styles" . }}
+    <link rel="stylesheet" href="/public/css/style.css">
+    {{ end }}
+
+    <title>OpenFirme România — Informații despre companii</title>
+</head>
+
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+
+<header>
+
+    <a href="/" class="logo">
+        OpenFirme<span> România</span>
+    </a>
+
+    <nav>
+        <a href="/">Căutare</a>
+        <a href="/top/1">Companii</a>
+        <a href="#">Despre proiect</a>
+    </nav>
+
+</header>
+
+
+<!-- ============================================================
+     HERO / SEARCH
+============================================================ -->
+
+<section class="hero">
+
+    <h1>Găsește orice companie din România</h1>
+
+    <p>
+        Caută informații publice despre societăți comerciale
+        folosind denumirea firmei    </p>
+
+    {{ block "searchbar" . }}
+    {{ end }}
+
+</section>
+
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+
+<main>
+
+    <div class="layout">
+        {{ block "sidebar" . }}
+        {{ end }}
+
+		{{ block "content" . }}
+		{{ end }}
+    </div>
+
+</main>
+
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+
+<footer>
+
+    © 2026 OpenFirme România
+
+    <br><br>
+
+    Platformă de căutare și agregare a informațiilor
+    publice despre companii din România.
+
+</footer>
+
+	{{ block "scripts" . }}
+	<script src="/public/js/main.js"></script>
+	{{ end }}
+
+</body>
+</html>

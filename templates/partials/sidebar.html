@@ -1,0 +1,11 @@
+<div class="sidebar">
+
+    {{ block "sorting" . }}
+        {{ template "sorting.html" }}
+    {{ end }}
+
+    {{ block "filters" . }}
+        {{ template "filters.html" }}
+    {{ end }}
+
+</div>

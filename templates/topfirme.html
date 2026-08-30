@@ -1,0 +1,53 @@
+{{ template "base.html" }}
+
+{{ define "styles"}}
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/search.css">
+    <link rel="stylesheet" href="/public/css/topfirme.css">
+{{ end }}
+
+
+{{ define "scripts" }}
+<script src="/public/js/main.js"></script>
+<script src="/public/js/search.js"></script>
+{{ end }}
+
+{{ define "sidebar" }}
+    {{ template "sidebar.html" }}
+{{ end }}
+
+{{ define "content" }}
+    {{ template "results.html" }}
+{{ end }}
+
+{{ define "extraResultsInfo"}}
+    <div class="info-item">
+
+        <small>Cifra afaceri</small>
+
+        <strong class="company-cifra-afaceri">
+            100.000.000.000
+        </strong>
+
+    </div>
+
+    <div class="info-item">
+
+        <small>Profit</small>
+
+        <strong class="company-profit">
+            100.000.000.000
+        </strong>
+
+    </div>
+
+    <div class="info-item">
+
+        <small>Angajati</small>
+
+        <strong class="company-angajati">
+            100.000.000.000
+        </strong>
+
+    </div>
+{{ end }}

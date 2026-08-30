@@ -1,0 +1,52 @@
+            <aside class="sort-box">
+
+                <h3>Sortare</h3>
+
+                <div class="filter-group">
+
+                    <label for="sortField">
+                        Sortează după
+                    </label>
+
+                    <select id="sortField" onchange="changeFilter(this)">
+                        <option value="infiintare">
+                            An înființare
+                        </option>
+
+                        <option value="cifra_afaceri">
+                            Cifră de afaceri
+                        </option>
+
+                        <option value="profit">
+                            Profit net
+                        </option>
+
+                        <option value="angajati">
+                            Angajați
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="sortDirection">
+                        Ordine
+                    </label>
+
+                    <select id="sortDirection" onchange="changeFilter(this)">
+                        <option value="desc">
+                            Descrescător
+                        </option>
+
+                        <option value="asc">
+                            Crescător
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </aside>
