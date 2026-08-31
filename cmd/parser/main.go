@@ -8,7 +8,9 @@ import (
 func main() {
 	repository := common.NewRepository("./foo.db")
 	repository.Init()
-	repository.Update()
+
+	parser := common.NewParser("./data", repository)
+	parser.Parse()
 
 	fmt.Println("Finished")
 }

@@ -2,11 +2,14 @@ package common
 
 import (
 	"bufio"
+	"encoding/json"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
-func read_csv(file_path string, delimiter string, skipIndex int) [][]string {
+func readCsv(file_path string, delimiter string, skipIndex int) [][]string {
 	file, err := os.Open(file_path)
 	if err != nil {
 		panic(err)
@@ -54,7 +57,7 @@ func read_csv(file_path string, delimiter string, skipIndex int) [][]string {
 	return data
 }
 
-func parse_csv(data [][]string) []map[string]string {
+func parseCsv(data [][]string) []map[string]string {
 	parsed := []map[string]string{}
 
 	for i := 1; i < len(data); i++ {
@@ -70,14 +73,99 @@ func parse_csv(data [][]string) []map[string]string {
 	return parsed
 }
 
-func read_data_delimiter(file_path string, delimiter string, skipIndex int) []map[string]string {
-	data := read_csv(file_path, delimiter, skipIndex)
+func readDataDelimiter(file_path string, delimiter string, skipIndex int) []map[string]string {
+	data := readCsv(file_path, delimiter, skipIndex)
 
-	parsed := parse_csv(data)
+	parsed := parseCsv(data)
 
 	return parsed
 }
 
-func read_data(file_path string) []map[string]string {
-	return read_data_delimiter(file_path, "^", -1)
+func readData(file_path string) []map[string]string {
+	return readDataDelimiter(file_path, "^", -1)
 }
+
+func readMetadata(filePath string) map[string]string {
+	metadataPath := filePath
+
+	obj := make(map[string]string)
+
+	_, err := os.Stat(metadataPath)
+	if err != nil {
+		return obj
+	}
+
+	data, err := os.ReadFile(metadataPath)
+	if err != nil {
+		panic(err)
+	}
+
+
+	err = json.Unmarshal(data, &obj)
+	if err != nil {
+		panic(err)
+	}
+
+	return obj
+}
+
+func saveMetadata(obj map[string]string, filepath string) {
+	data, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.WriteFile(filepath, data, 0644)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func convertValuesToInt(oldmaps []map[string]string) []map[string]int {
+	newMaps := []map[string]int{}
+
+	for _, m := range oldmaps {
+		newMap := make(map[string]int)
+		for key, value := range m {
+			newValue := 0
+
+			if value != "" {
+				var err error
+				newValue, err = strconv.Atoi(value)
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			newMap[key] = newValue
+		}
+
+		newMaps = append(newMaps, newMap)
+	}
+
+	return newMaps
+}
+
+func convertDate(datetime string) string {
+	if datetime == "" {
+		return ""
+	}
+
+	layouts := []string{
+		"02/01/2006",
+		"02/01/2006 15:04",
+		"02/01/2006 15:04:05",
+	}
+
+	var err error
+	for _, layout := range layouts {
+		var t time.Time
+		t, err = time.Parse(layout, datetime)
+		if err == nil {
+			return t.Format("2006-01-02 15:04")
+		}
+	}
+
+	panic(err)
+}
+

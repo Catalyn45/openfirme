@@ -3,11 +3,9 @@ package common
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -30,6 +28,7 @@ func NewRepository(dbPath string) *Repository {
 }
 
 func (this *Repository) Init() {
+	this.InitMetadata()
 	this.InitFirme()
 	this.InitReprezentanti()
 	this.InitStari()
@@ -37,73 +36,25 @@ func (this *Repository) Init() {
 	this.InitBilanturi()
 }
 
-func (this *Repository) convert_values_to_string(oldmaps []map[string]string) []map[string]int {
-	newMaps := []map[string]int{}
+func (this *Repository) InitMetadata() {
+	createTableStmt := `
+		CREATE TABLE IF NOT EXISTS metadata (
+			tablename TEXT PRIMARY KEY,
+			dataset TEXT NOT NULL
+		);
+	`
 
-	for _, m := range oldmaps {
-		newMap := make(map[string]int)
-		for key, value := range m {
-			newValue := 0
-
-			if value != "" {
-				var err error
-				newValue, err = strconv.Atoi(value)
-				if err != nil {
-					panic(err)
-				}
-			}
-
-			newMap[key] = newValue
-		}
-
-		newMaps = append(newMaps, newMap)
-	}
-
-	return newMaps
-}
-
-func (this *Repository) Update() {
-	fmt.Println("Updating tables")
-
-	parsed := read_data("./data/od_firme.csv")
-	this.UpdateFirme(parsed)
-
-	parsed = read_data("./data/od_reprezentanti_legali.csv")
-	this.UpdateReprezentanti(parsed)
-
-	stare_firma := read_data("./data/od_stare_firma.csv")
-	nomenclatura := read_data("./data/n_stare_firma.csv")
-
-	resolve_nomenclatura(stare_firma, nomenclatura)
-
-	this.UpdateStari(stare_firma)
-
-	parsed = read_data("./data/od_caen_autorizat.csv")
-	this.UpdateCaen(parsed)
-
-	for i := 2011; ; i++ {
-		filePath := "./data/web_bl_bs_sl_an" + strconv.Itoa(i) + ".txt"
-		_, err := os.Stat(filePath)
-		if err != nil {
-			break
-		}
-
-		skipIndex := -1
-		if i <= 2015 {
-			skipIndex = 14
-		}
-
-		parsed = read_data_delimiter(filePath, ",", skipIndex)
-		intParsed := this.convert_values_to_string(parsed)
-
-		this.UpdateBilanturi(intParsed, i)
+	_, err := this.db.Exec(createTableStmt)
+	if err != nil {
+		panic(err)
 	}
 }
 
-func resolve_nomenclatura(dataset []map[string]string, nomenclatura []map[string]string) {
-	for _, data := range dataset {
-		index := slices.IndexFunc(nomenclatura, func (element map[string]string) bool { return data["COD"] == element["COD"]})
-		data["STATUS"] = nomenclatura[index]["DENUMIRE"]
+func (this *Repository) DeleteFromTable(transaction *sql.Tx, tableName string) {
+	stmt := "DELETE FROM " + tableName + ";"
+	_, err := transaction.Exec(stmt)
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -191,35 +142,52 @@ func (this *Repository) InitFirme() {
 	}
 }
 
-func convertDate(datetime string) string {
-	if datetime == "" {
-		return ""
-	}
+func (this *Repository) UpdateMetadata(transaction *sql.Tx, tableName string, datasetName string) {
+	metadataStmt := `
+		INSERT OR REPLACE INTO metadata (tablename, dataset)
+		VALUES ('` + tableName + "' , '" + datasetName + "')"
 
-	layouts := []string{
-		"02/01/2006",
-		"02/01/2006 15:04",
-		"02/01/2006 15:04:05",
+	_, err := transaction.Exec(metadataStmt)
+	if err != nil {
+		panic(err)
 	}
-
-	var err error
-	for _, layout := range layouts {
-		var t time.Time
-		t, err = time.Parse(layout, datetime)
-		if err == nil {
-			return t.Format("2006-01-02 15:04")
-		}
-	}
-
-	panic(err)
 }
 
-func (this *Repository) UpdateFirme(dataset []map[string]string) {
-	fmt.Println("Updating firme")
+func (this *Repository) isOnDataset(datasetName string, table string) bool {
+	metadataStmt := `
+		SELECT dataset
+		FROM metadata
+		WHERE tablename = '` + table + "';"
 
-	stmt := `
-		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+	rows, err := this.db.Query(metadataStmt)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return false
+	}
+
+	var existingDataset string
+	err = rows.Scan(&existingDataset)
+	if err != nil {
+		panic(err)
+	}
+
+	if existingDataset != datasetName {
+		return false
+	}
+
+	return true
+}
+
+func (this *Repository) IsFirmeOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "firme")
+}
+
+func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName string) {
+	fmt.Println("Updating firme")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -228,12 +196,17 @@ func (this *Repository) UpdateFirme(dataset []map[string]string) {
 
 	defer transaction.Rollback()
 
+	this.DeleteFromTable(transaction, "firme")
+
+	stmt := `
+		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
 		panic(err)
 	}
 	defer preparedStmt.Close()
-
 
 	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["DENUMIRE"], data["CUI"], data["COD_INMATRICULARE"], convertDate(data["DATA_INMATRICULARE"]), data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
@@ -242,6 +215,8 @@ func (this *Repository) UpdateFirme(dataset []map[string]string) {
 			panic(err)
 		}
 	}
+
+	this.UpdateMetadata(transaction, datasetName, "firme")
 
 	err = transaction.Commit()
 	if err != nil {
@@ -277,12 +252,12 @@ func (this *Repository) InitReprezentanti() {
 	}
 }
 
-func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
-	fmt.Println("Updating reprezentanti")
+func (this *Repository) IsReprezentantiOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "reprezentanti")
+}
 
-	stmt := `
-		INSERT INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara)
-		VALUES (?,?,?,?,?,?,?,?,?,?);`
+func (this *Repository) UpdateReprezentanti(dataset []map[string]string, datasetName string) {
+	fmt.Println("Updating reprezentanti")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -290,6 +265,12 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 	}
 
 	defer transaction.Rollback()
+
+	this.DeleteFromTable(transaction, "reprezentanti")
+
+	stmt := `
+		INSERT INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara)
+		VALUES (?,?,?,?,?,?,?,?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -304,6 +285,8 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 			panic(err)
 		}
 	}
+
+	this.UpdateMetadata(transaction, datasetName, "reprezentanti")
 
 	err = transaction.Commit()
 	if err != nil {
@@ -329,12 +312,12 @@ func (this *Repository) InitStari() {
 	}
 }
 
-func (this *Repository) UpdateStari(dataset []map[string]string) {
-	fmt.Println("Updating stari")
+func (this *Repository) IsStariOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "stari")
+}
 
-	stmt := `
-		INSERT INTO stari (cod_inmatriculare, cod, status)
-		VALUES (?,?,?);`
+func (this *Repository) UpdateStari(dataset []map[string]string, datasetName string) {
+	fmt.Println("Updating stari")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -342,6 +325,12 @@ func (this *Repository) UpdateStari(dataset []map[string]string) {
 	}
 
 	defer transaction.Rollback()
+
+	this.DeleteFromTable(transaction, "stari")
+
+	stmt := `
+		INSERT INTO stari (cod_inmatriculare, cod, status)
+		VALUES (?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -356,6 +345,8 @@ func (this *Repository) UpdateStari(dataset []map[string]string) {
 			panic(err)
 		}
 	}
+
+	this.UpdateMetadata(transaction, datasetName, "stari")
 
 	err = transaction.Commit()
 	if err != nil {
@@ -380,12 +371,12 @@ func (this *Repository) InitCaen() {
 	}
 }
 
-func (this *Repository) UpdateCaen(dataset []map[string]string) {
-	fmt.Println("Updating caen")
+func (this *Repository) IsCaenOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "caen")
+}
 
-	stmt := `
-		INSERT INTO caen (cod_inmatriculare, cod_caen, versiune_caen)
-		VALUES (?,?,?);`
+func (this *Repository) UpdateCaen(dataset []map[string]string, datasetName string) {
+	fmt.Println("Updating caen")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -393,6 +384,12 @@ func (this *Repository) UpdateCaen(dataset []map[string]string) {
 	}
 
 	defer transaction.Rollback()
+
+	this.DeleteFromTable(transaction, "caen")
+
+	stmt := `
+		INSERT INTO caen (cod_inmatriculare, cod_caen, versiune_caen)
+		VALUES (?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -412,6 +409,8 @@ func (this *Repository) UpdateCaen(dataset []map[string]string) {
 			panic(err)
 		}
 	}
+
+	this.UpdateMetadata(transaction, datasetName, "caen")
 
 	err = transaction.Commit()
 	if err != nil {
@@ -467,12 +466,33 @@ func (this *Repository) InitBilanturi() {
 	}
 }
 
+func (this *Repository) DoesAnExist(an int) bool {
+	stmt := `
+		SELECT 1
+		FROM bilanturi
+		WHERE bilanturi.an = ` + strconv.Itoa(an) + `
+		LIMIT 1;`
+
+	rows, err :=  this.db.Query(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	return rows.Next()
+}
+
+func (this *Repository) DeleteAnFromBilanturi(transaction *sql.Tx, an int) {
+	stmt := "DELETE FROM bilanturi WHERE an = " + strconv.Itoa(an) + ";"
+	_, err := transaction.Exec(stmt)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	fmt.Println("Updating bilanturi")
-
-	stmt := `
-		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -480,6 +500,12 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	}
 
 	defer transaction.Rollback()
+
+	this.DeleteAnFromBilanturi(transaction, an)
+
+	stmt := `
+		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {

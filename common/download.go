@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -50,41 +51,13 @@ func (this *Downloader) getJson(url string) map[string]any {
 }
 
 func (this *Downloader) getMetadata() map[string]string {
-	metadataPath := this.outputDir + "/metadata.json"
-
-	obj := make(map[string]string)
-
-	_, err := os.Stat(metadataPath)
-	if err != nil {
-		return obj
-	}
-
-	data, err := os.ReadFile(metadataPath)
-	if err != nil {
-		panic(err)
-	}
-
-
-	err = json.Unmarshal(data, &obj)
-	if err != nil {
-		panic(err)
-	}
-
-	return obj
+	metadataPath := filepath.Join(this.outputDir, "metadata.json")
+	return readMetadata(metadataPath)
 }
 
 func (this *Downloader) saveMetadata(obj map[string]string) {
-	data, err := json.MarshalIndent(obj, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	metadataPath := this.outputDir + "/metadata.json"
-
-	err = os.WriteFile(metadataPath, data, 0644)
-	if err != nil {
-		panic(err)
-	}
+	metadataPath := filepath.Join(this.outputDir, "metadata.json")
+	saveMetadata(obj, metadataPath)
 }
 
 func findDataset(data []any, filter string) *Dataset {
