@@ -149,14 +149,30 @@ async function main() {
 		companyInregistrare.textContent = firma.CodInmatriculare
 		companyDate.textContent = formatDate(firma.DataInregistrare)
 
-		companyStatus.textContent = firma.Status
+		for (let child of companyStatus.parentNode.children) {
+			if (child !== companyStatus) {
+				child.remove()
+			}
+		}
 
-		companyStatus.classList.remove("active")
-		companyStatus.classList.remove("inactive")
-		if (firma.Status === "funcțiune") {
-			companyStatus.classList.add("active")
-		} else {
-			companyStatus.classList.add("inactive")
+		firma.Statusuri.sort((a, b) => {
+			return (a === "funcțiune") - (b === "funcțiune")
+		})
+
+		for (let [index, statusFirma] of firma.Statusuri.entries()) {
+			if (index > 0) {
+				let statusClone = companyStatus.cloneNode(true)
+				companyStatus.before(statusClone)
+			}
+
+			companyStatus.textContent = statusFirma
+			companyStatus.classList.remove("active")
+			companyStatus.classList.remove("inactive")
+			if (statusFirma === "funcțiune") {
+				companyStatus.classList.add("active")
+			} else {
+				companyStatus.classList.add("inactive")
+			}
 		}
 
 		if (companyProfit) {

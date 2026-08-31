@@ -61,8 +61,11 @@ async function main() {
 	profileCompanyCui.textContent = json.Cui
 	profileCompanyId.textContent = json.CodInmatriculare
 	profileCompanyForma.textContent = json.FormaJuridica
-	profileCompanyStatus.textContent = json.Status
-	profileCompanyData.textContent = json.DataInregistrare
+	profileCompanyStatus.textContent = json.Statusuri.sort((a, b) => {
+		return (a === "funcțiune") - (b === "funcțiune")
+	}).join(", ")
+
+	profileCompanyData.textContent = formatDate(json.DataInregistrare)
 	profileCompanyJudet.textContent = json.Judet
 	profileCompanyLocalitate.textContent = json.Localitate
 	profileCompanyAdresa.textContent = createAddress(json)

@@ -314,7 +314,7 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string) {
 func (this *Repository) InitStari() {
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS stari (
-			cod_inmatriculare TEXT PRIMARY KEY,
+			cod_inmatriculare TEXT NOT NULL,
 			cod INTEGER NOT NULL,
 			status TEXT NOT NULL
 		);
@@ -333,7 +333,7 @@ func (this *Repository) UpdateStari(dataset []map[string]string) {
 	fmt.Println("Updating stari")
 
 	stmt := `
-		INSERT OR REPLACE INTO stari (cod_inmatriculare, cod, status)
+		INSERT INTO stari (cod_inmatriculare, cod, status)
 		VALUES (?,?,?);`
 
 	transaction, err := this.db.Begin()
@@ -520,7 +520,7 @@ type InfoFirmaLight struct {
 	Cui int
 	DataInregistrare string
 	Judet string
-	Status string
+	Statusuri []string
 	ProfitNet *int
 	CifraAfaceri *int
 	Angajati *int
@@ -569,7 +569,7 @@ func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, pa
 		}
 
 		if filters.status != "" {
-			stmt += " AND stari.status = ? "
+			stmt += " AND statuses LIKE '%' || ? || '%'"
 			*params = append(*params, filters.status)
 		}
 
@@ -653,12 +653,14 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 				firme.cui,
 				firme.data_inmatriculare,
 				firme.judet,
-				stari.status
+				(
+					SELECT GROUP_CONCAT(s.status, ',')
+					FROM stari s
+					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
+				) AS statuses
 			FROM firme
 			JOIN firme_search
 				ON firme.rowid = firme_search.rowid
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			WHERE 1=1 `
 
 	result := &InfoFirmeResult {
@@ -672,9 +674,14 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
 
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
+		var statuses sql.NullString
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &statuses)
 		if err != nil {
 			panic(err)
+		}
+
+		if statuses.Valid {
+			infoFirma.Statusuri = strings.Split(statuses.String, ",")
 		}
 
 		result.Data = append(result.Data, &infoFirma)
@@ -699,7 +706,11 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 				firme.cui,
 				firme.data_inmatriculare,
 				firme.judet,
-				stari.status,
+				(
+					SELECT GROUP_CONCAT(s.status, ',')
+					FROM stari s
+					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
+				) AS statuses,
 		 		bilanturi.cifra_afaceri,
 		 		bilanturi.profit_net,
 		 		bilanturi.numar_mediu_salariati
@@ -707,8 +718,6 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 
 	dataInmatriculareOrderEfficientStmt := fields + `
 			FROM firme
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			LEFT JOIN bilanturi
 				ON bilanturi.an = (
 					SELECT MAX(b.an)
@@ -722,8 +731,6 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 			FROM bilanturi
 			RIGHT JOIN firme
 				ON firme.cui = bilanturi.cui
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			WHERE bilanturi.an = (
 					SELECT MAX(b.an)
 					FROM bilanturi b
@@ -748,9 +755,14 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
 
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status, &infoFirma.CifraAfaceri, &infoFirma.ProfitNet, &infoFirma.Angajati)
+		var statuses sql.NullString
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &statuses, &infoFirma.CifraAfaceri, &infoFirma.ProfitNet, &infoFirma.Angajati)
 		if err != nil {
 			panic(err)
+		}
+
+		if statuses.Valid {
+			infoFirma.Statusuri = strings.Split(statuses.String, ",")
 		}
 
 		result.Data = append(result.Data, &infoFirma)
@@ -776,7 +788,7 @@ type InfoFirma struct {
 	Apartament string
 	CodPostal string
 	Sector string
-	Status string
+	Statusuri []string
 	CoduriCaen []string
 	BilanturiFirma []*BilantFirma
 }
@@ -815,15 +827,17 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 				firme.apartament,
 				firme.cod_postal,
 				firme.sector,
-				stari.status,
+				(
+					SELECT GROUP_CONCAT(s.status, ',')
+					FROM stari s
+					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
+				) AS statuses,
 				(
 					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
 					FROM caen c
 					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
 				) AS coduri_caen
 			FROM firme
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
 			WHERE firme.cod_inmatriculare = ?;`
 
 	preparedStmt, err := this.db.Prepare(stmt)
@@ -850,13 +864,18 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 		var apartament sql.NullString
 		var codPostal sql.NullString
 		var sector sql.NullString
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administratori, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &strada, &nrStrada, &bloc, &scara, &etaj, &apartament, &codPostal, &sector, &infoFirma.Status, &coduriCaen)
+		var statuses sql.NullString
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administratori, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &strada, &nrStrada, &bloc, &scara, &etaj, &apartament, &codPostal, &sector, &statuses, &coduriCaen)
 		if err != nil {
 			panic(err)
 		}
 
 		if administratori.Valid {
 			infoFirma.Administratori = strings.Split(administratori.String, ",") 
+		}
+
+		if statuses.Valid {
+			infoFirma.Statusuri = strings.Split(statuses.String, ",") 
 		}
 
 		if coduriCaen.Valid {
@@ -958,10 +977,12 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 			firme.cui,
 			firme.data_inmatriculare,
 			firme.judet,
-			stari.status
+			(
+				SELECT GROUP_CONCAT(s.status, ',')
+				FROM stari s
+				WHERE s.cod_inmatriculare = firme.cod_inmatriculare
+			) AS statuses
 		FROM firme
-		JOIN stari
-			ON stari.cod_inmatriculare = firme.cod_inmatriculare
 		JOIN reprezentanti
 			ON reprezentanti.cod_inmatriculare = firme.cod_inmatriculare
 		JOIN (
@@ -986,9 +1007,14 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
 
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Status)
+		var statuses sql.NullString
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &infoFirma.DataInregistrare, &infoFirma.Judet, &statuses)
 		if err != nil {
 			panic(err)
+		}
+
+		if statuses.Valid {
+			infoFirma.Statusuri = strings.Split(statuses.String, ",")
 		}
 
 		result.Data = append(result.Data, &infoFirma)
