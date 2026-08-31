@@ -548,6 +548,10 @@ func (this *Repository) mapSortFiled(sortBy string) string {
 		return "bilanturi.cifra_afaceri"
 	}
 
+	if sortBy == "rank" {
+		return "bm25(firme_search)"
+	}
+
 	return ""
 }
 
@@ -668,7 +672,12 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		Data: []*InfoFirmaLight{},
 	}
 
-	rows := this.executePagedQuery(stmt, filters, nil, pageNumber)
+	ordering := FirmeOrdering {
+		sortBy: "rank",
+		sortOrder: "asc",
+	}
+
+	rows := this.executePagedQuery(stmt, filters, &ordering, pageNumber)
 	defer rows.Close()
 
 	for rows.Next() {
