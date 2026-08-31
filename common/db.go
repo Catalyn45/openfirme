@@ -579,10 +579,10 @@ func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, pa
 	return stmt
 }
 
-func (this *Repository) addLimitToQuery(stmt string, pageNumber *int, params *[]any) string {
-	if pageNumber != nil {
+func (this *Repository) addLimitToQuery(stmt string, pageNumber int, params *[]any) string {
+	if pageNumber != 0 {
 		stmt += "LIMIT 20 OFFSET ?"
-		*params = append(*params, (*pageNumber - 1) * 20)
+		*params = append(*params, (pageNumber - 1) * 20)
 
 		stmt += "\n"
 	} else {
@@ -593,93 +593,23 @@ func (this *Repository) addLimitToQuery(stmt string, pageNumber *int, params *[]
 	return stmt
 }
 
-func (this *Repository) constructFirmeQuery(fields string, filters *FirmeFilters, pageNumber *int) *sql.Rows {
-	stmt := `SELECT ` +
-			fields + `
-			FROM firme
-			JOIN firme_search
-				ON firme.rowid = firme_search.rowid
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
-			WHERE 1=1 `
-
-	params := []any{}
-	stmt = this.addFiltersToQuery(stmt, filters, &params)
+func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) *sql.Rows {
+	if filters != nil {
+		stmt = this.addFiltersToQuery(stmt, filters, &params)
+	}
 	
-	stmt = this.addLimitToQuery(stmt, pageNumber, &params)
-
-	stmt += ";"
-
-	fmt.Println("stmt ", stmt)
-	fmt.Println("params ", params)
-
-	preparedStmt, err := this.db.Prepare(stmt)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Started searching in db...")
-	rows, err := preparedStmt.Query(params...)
-	if err != nil {
-		panic(err)
-	}
-
-	return rows
-}
-
-func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber *int) *sql.Rows {
-	dataInmatriculareOrderEfficientStmt := `
-			FROM firme
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
-			LEFT JOIN bilanturi
-				ON bilanturi.an = (
-					SELECT MAX(b.an)
-					FROM bilanturi b
-				)
-				AND firme.cui = bilanturi.cui
-			WHERE 1=1
-	`
-
-	bilanturiEfficientStmt := `
-			FROM bilanturi
-			RIGHT JOIN firme
-				ON firme.cui = bilanturi.cui
-			LEFT JOIN stari
-				ON firme.cod_inmatriculare = stari.cod_inmatriculare
-			WHERE bilanturi.an = (
-					SELECT MAX(b.an)
-					FROM bilanturi b
-				)
- 
-	`
-
-	sortBy := ""
 	if ordering != nil {
-		sortBy = this.mapSortFiled(ordering.sortBy)
-	}
-
-	var topStmt string
-
-	if pageNumber == nil || sortBy == "firme.data_inmatriculare" {
-		topStmt = dataInmatriculareOrderEfficientStmt
-	} else {
-		topStmt = bilanturiEfficientStmt
-	}
-
-	stmt := `SELECT ` +
-			fields +
-			topStmt
-
-	params := []any{}
-	stmt = this.addFiltersToQuery(stmt, filters, &params)
-	
-	if sortBy != "" {
-		stmt += "ORDER BY " + sortBy + " " + ordering.sortOrder
-		stmt += "\n"
+		sortBy := this.mapSortFiled(ordering.sortBy)
+		if sortBy != "" {
+			stmt += ` ORDER BY ` + sortBy + " " + ordering.sortOrder + "\n"
+		}
 	}
 
 	stmt = this.addLimitToQuery(stmt, pageNumber, &params)
+
+	if pageNumber == 0 {
+		stmt = "SELECT COUNT(*) FROM ( " + stmt + " )"
+	}
 
 	stmt += ";"
 
@@ -700,49 +630,23 @@ func (this *Repository) constructTopFirmeQuery(fields string, filters *FirmeFilt
 	return rows
 }
 
-func (this *Repository) getFirmeCount(filters *FirmeFilters) int {
-	rows := this.constructFirmeQuery("1 ", filters, nil)
+func (this *Repository) getCount(stmt string, filters *FirmeFilters, params ...any) int {
+	rows := this.executePagedQuery(stmt, filters, nil, 0, params...)
 	defer rows.Close()
 
 	count := 0
 	for rows.Next() {
-		count++
-	}
-
-	return count
-}
-
-func (this *Repository) getAdminsCount(cod_inmatriculare string, admin string) int {
-	rows := this.constructAdminsQuery("1 ", cod_inmatriculare, admin, nil)
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		count++
-	}
-
-	return count
-}
-
-func (this *Repository) getTopFirmeCount(filters *FirmeFilters) int {
-	rows := this.constructTopFirmeQuery("1 ", filters, nil, nil)
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		count++
+		err := rows.Scan(&count)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return count
 }
 
 func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFirmeResult {
-	result := &InfoFirmeResult {
-		Count: this.getFirmeCount(filters),
-		Data: []*InfoFirmaLight{},
-	}
-
-	fields := `
+	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
 				firme.forma_juridica,
@@ -750,9 +654,19 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 				firme.data_inmatriculare,
 				firme.judet,
 				stari.status
-			`
+			FROM firme
+			JOIN firme_search
+				ON firme.rowid = firme_search.rowid
+			LEFT JOIN stari
+				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+			WHERE 1=1 `
 
-	rows := this.constructFirmeQuery(fields, filters, &pageNumber)
+	result := &InfoFirmeResult {
+		Count: this.getCount(stmt, filters),
+		Data: []*InfoFirmaLight{},
+	}
+
+	rows := this.executePagedQuery(stmt, filters, nil, pageNumber)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -766,14 +680,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		result.Data = append(result.Data, &infoFirma)
 	}
 
-	fmt.Println("finished searching in db!")
-
 	return result;
-}
-
-type TopFirmeResult struct {
-	InfoFirmeResult
-
 }
 
 func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
@@ -782,11 +689,6 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 			Count: 0,
 			Data: []*InfoFirmaLight{},
 		}
-	}
-
-	result := &InfoFirmeResult {
-		Count: this.getTopFirmeCount(filters),
-		Data: []*InfoFirmaLight{},
 	}
 
 	fields := `
@@ -802,7 +704,44 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 		 		bilanturi.numar_mediu_salariati
 			`
 
-	rows := this.constructTopFirmeQuery(fields, filters, ordering, &pageNumber)
+	dataInmatriculareOrderEfficientStmt := fields + `
+			FROM firme
+			LEFT JOIN stari
+				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+			LEFT JOIN bilanturi
+				ON bilanturi.an = (
+					SELECT MAX(b.an)
+					FROM bilanturi b
+				)
+				AND firme.cui = bilanturi.cui
+			WHERE 1=1
+	`
+
+	bilanturiEfficientStmt := fields + `
+			FROM bilanturi
+			RIGHT JOIN firme
+				ON firme.cui = bilanturi.cui
+			LEFT JOIN stari
+				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+			WHERE bilanturi.an = (
+					SELECT MAX(b.an)
+					FROM bilanturi b
+				)
+	`
+
+	result := &InfoFirmeResult {
+		Count: this.getCount(dataInmatriculareOrderEfficientStmt, filters),
+		Data: []*InfoFirmaLight{},
+	}
+
+	var stmt string
+	if ordering.sortBy == "infiintare" {
+		stmt = dataInmatriculareOrderEfficientStmt
+	} else {
+		stmt = bilanturiEfficientStmt
+	}
+
+	rows := this.executePagedQuery(stmt, filters, ordering, pageNumber)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -815,8 +754,6 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 
 		result.Data = append(result.Data, &infoFirma)
 	}
-
-	fmt.Println("finished searching in db!")
 
 	return result;
 }
@@ -1011,9 +948,16 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	return infoFirma
 }
 
-func (this *Repository) constructAdminsQuery(fields string, cod_inmatriculare string, admin string, pageNumber *int) *sql.Rows {
+func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pageNumber int) *InfoFirmeResult {
 	stmt := `
-		SELECT ` + fields + `
+		SELECT
+			firme.denumire,
+			firme.cod_inmatriculare,
+			firme.forma_juridica,
+			firme.cui,
+			firme.data_inmatriculare,
+			firme.judet,
+			stari.status
 		FROM firme
 		JOIN stari
 			ON stari.cod_inmatriculare = firme.cod_inmatriculare
@@ -1030,46 +974,13 @@ func (this *Repository) constructAdminsQuery(fields string, cod_inmatriculare st
 			AND reprezentanti.judet_nastere = r.judet_nastere
 	`
 
-	params := []any{cod_inmatriculare, admin}
-	stmt = this.addLimitToQuery(stmt, pageNumber, &params)
-
-	stmt += ";"
-
-	fmt.Println("stmt ", stmt)
-	fmt.Println("params ", params)
-
-	preparedStmt, err := this.db.Prepare(stmt)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Started searching in db...")
-	rows, err := preparedStmt.Query(params...)
-	if err != nil {
-		panic(err)
-	}
-
-	return rows
-}
-
-func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pageNumber int) *InfoFirmeResult {
-	fields := `
-			firme.denumire,
-			firme.cod_inmatriculare,
-			firme.forma_juridica,
-			firme.cui,
-			firme.data_inmatriculare,
-			firme.judet,
-			stari.status
-	`
-
-	rows := this.constructAdminsQuery(fields, cod_inmatriculare, admin, &pageNumber)
-	defer rows.Close()
-
 	result := &InfoFirmeResult {
-		Count: this.getAdminsCount(cod_inmatriculare, admin),
+		Count: this.getCount(stmt, nil, cod_inmatriculare, admin),
 		Data: []*InfoFirmaLight{},
 	}
+
+	rows := this.executePagedQuery(stmt, nil, nil, pageNumber, cod_inmatriculare, admin, )
+	defer rows.Close()
 
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
@@ -1081,8 +992,6 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 
 		result.Data = append(result.Data, &infoFirma)
 	}
-
-	fmt.Println("finished searching in db!")
 
 	return result;
 }

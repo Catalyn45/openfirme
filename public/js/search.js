@@ -58,6 +58,8 @@ function updatePageNumbers(currentPage, totalResults) {
 			}
 		}
 
+		pagesContainer.style.display = "flex"
+
 		return
 	}
 
@@ -136,6 +138,7 @@ async function main() {
     console.log(data)
 
     let resultCount = data.Count
+	console.log(resultCount)
 
     for (let firma of data.Data) {
         companyName.textContent = firma.Nume
