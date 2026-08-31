@@ -33,15 +33,15 @@ function getFilterParameters() {
         params.set('nume_partial', nume_partial)
 	}
 
-    if (county.value) {
+    if (county?.value) {
         params.set('judet', county.value)
     }
 
-    if (status.value) {
+    if (status?.value) {
         params.set('status', status.value)
     }
 
-	if (formaJuridica.value) {
+	if (formaJuridica?.value) {
         params.set('forma_juridica', formaJuridica.value)
     }
 
@@ -147,9 +147,17 @@ function updateFilters() {
 		query.value = params.get("nume_partial") ?? query.value
 	}
 
-    county.value = params.get("judet") ?? county.value
-    status.value = params.get("status") ?? status.value
-    formaJuridica.value = params.get("forma_juridica") ?? formaJuridica.value
+	if (county) {
+		county.value = params.get("judet") ?? county.value
+	}
+
+	if (status) {
+		status.value = params.get("status") ?? status.value
+	}
+
+	if (formaJuridica) {
+		formaJuridica.value = params.get("forma_juridica") ?? formaJuridica.value
+	}
 
 	if (sortBy) {
 		sortBy.value = params.get("sort_by") ?? sortBy.value

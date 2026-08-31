@@ -12,16 +12,9 @@ main {
 ========================= */
 
 .layout {
-      all: unset;
+	all: unset;
 
     display: grid;
-
-    /*
-       Sortare = 360px
-       Filtre = remaining space
-    */
-
-    /*grid-template-columns: 360px 1fr;*/
 
     gap: 20px;
 
