@@ -692,6 +692,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 	}
 
 	fields := `
+			SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
 				firme.forma_juridica,
