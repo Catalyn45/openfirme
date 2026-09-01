@@ -62,6 +62,7 @@ func (this *Repository) InitFirme() {
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS firme (
 			denumire TEXT NOT NULL,
+			denumire_norm TEXT NOT NULL,
 			cui INTEGER NOT NULL,
 			cod_inmatriculare TEXT PRIMARY KEY,
 			data_inmatriculare TEXT NOT NULL,
@@ -108,7 +109,7 @@ func (this *Repository) InitFirme() {
 		ON firme(judet, forma_juridica, data_inmatriculare);
 
 		CREATE VIRTUAL TABLE IF NOT EXISTS firme_search USING fts5(
-			denumire,
+			denumire_norm,
 			content='firme',
 			content_rowid='rowid',
 			tokenize='trigram'
@@ -116,23 +117,23 @@ func (this *Repository) InitFirme() {
 
 		-- Insert
 		CREATE TRIGGER IF NOT EXISTS firme_ai AFTER INSERT ON firme BEGIN
-			INSERT INTO firme_search(rowid, denumire)
-			VALUES (new.rowid, new.denumire);
+			INSERT INTO firme_search(rowid, denumire_norm)
+			VALUES (new.rowid, new.denumire_norm);
 		END;
 
 		-- Delete
 		CREATE TRIGGER IF NOT EXISTS firme_ad AFTER DELETE ON firme BEGIN
-			INSERT INTO firme_search(firme_search, rowid, denumire)
-			VALUES ('delete', old.rowid, old.denumire);
+			INSERT INTO firme_search(firme_search, rowid, denumire_norm)
+			VALUES ('delete', old.rowid, old.denumire_norm);
 		END;
 
 		-- Update
-		CREATE TRIGGER IF NOT EXISTS firme_au AFTER UPDATE OF denumire ON firme BEGIN
-			INSERT INTO firme_search(firme_search, rowid, denumire)
-			VALUES ('delete', old.rowid, old.denumire);
+		CREATE TRIGGER IF NOT EXISTS firme_au AFTER UPDATE OF denumire_norm ON firme BEGIN
+			INSERT INTO firme_search(firme_search, rowid, denumire_norm)
+			VALUES ('delete', old.rowid, old.denumire_norm);
 
-			INSERT INTO firme_search(rowid, denumire)
-			VALUES (new.rowid, new.denumire);
+			INSERT INTO firme_search(rowid, denumire_norm)
+			VALUES (new.rowid, new.denumire_norm);
 		END;
 	`
 
@@ -199,8 +200,8 @@ func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName str
 	this.DeleteFromTable(transaction, "firme")
 
 	stmt := `
-		INSERT OR REPLACE INTO firme (denumire, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+		INSERT OR REPLACE INTO firme (denumire, denumire_norm, cui, cod_inmatriculare, data_inmatriculare, euid, forma_juridica, tara, judet, localitate, strada, nr_strada, bloc, scara, etaj, apartament, cod_postal, sector, completare, web, tara_firma_mama)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -209,7 +210,7 @@ func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName str
 	defer preparedStmt.Close()
 
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["DENUMIRE"], data["CUI"], data["COD_INMATRICULARE"], convertDate(data["DATA_INMATRICULARE"]), data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
+		_, err = preparedStmt.Exec(data["DENUMIRE"], normalize(data["DENUMIRE"]), data["CUI"], data["COD_INMATRICULARE"], convertDate(data["DATA_INMATRICULARE"]), data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
 		if err != nil {
 			fmt.Println(data["DENUMIRE"])
 			panic(err)
@@ -623,7 +624,7 @@ func (this *Repository) addLimitToQuery(stmt string, pageNumber int, params *[]a
 	return stmt
 }
 
-func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) *sql.Rows {
+func (this *Repository) constructPagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) (string, []any){
 	if filters != nil {
 		stmt = this.addFiltersToQuery(stmt, filters, &params)
 	}
@@ -637,14 +638,19 @@ func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, or
 
 	stmt = this.addLimitToQuery(stmt, pageNumber, &params)
 
+	fmt.Println("stmt ", stmt)
+	fmt.Println("params ", params)
+
+	return stmt, params
+}
+
+func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) *sql.Rows {
+	stmt, params = this.constructPagedQuery(stmt, filters, ordering, pageNumber, params...)
 	if pageNumber == 0 {
 		stmt = "SELECT COUNT(*) FROM ( " + stmt + " )"
 	}
 
 	stmt += ";"
-
-	fmt.Println("stmt ", stmt)
-	fmt.Println("params ", params)
 
 	preparedStmt, err := this.db.Prepare(stmt)
 	if err != nil {
@@ -703,7 +709,18 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		sortOrder: "asc",
 	}
 
-	rows := this.executePagedQuery(stmt, filters, &ordering, pageNumber)
+	stmt, params := this.constructPagedQuery(stmt, filters, &ordering, 0)
+	stmt = "SELECT results.* FROM ( " + stmt + ` ) as results
+			LEFT JOIN bilanturi
+				ON bilanturi.an = (
+					SELECT MAX(b.an)
+					FROM bilanturi b
+				)
+				AND results.cui = bilanturi.cui
+			ORDER by bilanturi.cifra_afaceri desc
+			`
+
+	rows := this.executePagedQuery(stmt, nil, nil, pageNumber, params...)
 	defer rows.Close()
 
 	for rows.Next() {

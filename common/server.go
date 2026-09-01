@@ -95,7 +95,7 @@ func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 	fmt.Println(query)
 
 	filters := FirmeFilters {
-		numePartial: query.Get("nume_partial"),
+		numePartial: normalize(query.Get("nume_partial")),
 		judet: query.Get("judet"),
 		status: query.Get("status"),
 		formaJuridica: query.Get("forma_juridica"),

@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+    "unicode"
+    "golang.org/x/text/unicode/norm"
 )
 
 func readCsv(file_path string, delimiter string, skipIndex int) [][]string {
@@ -169,3 +171,16 @@ func convertDate(datetime string) string {
 	panic(err)
 }
 
+func normalize(s string) string {
+    s = norm.NFD.String(s)
+
+    var b strings.Builder
+    for _, r := range s {
+        if unicode.Is(unicode.Mn, r) {
+            continue
+        }
+        b.WriteRune(r)
+    }
+
+    return b.String()
+}
