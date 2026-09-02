@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -65,21 +66,89 @@ func (this *Parser) getCaenDataset() string {
 	return this.metadata["od_caen_autorizat.csv"]
 }
 
-func (this *Parser) parseSituatiiFinanciare(an int) ([]map[string]int, bool) {
+func (this *Parser) parseBilantSimplu(an int) ([]map[string]int, bool) {
 	filePath := filepath.Join(this.dataDirectory, "web_bl_bs_sl_an" + strconv.Itoa(an) + ".txt")
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return nil, false
 	}
 
-	skipIndex := -1
+	skipIndexes := []int{ 13 }
 	if an <= 2015 {
-		skipIndex = 14
+		skipIndexes = append(skipIndexes, 14)
 	}
 
-	parsed := readDataDelimiter(filePath, ",", skipIndex)
+	parsed := readDataDelimiter(filePath, ",", skipIndexes)
 
 	return convertValuesToInt(parsed), true
+}
+
+func (this *Parser) parseUU(an int) ([]map[string]int, bool) {
+	baseFileName := "web_uu_"
+	if an > 2012 {
+		baseFileName += "an"
+	}
+
+	filePath := filepath.Join(this.dataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	skipIndexes := []int{ }
+	if an <= 2015 {
+		skipIndexes = append(skipIndexes, 13)
+	}
+
+	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	return convertValuesToInt(parsed), true
+}
+
+func (this *Parser) parseIR(an int) ([]map[string]int, bool) {
+	// there is no data for 2011
+	if an == 2011 {
+		return []map[string]int{}, true
+	}
+
+	filePath := filepath.Join(this.dataDirectory, "web_ir_an" + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	skipIndexes := []int{}
+	if an <= 2015 && an >= 2018 {
+		skipIndexes = append(skipIndexes, 13)
+	}
+
+	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	return convertValuesToInt(parsed), true
+}
+
+func (this *Parser) parseSituatiiFinanciare(an int) ([]map[string]int, bool) {
+	result := []map[string]int{}
+
+	blsl, found := this.parseBilantSimplu(an)
+	if !found {
+		return nil, false
+	}
+	result = append(result, blsl...)
+
+	uu, found := this.parseUU(an)
+	if !found {
+		panic(fmt.Errorf("uu file should exist"))
+	}
+	result = append(result, uu...)
+
+	ir, found := this.parseIR(an)
+	if !found {
+		panic(fmt.Errorf("ir file should exist"))
+	}
+	result = append(result, ir...)
+
+	return result, true
 }
 
 func (this *Parser) Parse() {

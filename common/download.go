@@ -125,7 +125,7 @@ func (this *Downloader) findBilanturiDatasets() []Dataset {
 	return findDatasets(result["packages"].([]any), "situatii_financiare")
 }
 
-func (this *Downloader) findResources(id string, filters []string) []string {
+func (this *Downloader) findResources(id string, filtersSet [][]string) []string {
 	data := this.getJson("/package_show?id=" + id)
 
 	result := data["result"].(map[string]any)
@@ -135,7 +135,6 @@ func (this *Downloader) findResources(id string, filters []string) []string {
 	downloadLinks := []string{}
 	actualizatDownloadlinks := []string{}
 
-	outer:
 	for _, el := range resources {
 		resource := el.(map[string]any)
 
@@ -147,10 +146,22 @@ func (this *Downloader) findResources(id string, filters []string) []string {
 			resourceName += ".txt"
 		}
 
-		for _, filter := range filters {
-			if !strings.Contains(resourceName, filter) {
-				continue outer
+		filtersMatched := false
+
+		filtersLabel:
+		for _, filters := range filtersSet {
+			for _, filter := range filters {
+				if !strings.Contains(resourceName, filter) {
+					continue filtersLabel
+				}
 			}
+
+			filtersMatched = true
+			break
+		}
+
+		if filtersSet != nil && !filtersMatched {
+			continue
 		}
 
 		downloadUrl := resource["datagovro_download_url"].(string)
@@ -258,7 +269,12 @@ func (this *Downloader) DownloadData() {
 			continue
 		}
 
-		bilanturiResources := this.findResources(bilant.id, []string{"WEB_BL_BS_SL_AN", ".txt"})
+		bilanturiResources := this.findResources(bilant.id, [][]string{
+			[]string{"WEB_BL_BS_SL_AN", ".txt"},
+			[]string{"WEB_UU_", ".txt"},
+			[]string{"WEB_IR_AN", ".txt"},
+		})
+
 		this.downloadResources(&bilant, bilanturiResources, true)
 	}
 }

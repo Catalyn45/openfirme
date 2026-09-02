@@ -4,14 +4,16 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
-    "unicode"
-    "golang.org/x/text/unicode/norm"
+	"unicode"
+
+	"golang.org/x/text/unicode/norm"
 )
 
-func readCsv(file_path string, delimiter string, skipIndex int) [][]string {
+func readCsv(file_path string, delimiter string, skipIndexes []int) [][]string {
 	file, err := os.Open(file_path)
 	if err != nil {
 		panic(err)
@@ -45,7 +47,7 @@ func readCsv(file_path string, delimiter string, skipIndex int) [][]string {
 		for index, el := range splitted {
 			// some old datasets have an additional column we don't care about
 			// but it will break the expected order so we just skip
-			if index == skipIndex && lineNumber > 0 {
+			if slices.Contains(skipIndexes, index) && lineNumber > 0 {
 				continue
 			}
 
@@ -75,8 +77,8 @@ func parseCsv(data [][]string) []map[string]string {
 	return parsed
 }
 
-func readDataDelimiter(file_path string, delimiter string, skipIndex int) []map[string]string {
-	data := readCsv(file_path, delimiter, skipIndex)
+func readDataDelimiter(file_path string, delimiter string, skipIndexes []int) []map[string]string {
+	data := readCsv(file_path, delimiter, skipIndexes)
 
 	parsed := parseCsv(data)
 
@@ -84,7 +86,7 @@ func readDataDelimiter(file_path string, delimiter string, skipIndex int) []map[
 }
 
 func readData(file_path string) []map[string]string {
-	return readDataDelimiter(file_path, "^", -1)
+	return readDataDelimiter(file_path, "^", []int{})
 }
 
 func readMetadata(filePath string) map[string]string {

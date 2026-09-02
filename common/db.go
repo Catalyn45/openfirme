@@ -143,7 +143,7 @@ func (this *Repository) InitFirme() {
 	}
 }
 
-func (this *Repository) UpdateMetadata(transaction *sql.Tx, tableName string, datasetName string) {
+func (this *Repository) UpdateMetadata(transaction *sql.Tx, datasetName string, tableName string) {
 	metadataStmt := `
 		INSERT OR REPLACE INTO metadata (tablename, dataset)
 		VALUES ('` + tableName + "' , '" + datasetName + "')"
@@ -435,7 +435,6 @@ func (this *Repository) InitBilanturi() {
 			provizioane INTEGER,
 			capitaluri INTEGER,
 			capital_subscris INTEGER,
-			patrimoniul INTEGER,
 			cifra_afaceri INTEGER,
 			venituri INTEGER,
 			cheltuieli INTEGER,
@@ -493,7 +492,7 @@ func (this *Repository) DeleteAnFromBilanturi(transaction *sql.Tx, an int) {
 }
 
 func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
-	fmt.Println("Updating bilanturi")
+	fmt.Println("Updating bilanturi an: ", an)
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -505,8 +504,8 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	this.DeleteAnFromBilanturi(transaction, an)
 
 	stmt := `
-		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, patrimoniul, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -516,7 +515,7 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	defer preparedStmt.Close()
 
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["CUI"], data["CAEN"], data["I1"], data["I2"], data["I3"], data["I4"], data["I5"], data["I6"], data["I7"], data["I8"], data["I9"], data["I10"], data["I11"], data["I12"], data["I13"], data["I14"], data["I15"], data["I16"] - data["I17"], data["I18"] - data["I19"], data["I20"], an)
+		_, err = preparedStmt.Exec(data["CUI"], data["CAEN"], data["I1"], data["I2"], data["I3"], data["I4"], data["I5"], data["I6"], data["I7"], data["I8"], data["I9"], data["I10"], data["I11"], data["I12"], data["I13"], data["I14"], data["I15"] - data["I16"], data["I17"] - data["I18"], data["I19"], an)
 		if err != nil {
 			panic(err)
 		}
@@ -754,7 +753,9 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 }
 
 func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
-	if filters.formaJuridica != "" && slices.Index(allowedFormeJuridiceForBilanturi, filters.formaJuridica) == -1 && ordering.sortBy != "infiintare" {
+	if filters.formaJuridica != "" &&
+		slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) &&
+		ordering.sortBy != "infiintare" {
 		return &InfoFirmeResult {
 			Count: 0,
 			Data: []*InfoFirmaLight{},
