@@ -610,6 +610,15 @@ func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, pa
 	return stmt
 }
 
+func (this *Repository) addOrderingToQuery(stmt string, ordering *FirmeOrdering) string {
+	sortBy := this.mapSortFiled(ordering.sortBy)
+	if sortBy != "" {
+		stmt += ` ORDER BY ` + sortBy + " " + ordering.sortOrder + "\n"
+	}
+
+	return stmt
+}
+
 func (this *Repository) addLimitToQuery(stmt string, pageNumber int, params *[]any) string {
 	if pageNumber != 0 {
 		stmt += "LIMIT 20 OFFSET ?"
@@ -630,27 +639,19 @@ func (this *Repository) constructPagedQuery(stmt string, filters *FirmeFilters, 
 	}
 	
 	if ordering != nil {
-		sortBy := this.mapSortFiled(ordering.sortBy)
-		if sortBy != "" {
-			stmt += ` ORDER BY ` + sortBy + " " + ordering.sortOrder + "\n"
-		}
+		stmt = this.addOrderingToQuery(stmt, ordering)
 	}
 
 	stmt = this.addLimitToQuery(stmt, pageNumber, &params)
 
-	fmt.Println("stmt ", stmt)
-	fmt.Println("params ", params)
-
 	return stmt, params
 }
 
-func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) *sql.Rows {
-	stmt, params = this.constructPagedQuery(stmt, filters, ordering, pageNumber, params...)
-	if pageNumber == 0 {
-		stmt = "SELECT COUNT(*) FROM ( " + stmt + " )"
-	}
-
+func (this *Repository) executeQuery(stmt string, params ...any) *sql.Rows {
 	stmt += ";"
+
+	fmt.Println("stmt ", stmt)
+	fmt.Println("params ", params)
 
 	preparedStmt, err := this.db.Prepare(stmt)
 	if err != nil {
@@ -662,12 +663,22 @@ func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, or
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("finished searching in db...")
 
 	return rows
 }
 
+func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) *sql.Rows {
+	stmt, params = this.constructPagedQuery(stmt, filters, ordering, pageNumber, params...)
+	return this.executeQuery(stmt, params...)
+}
+
 func (this *Repository) getCount(stmt string, filters *FirmeFilters, params ...any) int {
-	rows := this.executePagedQuery(stmt, filters, nil, 0, params...)
+	stmt, params = this.constructPagedQuery(stmt, filters, nil, 0, params...)
+
+	stmt = "SELECT COUNT(*) FROM ( " + stmt + " )"
+
+	rows := this.executeQuery(stmt, params...)
 	defer rows.Close()
 
 	count := 0
