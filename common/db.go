@@ -599,7 +599,12 @@ func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, pa
 		}
 
 		if filters.status != "" {
-			stmt += " AND statuses LIKE '%' || ? || '%'"
+			stmt += ` AND EXISTS(
+				SELECT 1
+				FROM stari s
+				WHERE s.cod_inmatriculare = firme.cod_inmatriculare
+				AND s.status = ?
+			) `
 			*params = append(*params, filters.status)
 		}
 
@@ -748,6 +753,8 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 
 		result.Data = append(result.Data, &infoFirma)
 	}
+
+	fmt.Println("finished scanning data...")
 
 	return result;
 }
