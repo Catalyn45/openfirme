@@ -724,18 +724,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		sortOrder: "asc",
 	}
 
-	stmt, params := this.constructPagedQuery(stmt, filters, &ordering, 0)
-	stmt = "SELECT results.* FROM ( " + stmt + ` ) as results
-			LEFT JOIN bilanturi
-				ON bilanturi.an = (
-					SELECT MAX(b.an)
-					FROM bilanturi b
-				)
-				AND results.cui = bilanturi.cui
-			ORDER by bilanturi.cifra_afaceri desc
-			`
-
-	rows := this.executePagedQuery(stmt, nil, nil, pageNumber, params...)
+	rows := this.executePagedQuery(stmt, filters, &ordering, pageNumber)
 	defer rows.Close()
 
 	for rows.Next() {
