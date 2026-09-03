@@ -33,6 +33,7 @@ func (this *Repository) Init() {
 	this.InitReprezentanti()
 	this.InitStari()
 	this.InitCaen()
+	this.InitDateIdentificare()
 	this.InitBilanturi()
 }
 
@@ -412,6 +413,67 @@ func (this *Repository) UpdateCaen(dataset []map[string]string, datasetName stri
 	}
 
 	this.UpdateMetadata(transaction, datasetName, "caen")
+
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) InitDateIdentificare() {
+	createTableStmt := `
+		CREATE TABLE IF NOT EXISTS dateidentificare (
+			cui INTEGER NOT NULL,
+			tva INTEGER NOT NULL,
+			data_stare TEXT NOT NULL,
+			stare TEXT NOT NULL
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_dateidentificare_cui
+		ON dateidentificare(cui);
+	`
+
+	_, err := this.db.Exec(createTableStmt)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) IsDateIdentificareOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "dateidentificare")
+}
+
+func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, datasetName string) {
+	fmt.Println("Updating dateidentificare")
+
+	transaction, err := this.db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	defer transaction.Rollback()
+
+	this.DeleteFromTable(transaction, "dateidentificare")
+
+	stmt := `
+		INSERT INTO dateidentificare (cui, tva, data_stare, stare)
+		VALUES (?,?,?,?);`
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
+		_, err = preparedStmt.Exec(data["COD_FISCAL"], data["TVA"], data["DATA_STARE"], data["STARE"])
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	this.UpdateMetadata(transaction, datasetName, "dateidentificare")
 
 	err = transaction.Commit()
 	if err != nil {

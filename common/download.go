@@ -1,6 +1,7 @@
 package common
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -99,30 +100,17 @@ func findDatasets(data []any, filter string) []Dataset {
 	return results
 }
 
-func (this *Downloader) findFirmeNomenclaturaDatasets() (*Dataset, *Dataset) {
-	data := this.getJson("/organization_show?include_datasets=true&id=onrc")
+func (this *Downloader) getPackages(orgId string) []any {
+	data := this.getJson("/organization_show?include_datasets=true&id=" + orgId)
 
 	result := data["result"].(map[string]any)
 
-	packages := result["packages"].([]any)
-
-	firme := findDataset(packages, "firme-")
-	nomenclatoare := findDataset(packages, "nomenclatoare")
-
-	return firme, nomenclatoare
+	return result["packages"].([]any)
 }
 
 type Dataset struct {
 	name string
 	id string
-}
-
-func (this *Downloader) findBilanturiDatasets() []Dataset {
-	data := this.getJson("/organization_show?include_datasets=true&id=mfp")
-
-	result := data["result"].(map[string]any)
-
-	return findDatasets(result["packages"].([]any), "situatii_financiare")
 }
 
 func (this *Downloader) findResources(id string, filtersSet [][]string) []string {
@@ -138,11 +126,11 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 	for _, el := range resources {
 		resource := el.(map[string]any)
 
-		resourceName := resource["name"].(string)
+		resourceName := strings.ToLower(resource["name"].(string))
 
 		// files with -actualizat are missing extension
-		isActualizat := strings.Contains(resourceName, " - actualizat")
-		if isActualizat {
+		isActualizat := strings.Contains(resourceName, "actualizat")
+		if resourceName[len(resourceName)-3:] != "txt" && isActualizat {
 			resourceName += ".txt"
 		}
 
@@ -182,11 +170,18 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 	return downloadLinks
 }
 
-func (this *Downloader) downloadFile(url string, fileName string) {
+func (this *Downloader) downloadFile(url string, fileName string, recreate bool) {
 	filePath := this.outputDir + "/" + fileName
 
-	out, err := os.Create(filePath)
-	if err != nil  {
+	flags := os.O_WRONLY|os.O_CREATE
+	if recreate {
+		flags |= os.O_TRUNC
+	} else {
+		flags |= os.O_APPEND
+	}
+
+	out, err := os.OpenFile(filePath, flags, 0644)
+	if err != nil {
 		panic(err)
 	}
 	defer out.Close()
@@ -201,10 +196,40 @@ func (this *Downloader) downloadFile(url string, fileName string) {
 		panic(fmt.Errorf("bad status: %s", resp.Status))
 	}
 
-	_, err = io.Copy(out, resp.Body)
+	var reader io.Reader = resp.Body
+	if !recreate {
+		br := bufio.NewReader(resp.Body)
+
+		// Skip first line
+		_, err := br.ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+
+		reader = br
+	}
+
+	_, err = io.Copy(out, reader)
 	if err != nil  {
 		panic(err)
 	}
+}
+
+func (this *Downloader) downloadResourcesCombined(dataset *Dataset, resources []string, fileName string) {
+	val, ok := this.metadata[fileName]
+	if ok && val == dataset.name {
+		// skip as we already have the latest data
+		return
+	}
+
+	for index, resource := range resources {
+		fmt.Println("Downloading file: ", resource)
+		this.downloadFile(resource, fileName, index == 0)
+		fmt.Println("Finished file: ", resource)
+	}
+
+	this.metadata[fileName] = dataset.name
+	this.saveMetadata(this.metadata)
 }
 
 func (this *Downloader) downloadResources(dataset *Dataset, resources []string, addOnly bool) {
@@ -212,7 +237,6 @@ func (this *Downloader) downloadResources(dataset *Dataset, resources []string, 
 		fileName := path.Base(resource)
 
 		val, ok := this.metadata[fileName]
-
 		if addOnly && ok {
 			continue
 		}
@@ -223,7 +247,7 @@ func (this *Downloader) downloadResources(dataset *Dataset, resources []string, 
 		}
 
 		fmt.Println("Downloading file: ", resource)
-		this.downloadFile(resource, fileName)
+		this.downloadFile(resource, fileName, true)
 		fmt.Println("Finished file: ", resource)
 
 		this.metadata[fileName] = dataset.name
@@ -234,19 +258,31 @@ func (this *Downloader) downloadResources(dataset *Dataset, resources []string, 
 func (this *Downloader) DownloadData() {
 	this.metadata = this.getMetadata()
 
-	firme, nomenclatoare := this.findFirmeNomenclaturaDatasets()
+	packages := this.getPackages("onrc")
+
+	firme := findDataset(packages, "firme-")
+	nomenclatoare := findDataset(packages, "nomenclatoare")
+
 	fmt.Println(firme, nomenclatoare)
 
-	bilanturi := this.findBilanturiDatasets()
-	fmt.Println(bilanturi)
+	packages = this.getPackages("mfp")
+
+	dateIdentificare := findDataset(packages, "date_de_identificare_")
+	bilanturi := findDatasets(packages, "situatii_financiare")
+
+	fmt.Println(dateIdentificare, bilanturi)
 
 	firmeResources := this.findResources(firme.id, nil)
 	nomenclatoareResources := this.findResources(nomenclatoare.id, nil)
+	dateIdentificareResources := this.findResources(dateIdentificare.id, [][]string{
+		[]string{ "date_identificare_platitori_", ".txt" },
+	})
 
 	os.Mkdir(this.outputDir, 0755)
 
 	this.downloadResources(firme, firmeResources, false)
 	this.downloadResources(nomenclatoare, nomenclatoareResources, false)
+	this.downloadResourcesCombined(dateIdentificare, dateIdentificareResources, "od_dateidentificare.txt")
 
 	sort.Slice(bilanturi, func(i, j int) bool {
 		return bilanturi[i].name > bilanturi[j].name
@@ -270,9 +306,9 @@ func (this *Downloader) DownloadData() {
 		}
 
 		bilanturiResources := this.findResources(bilant.id, [][]string{
-			[]string{"WEB_BL_BS_SL_AN", ".txt"},
-			[]string{"WEB_UU_", ".txt"},
-			[]string{"WEB_IR_AN", ".txt"},
+			[]string{"web_bl_bs_sl_an", ".txt"},
+			[]string{"web_uu_", ".txt"},
+			[]string{"web_ir_an", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)

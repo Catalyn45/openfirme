@@ -68,6 +68,10 @@ func parseCsv(data [][]string) []map[string]string {
 		m := make(map[string]string)
 
 		for j, val := range data[i] {
+			if j >= len(data[0]) {
+				break
+			}
+
 			m[data[0][j]] = val
 		}
 

@@ -44,7 +44,6 @@ func (this *Parser) resolveStariNomenclatura(dataset []map[string]string, nomenc
 	}
 }
 
-
 func (this *Parser) parseStari() []map[string]string {
 	data := readData(filepath.Join(this.dataDirectory, "od_stare_firma.csv"))
 
@@ -151,6 +150,14 @@ func (this *Parser) parseSituatiiFinanciare(an int) ([]map[string]int, bool) {
 	return result, true
 }
 
+func (this *Parser) parseDateIdentificare() []map[string]string {
+	return readData(filepath.Join(this.dataDirectory, "od_dateidentificare.txt"))
+}
+
+func (this *Parser) getDateIdentificareDataset() string {
+	return this.metadata["od_dateidentificare.txt"]
+}
+
 func (this *Parser) Parse() {
 	this.metadata = readMetadata(filepath.Join(this.dataDirectory, "metadata.json"))
 
@@ -172,6 +179,11 @@ func (this *Parser) Parse() {
 	datasetName = this.getCaenDataset()
 	if !this.repository.IsCaenOnDataset(datasetName) {
 		this.repository.UpdateCaen(this.parseCaen(), datasetName)
+	}
+
+	datasetName = this.getDateIdentificareDataset()
+	if !this.repository.IsDateIdentificareOnDataset(datasetName) {
+		this.repository.UpdateDateIdentificare(this.parseDateIdentificare(), datasetName)
 	}
 
 	for i := 2011; ; i++ {
