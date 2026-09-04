@@ -467,7 +467,11 @@ func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, data
 	defer preparedStmt.Close()
 
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["COD_FISCAL"], data["TVA"], data["DATA_STARE"], data["STARE"])
+		if data["COD_FISCAL"] == "" {
+			continue
+		}
+
+		_, err = preparedStmt.Exec(data["COD_FISCAL"], data["TVA"] == "DA", data["DATA_STARE"], data["STARE"])
 		if err != nil {
 			panic(err)
 		}
@@ -898,20 +902,21 @@ type InfoFirma struct {
 	CodInmatriculare string
 	FormaJuridica string
 	Cui int
-	Administratori []string
+	Reprezentanti []string
 	DataInregistrare string
 	Judet string
 	Localitate string
-	Strada string
-	NrStrada string
-	Bloc string
-	Scara string
-	Etaj string
-	Apartament string
-	CodPostal string
-	Sector string
+	Strada *string
+	NrStrada *string
+	Bloc *string
+	Scara *string
+	Etaj *string
+	Apartament *string
+	CodPostal *string
+	Sector *string
 	Statusuri []string
 	CoduriCaen []string
+	Tva *bool
 	BilanturiFirma []*BilantFirma
 }
 
@@ -924,6 +929,7 @@ type BilantFirma struct {
 	ActiveCirculante int
 	Capitaluri int
 	Angajati int
+	Caen int
 }
 
 func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
@@ -933,10 +939,9 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 				firme.forma_juridica,
 				firme.cui,
 				(
-					SELECT GROUP_CONCAT(r.persoana_imputernicita, ',')
+					SELECT GROUP_CONCAT(r.persoana_imputernicita || '^' || r.calitate, ',')
 					FROM reprezentanti r
 					WHERE r.cod_inmatriculare = firme.cod_inmatriculare
-					  AND r.calitate = 'administrator'
 				) AS persoane_imputernicite,
 				firme.data_inmatriculare,
 				firme.judet,
@@ -958,82 +963,37 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
 					FROM caen c
 					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
-				) AS coduri_caen
+				) AS coduri_caen,
+				dateidentificare.tva
 			FROM firme
-			WHERE firme.cod_inmatriculare = ?;`
+			LEFT JOIN dateidentificare
+				ON firme.cui = dateidentificare.cui
+			WHERE firme.cod_inmatriculare = ?`
 
-	preparedStmt, err := this.db.Prepare(stmt)
-	if err != nil {
-		panic(err)
-	}
-
-	rows, err := preparedStmt.Query(numar_inmatriculare)
-	if err != nil {
-		panic(err)
-	}
-
+	rows := this.executeQuery(stmt, numar_inmatriculare)
 	defer rows.Close()
 
 	var infoFirma InfoFirma
 	for rows.Next() {
-		var administratori sql.NullString
+		var reprezentanti sql.NullString
 		var coduriCaen sql.NullString
-		var strada sql.NullString
-		var nrStrada sql.NullString
-		var bloc sql.NullString
-		var scara sql.NullString
-		var etaj sql.NullString
-		var apartament sql.NullString
-		var codPostal sql.NullString
-		var sector sql.NullString
 		var statuses sql.NullString
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &administratori, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &strada, &nrStrada, &bloc, &scara, &etaj, &apartament, &codPostal, &sector, &statuses, &coduriCaen)
+
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva)
 		if err != nil {
 			panic(err)
 		}
 
-		if administratori.Valid {
-			infoFirma.Administratori = strings.Split(administratori.String, ",") 
+		if reprezentanti.Valid {
+			infoFirma.Reprezentanti = strings.Split(reprezentanti.String, ",")
 		}
 
 		if statuses.Valid {
-			infoFirma.Statusuri = strings.Split(statuses.String, ",") 
+			infoFirma.Statusuri = strings.Split(statuses.String, ",")
 		}
 
 		if coduriCaen.Valid {
 			infoFirma.CoduriCaen = strings.Split(coduriCaen.String, ",")
-		}
-
-		if strada.Valid {
-			infoFirma.Strada = strada.String
-		}
-
-		if nrStrada.Valid {
-			infoFirma.NrStrada = nrStrada.String
-		}
-
-		if bloc.Valid {
-			infoFirma.Bloc = bloc.String
-		}
-
-		if scara.Valid {
-			infoFirma.Scara = scara.String
-		}
-
-		if etaj.Valid {
-			infoFirma.Etaj = etaj.String
-		}
-
-		if apartament.Valid {
-			infoFirma.Apartament = apartament.String
-		}
-
-		if codPostal.Valid {
-			infoFirma.CodPostal = codPostal.String
-		}
-
-		if sector.Valid {
-			infoFirma.Sector = sector.String
 		}
 	}
 
@@ -1049,27 +1009,19 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 				active_imobilizate,
 				active_circulante,
 				capitaluri,
-				numar_mediu_salariati
+				numar_mediu_salariati,
+				cod_caen
 			FROM bilanturi
 			WHERE cui = ?
-			ORDER BY an desc;`
+			ORDER BY an desc`
 
-	preparedStmt, err := this.db.Prepare(stmt)
-	if err != nil {
-		panic(err)
-	}
-
-	rows, err := preparedStmt.Query(cui)
-	if err != nil {
-		panic(err)
-	}
-
+	rows := this.executeQuery(stmt, cui)
 	defer rows.Close()
 
 	var bilanturiFirma []*BilantFirma
 	for rows.Next() {
 		var bilantFirma BilantFirma
-		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati)
+		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen)
 		if err != nil {
 			panic(err)
 		}

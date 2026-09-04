@@ -32,10 +32,14 @@ function createAddress(json) {
 	return adresa
 }
 
+function setValueIfExist(element, value) {
+	if (value) {
+		element.textContent = value
+	}
+}
+
 async function main() {
 	const profileId = window.location.pathname.split('/').pop();
-
-	console.log(profileId)
 
 	let profileName = document.getElementById("profileName")
 	let profileCompanyName = document.getElementById("profileCompanyName")
@@ -49,7 +53,11 @@ async function main() {
 	let profileCompanyAdresa = document.getElementById("profileCompanyAdresa")
 	let profileCompanyCodPostal = document.getElementById("profileCompanyCodPostal")
 	let profileCompanyCaen = document.getElementById("profileCompanyCaen")
+	let profileCompanyPrimaryCaen = document.getElementById("profileCompanyPrimaryCaen")
+	let profileCompanyTva = document.getElementById("profileCompanyTva")
+
 	let profileCompanyAdministratori = document.getElementById("profileCompanyAdministratori")
+	let profileCompanyAsociati = document.getElementById("profileCompanyAsociati")
 
 	const data = await fetch(`/firma/${profileId}`)
 	const json = await data.json()
@@ -68,21 +76,42 @@ async function main() {
 	profileCompanyData.textContent = formatDate(json.DataInregistrare)
 	profileCompanyJudet.textContent = json.Judet
 	profileCompanyLocalitate.textContent = json.Localitate
-	profileCompanyAdresa.textContent = createAddress(json)
-	profileCompanyCodPostal.textContent = json.CodPostal
-	profileCompanyCaen.textContent = json.CoduriCaen?.join(", ") ?? ""
 
-	if (json.Administratori) {
-		profileCompanyAdministratori.textContent = ""
+	setValueIfExist(profileCompanyAdresa, createAddress(json))
+	setValueIfExist(profileCompanyCodPostal, json.CodPostal)
+	setValueIfExist(profileCompanyCaen, json.CoduriCaen?.join(", "))
 
-		for (let admin of json.Administratori) {
-			const link = document.createElement("a");
+	if (json.Tva != null) {
+		profileCompanyTva.textContent = json.Tva ? "Da" : "Nu"
+	}
 
-			link.href = `/admins/${profileId}/${admin}/1`
-			link.textContent = admin
+	if (json.Reprezentanti) {
+		for (let reprezentant of json.Reprezentanti) {
+			let [name, role] = reprezentant.split('^')
 
-			profileCompanyAdministratori.appendChild(link)
-			profileCompanyAdministratori.appendChild(document.createElement("br"))
+			if (role === 'administrator') {
+				if (profileCompanyAdministratori.children.length === 0) {
+					profileCompanyAdministratori.textContent = ""
+				}
+
+				const link = document.createElement("a");
+
+				link.href = `/admins/${profileId}/${name}/1`
+				link.textContent = name
+
+				profileCompanyAdministratori.appendChild(link)
+				profileCompanyAdministratori.appendChild(document.createElement("br"))
+			} else {
+				if (profileCompanyAsociati.children.length === 0) {
+					profileCompanyAsociati.textContent = ""
+				}
+
+				const span = document.createElement("span");
+				span.textContent = `${name} - ${role}`
+
+				profileCompanyAsociati.appendChild(span)
+				profileCompanyAsociati.appendChild(document.createElement("br"))
+			}
 		}
 	}
 
@@ -105,7 +134,11 @@ async function main() {
 	const financiarCapitaluriProprii = prototype.getElementsByClassName("DateFinanciareCapitaluriProprii")[0]
 	const financiarCapitaluriAngajati = prototype.getElementsByClassName("DateFinanciareAngajati")[0]
 
-	for (let bilant of json.BilanturiFirma) {
+	for (let [index, bilant] of json.BilanturiFirma.entries()) {
+		if (index == 0) {
+			profileCompanyPrimaryCaen.textContent = bilant.Caen
+		}
+
 		financiarAn.textContent = bilant.An
 		financiarCifraAfaceri.textContent = formatMoney(bilant.CifraAfaceri)
 		financiarProfit.textContent = formatMoney(bilant.ProfitNet)
