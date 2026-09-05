@@ -22,10 +22,10 @@ jobs:
         go-version: '1.25.1'
 
     - name: Build for Linux
-      run: go build -tags "fts5" -v -o openfirme ./../../cmd/website
+      run: go build -tags "fts5" -v -o openfirme ./../cmd/website
 
     - name: Build for Windows
-      run: go build -tags "fts5" -v -o openfirme.exe ./../../cmd/website
+      run: go build -tags "fts5" -v -o openfirme.exe ./../cmd/website
 
     - name: Upload Linux binary
       uses: actions/upload-artifact@v4
