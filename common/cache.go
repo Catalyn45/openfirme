@@ -115,7 +115,7 @@ func (self *Cache) ApiPagedSearchCache(handler httprouter.Handle) httprouter.Han
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		pageNumber := float64(getPageNumber(params))
 
-		expiration := self.calculateExpirationForPage(pageNumber, 1, 4)
+		expiration := self.calculateExpirationForPage(pageNumber, 5, 10)
 		self.apiCache(handler, w, r, params, expiration)
 	}
 }
@@ -124,7 +124,7 @@ func (self *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		pageNumber := float64(getPageNumber(params))
 
-		expiration := self.calculateExpirationForPage(pageNumber, 5, 15)
+		expiration := self.calculateExpirationForPage(pageNumber, 20, 40)
 		self.apiCache(handler, w, r, params, expiration)
 	}
 }

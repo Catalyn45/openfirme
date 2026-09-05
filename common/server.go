@@ -1,10 +1,13 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -50,7 +53,16 @@ func (self *Server) Start() {
 	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		err, ok := p.(error)
+		if ok {
+			if errors.Is(err, context.DeadlineExceeded) {
+				http.Error(w, "too generic", http.StatusUnprocessableEntity)
+				return
+			}
+		}
+
+		fmt.Printf("panic: %v\n%s", p, debug.Stack())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))

@@ -114,6 +114,18 @@ function goToPrevPage(pageButton) {
     pageButton = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
 }
 
+function showEmpty(title, description) {
+	if (title) {
+		const emptyStateTitle = document.getElementById("emptyStateTitle")
+		emptyStateTitle.textContent = title
+	}
+
+	if (description) {
+		const emptyStateDescription = document.getElementById("emptyStateDescription")
+		emptyStateDescription.textContent = description
+	}
+}
+
 async function main() {
 	let path = window.location.pathname.split('/')
 
@@ -132,7 +144,13 @@ async function main() {
 
     endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
 
+	console.log("searching")
     const response = await fetch(endpoint)
+	if (response.status === 422) {
+		showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume de firmă mai specific sau modifică filtrele de căutare.")
+		return
+	}
+
     const data = await response.json()
 
     console.log(data)
@@ -200,9 +218,7 @@ async function main() {
         .textContent = `${resultCount} rezultate`
 
 	if (resultCount === 0) {
-		document
-			.getElementById("emptyState")
-			.style.display = "block"
+		showEmpty("Nu am găsit nicio companie", "Încearcă o altă denumire sau modifică filtrele de căutare.")
 	}
 
 	updatePageNumbers(pageNumber, resultCount)

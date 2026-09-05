@@ -1,11 +1,13 @@
 package common
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -717,7 +719,7 @@ func (this *Repository) constructPagedQuery(stmt string, filters *FirmeFilters, 
 	return stmt, params
 }
 
-func (this *Repository) executeQuery(stmt string, params ...any) *sql.Rows {
+func (this *Repository) executeQuery(stmt string, timeout bool, params ...any) (*sql.Rows, context.CancelFunc) {
 	stmt += ";"
 
 	fmt.Println("stmt ", stmt)
@@ -729,27 +731,43 @@ func (this *Repository) executeQuery(stmt string, params ...any) *sql.Rows {
 	}
 
 	fmt.Println("Started searching in db...")
-	rows, err := preparedStmt.Query(params...)
+
+	var cancel context.CancelFunc = nil
+	var rows *sql.Rows
+	if timeout {
+		var ctx context.Context
+		ctx, cancel = context.WithTimeout(context.Background(), 4*time.Second)
+		rows, err = preparedStmt.QueryContext(ctx, params...)
+	} else {
+		rows, err = preparedStmt.Query(params...)
+	}
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("finished searching in db...")
 
-	return rows
+	return rows, cancel
 }
 
-func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, params ...any) *sql.Rows {
+func (this *Repository) executePagedQuery(stmt string, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, timeout bool, params ...any) (*sql.Rows, context.CancelFunc) {
 	stmt, params = this.constructPagedQuery(stmt, filters, ordering, pageNumber, params...)
-	return this.executeQuery(stmt, params...)
+	return this.executeQuery(stmt, timeout, params...)
 }
 
-func (this *Repository) getCount(stmt string, filters *FirmeFilters, params ...any) int {
+func (this *Repository) getCount(stmt string, filters *FirmeFilters, timeout bool, params ...any) int {
 	stmt, params = this.constructPagedQuery(stmt, filters, nil, 0, params...)
 
 	stmt = "SELECT COUNT(*) FROM ( " + stmt + " )"
 
-	rows := this.executeQuery(stmt, params...)
+	rows, cancel := this.executeQuery(stmt, timeout, params...)
 	defer rows.Close()
+
+	defer func() {
+		if cancel != nil {
+			cancel()
+		}
+	}()
 
 	count := 0
 	for rows.Next() {
@@ -781,7 +799,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 			WHERE 1=1 `
 
 	result := &InfoFirmeResult {
-		Count: this.getCount(stmt, filters),
+		Count: this.getCount(stmt, filters, true),
 		Data: []*InfoFirmaLight{},
 	}
 
@@ -790,8 +808,9 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		sortOrder: "asc",
 	}
 
-	rows := this.executePagedQuery(stmt, filters, &ordering, pageNumber)
+	rows, cancel := this.executePagedQuery(stmt, filters, &ordering, pageNumber, true)
 	defer rows.Close()
+	defer cancel()
 
 	for rows.Next() {
 		var infoFirma InfoFirmaLight
@@ -809,6 +828,11 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		result.Data = append(result.Data, &infoFirma)
 	}
 
+	err := rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println("finished scanning data...")
 
 	return result;
@@ -816,7 +840,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 
 func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
 	if filters.formaJuridica != "" &&
-		slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) &&
+		!slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) &&
 		ordering.sortBy != "infiintare" {
 		return &InfoFirmeResult {
 			Count: 0,
@@ -864,7 +888,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 	`
 
 	result := &InfoFirmeResult {
-		Count: this.getCount(dataInmatriculareOrderEfficientStmt, filters),
+		Count: this.getCount(dataInmatriculareOrderEfficientStmt, filters, false),
 		Data: []*InfoFirmaLight{},
 	}
 
@@ -875,7 +899,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 		stmt = bilanturiEfficientStmt
 	}
 
-	rows := this.executePagedQuery(stmt, filters, ordering, pageNumber)
+	rows, _ := this.executePagedQuery(stmt, filters, ordering, pageNumber, false)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -892,6 +916,11 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 		}
 
 		result.Data = append(result.Data, &infoFirma)
+	}
+
+	err := rows.Err()
+	if err != nil {
+		panic(err)
 	}
 
 	return result;
@@ -970,7 +999,7 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 				ON firme.cui = dateidentificare.cui
 			WHERE firme.cod_inmatriculare = ?`
 
-	rows := this.executeQuery(stmt, numar_inmatriculare)
+	rows, _ := this.executeQuery(stmt, false, numar_inmatriculare)
 	defer rows.Close()
 
 	var infoFirma InfoFirma
@@ -1015,7 +1044,7 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 			WHERE cui = ?
 			ORDER BY an desc`
 
-	rows := this.executeQuery(stmt, cui)
+	rows, _ := this.executeQuery(stmt, false, cui)
 	defer rows.Close()
 
 	var bilanturiFirma []*BilantFirma
@@ -1071,11 +1100,11 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 	`
 
 	result := &InfoFirmeResult {
-		Count: this.getCount(stmt, nil, cod_inmatriculare, admin),
+		Count: this.getCount(stmt, nil, false, cod_inmatriculare, admin),
 		Data: []*InfoFirmaLight{},
 	}
 
-	rows := this.executePagedQuery(stmt, nil, nil, pageNumber, cod_inmatriculare, admin, )
+	rows, _ := this.executePagedQuery(stmt, nil, nil, pageNumber, false, cod_inmatriculare, admin, )
 	defer rows.Close()
 
 	for rows.Next() {
