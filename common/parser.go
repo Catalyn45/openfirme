@@ -95,7 +95,7 @@ func (this *Parser) parseUU(an int) ([]map[string]int, bool) {
 	}
 
 	skipIndexes := []int{ }
-	if an <= 2015 {
+	if an >= 2016 {
 		skipIndexes = append(skipIndexes, 13)
 	}
 
@@ -117,7 +117,7 @@ func (this *Parser) parseIR(an int) ([]map[string]int, bool) {
 	}
 
 	skipIndexes := []int{}
-	if an <= 2015 && an >= 2018 {
+	if an <= 2015 || an >= 2018 {
 		skipIndexes = append(skipIndexes, 13)
 	}
 
