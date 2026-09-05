@@ -1,0 +1,40 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25.1'
+
+    - name: Build for Linux
+      run: go build -tags "fts5" -v -o openfirme ./../../cmd/website
+
+    - name: Build for Windows
+      run: go build -tags "fts5" -v -o openfirme.exe ./../../cmd/website
+
+    - name: Upload Linux binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: openfirme
+        path: openfirme
+
+    - name: Upload Windows binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: openfirme.exe
+        path: openfirme.exe
