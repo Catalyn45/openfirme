@@ -7,17 +7,15 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/patrickmn/go-cache"
 )
 
 type Server struct {
 	host string
 	port int
 	repository *Repository
-	c *cache.Cache
+	cache *Cache
 }
 
 func NewServer(host string, port int, repository *Repository) *Server {
@@ -25,7 +23,7 @@ func NewServer(host string, port int, repository *Repository) *Server {
 		host: host,
 		port: port,
 		repository: repository,
-		c: cache.New(5*time.Minute, 10*time.Minute),
+		cache: newCache(),
 	}
 }
 
@@ -34,7 +32,7 @@ func (self *Server) Start() {
 
 	router := httprouter.New()
 
-	static := self.HttpCache(http.FileServer(http.Dir("./public")))
+	static := self.cache.HtmlCache(http.FileServer(http.Dir("./public")))
 
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
@@ -46,11 +44,14 @@ func (self *Server) Start() {
 	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
 	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
 
-	router.GET("/firme/:page_number", self.RouterCache(self.getFirme))
-	router.GET("/firma/:numar_inmatriculare", self.RouterCache(self.getFirma))
-	router.GET("/topFirme/:page_number", self.RouterCache(self.getTopFirme))
-	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.RouterCache(self.getAdminsFirme))
+	router.GET("/firme/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
+	router.GET("/firma/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
+	router.GET("/topFirme/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
+	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
 
+	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
 
@@ -73,10 +74,10 @@ func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *ht
 		http.ServeFile(w, r, path)
 	}
 
-	return self.RouterCache(servFunc)
+	return self.cache.HtmlRouterCache(servFunc)
 }
 
-func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
+func getPageNumber(ps httprouter.Params) int {
 	page_number := ps.ByName("page_number")
 
 	pageNumber := 1
@@ -94,6 +95,11 @@ func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 		panic(fmt.Errorf("can't have more than 200 results"))
 	}
 
+	return pageNumber
+}
+
+func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
+	pageNumber := getPageNumber(ps)
 	fmt.Println(pageNumber)
 
 	query := r.URL.Query()
@@ -164,23 +170,7 @@ func (self *Server) getAdminsFirme(w http.ResponseWriter, r *http.Request, ps ht
 
 	fmt.Println("firma:" + numar_inmatriculare)
 
-	page_number := ps.ByName("page_number")
-
-	pageNumber := 1
-
-	if page_number != "" {
-		var err error
-
-		pageNumber, err = strconv.Atoi(page_number)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	if pageNumber > 10 {
-		panic(fmt.Errorf("can't have more than 200 results"))
-	}
-
+	pageNumber := getPageNumber(ps)
 	fmt.Println(pageNumber)
 
 	admin := ps.ByName("admin")

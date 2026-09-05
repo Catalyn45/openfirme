@@ -3,49 +3,67 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/patrickmn/go-cache"
 )
 
-type cachedResponseWriter struct {
+type CachedResponseWriter struct {
 	header http.Header
 	body   bytes.Buffer
 	status int
 }
 
-func (w *cachedResponseWriter) Header() http.Header {
+func (w *CachedResponseWriter) Header() http.Header {
 	return w.header
 }
 
-func (w *cachedResponseWriter) WriteHeader(status int) {
+func (w *CachedResponseWriter) WriteHeader(status int) {
 	w.status = status
 }
 
-func (w *cachedResponseWriter) Write(p []byte) (int, error) {
+func (w *CachedResponseWriter) Write(p []byte) (int, error) {
 	return w.body.Write(p)
 }
 
- func (self *Server) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc) {
-	path := r.URL.String()
-	cached, found := self.c.Get(path)
+type Cache struct {
+	c *cache.Cache
+	active bool
+}
 
-	var cachedWriter *cachedResponseWriter
+func newCache() *Cache {
+	return &Cache{
+		c: cache.New(20*time.Minute, 10*time.Minute),
+		active: true,
+	}
+}
+
+func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
+	if !self.active {
+		handler(w, r)
+		return
+	}
+
+	cached, found := self.c.Get(key)
+
+	var cachedWriter *CachedResponseWriter
 	if found {
-		fmt.Println("cache hit: ", path)
-		cachedWriter = cached.(*cachedResponseWriter)
+		fmt.Println("cache hit: ", key)
+		cachedWriter = cached.(*CachedResponseWriter)
 	} else {
-		fmt.Println("cache miss: ", path)
+		fmt.Println("cache miss, adding ", key, " for duration: ", expiration.Minutes())
 
-		cachedWriter = &cachedResponseWriter{
+		cachedWriter = &CachedResponseWriter{
 			header: make(http.Header),
 			status: 200,
 		}
 
 		handler(cachedWriter, r)
 
-		self.c.Set(path, cachedWriter, 3 * time.Minute)
+		self.c.Set(key, cachedWriter, expiration)
 	}
 
 	for key, values := range cachedWriter.header {
@@ -58,18 +76,55 @@ func (w *cachedResponseWriter) Write(p []byte) (int, error) {
 	w.Write(cachedWriter.body.Bytes())
 }
 
-func (self *Server) HttpCache(handler http.Handler) http.Handler {
+func (self *Cache) HtmlCache(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		self.cacheFunc(w, r, handler.ServeHTTP)
+		self.cacheFunc(w, r, handler.ServeHTTP, r.URL.Path, cache.DefaultExpiration)
 	})
 }
 
-func (self *Server) RouterCache(handler httprouter.Handle) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		adapted := func(w http.ResponseWriter, r *http.Request) {
-			handler(w, r, params)
-		}
+func (self *Cache) getRouterAdaptedFunc(handler httprouter.Handle, w http.ResponseWriter, r *http.Request, params httprouter.Params) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, params)
+	}
+}
 
-		self.cacheFunc(w, r, adapted)
+func (self *Cache) HtmlRouterCache(handler httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		adapted := self.getRouterAdaptedFunc(handler, w, r, params)
+		self.cacheFunc(w, r, adapted, r.URL.Path, cache.DefaultExpiration)
+	}
+}
+
+func (self *Cache) apiCache(handler httprouter.Handle, w http.ResponseWriter, r *http.Request, params httprouter.Params, expiration time.Duration) {
+	adapted := self.getRouterAdaptedFunc(handler, w, r, params)
+	self.cacheFunc(w, r, adapted, r.URL.String(), expiration)
+}
+
+func (self *Cache) DefaultApiCache(handler httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		self.apiCache(handler, w, r, params, cache.DefaultExpiration)
+	}
+}
+
+func (self *Cache) calculateExpirationForPage(pageNumber float64, minMinutes float64, maxMinutes float64) time.Duration {
+	expiration := minMinutes + math.Floor(((10 - pageNumber) * maxMinutes) / 10)
+	return time.Duration(expiration) * time.Minute
+}
+
+func (self *Cache) ApiPagedSearchCache(handler httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		pageNumber := float64(getPageNumber(params))
+
+		expiration := self.calculateExpirationForPage(pageNumber, 1, 4)
+		self.apiCache(handler, w, r, params, expiration)
+	}
+}
+
+func (self *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		pageNumber := float64(getPageNumber(params))
+
+		expiration := self.calculateExpirationForPage(pageNumber, 5, 15)
+		self.apiCache(handler, w, r, params, expiration)
 	}
 }
