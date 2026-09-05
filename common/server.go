@@ -7,14 +7,17 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/patrickmn/go-cache"
 )
 
 type Server struct {
 	host string
 	port int
 	repository *Repository
+	c *cache.Cache
 }
 
 func NewServer(host string, port int, repository *Repository) *Server {
@@ -22,6 +25,7 @@ func NewServer(host string, port int, repository *Repository) *Server {
 		host: host,
 		port: port,
 		repository: repository,
+		c: cache.New(5*time.Minute, 10*time.Minute),
 	}
 }
 
@@ -30,7 +34,7 @@ func (self *Server) Start() {
 
 	router := httprouter.New()
 
-	static := http.FileServer(http.Dir("./public"))
+	static := self.HttpCache(http.FileServer(http.Dir("./public")))
 
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
@@ -42,10 +46,10 @@ func (self *Server) Start() {
 	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
 	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
 
-	router.GET("/firme/:page_number", self.getFirme)
-	router.GET("/firma/:numar_inmatriculare", self.getFirma)
-	router.GET("/topFirme/:page_number", self.getTopFirme)
-	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.getAdminsFirme)
+	router.GET("/firme/:page_number", self.RouterCache(self.getFirme))
+	router.GET("/firma/:numar_inmatriculare", self.RouterCache(self.getFirma))
+	router.GET("/topFirme/:page_number", self.RouterCache(self.getTopFirme))
+	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.RouterCache(self.getAdminsFirme))
 
 
 	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
@@ -65,9 +69,11 @@ func (self *Server) returnSuccess(w http.ResponseWriter, content any) {
 }
 
 func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	servFunc := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.ServeFile(w, r, path)
 	}
+
+	return self.RouterCache(servFunc)
 }
 
 func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
