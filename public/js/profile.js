@@ -158,4 +158,4 @@ async function main() {
 	bilanturiFirmaContainer.style.display = "block"
 }
 
-main()
+main().catch(console.error);

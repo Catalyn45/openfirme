@@ -10,6 +10,11 @@
     {{ end }}
 
     <title>OpenFirme România — Informații despre companii</title>
+
+	{{ block "scripts" . }}
+	<script src="/public/js/main.js" defer></script>
+	{{ end }}
+
 </head>
 
 <body>
@@ -26,7 +31,7 @@
 
     <nav>
         <a href="/">Căutare</a>
-        <a href="/top/1">Companii</a>
+        <a href="/top/1">Top Companii</a>
     </nav>
 
 </header>
@@ -81,10 +86,5 @@
     publice despre companii din România.
 
 </footer>
-
-	{{ block "scripts" . }}
-	<script src="/public/js/main.js"></script>
-	{{ end }}
-
 </body>
 </html>

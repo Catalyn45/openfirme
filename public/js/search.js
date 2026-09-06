@@ -219,9 +219,13 @@ async function main() {
 
 	if (resultCount === 0) {
 		showEmpty("Nu am găsit nicio companie", "Încearcă o altă denumire sau modifică filtrele de căutare.")
-	}
+	} else {
+		document
+			.getElementById("emptyState")
+			.style.display = "none"
+    }
 
 	updatePageNumbers(pageNumber, resultCount)
 }
 
-main()
+main().catch(console.error);
