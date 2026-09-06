@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -62,6 +63,8 @@ func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 		}
 
 		handler(cachedWriter, r)
+
+		w.Header().Set("Cache-Control", "public, max-age=" + strconv.Itoa(int(expiration.Seconds())))
 
 		self.c.Set(key, cachedWriter, expiration)
 	}
