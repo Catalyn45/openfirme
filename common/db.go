@@ -950,6 +950,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 type InfoFirma struct {
 	Nume string
 	CodInmatriculare string
+	Euid string
 	FormaJuridica string
 	Cui int
 	Reprezentanti []string
@@ -986,6 +987,7 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 	stmt := `SELECT
 				firme.denumire,
 				firme.cod_inmatriculare,
+				firme.euid,
 				firme.forma_juridica,
 				firme.cui,
 				(
@@ -1026,7 +1028,7 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 		var coduriCaen sql.NullString
 		var statuses sql.NullString
 
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva)
+		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva)
 		if err != nil {
 			panic(err)
 		}

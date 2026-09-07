@@ -45,6 +45,7 @@ async function main() {
 	let profileCompanyName = document.getElementById("profileCompanyName")
 	let profileCompanyCui = document.getElementById("profileCompanyCui")
 	let profileCompanyId = document.getElementById("profileCompanyId")
+	let profileCompanyEuid = document.getElementById("profileCompanyEuid")
 	let profileCompanyForma = document.getElementById("profileCompanyForma")
 	let profileCompanyStatus = document.getElementById("profileCompanyStatus")
 	let profileCompanyData = document.getElementById("profileCompanyData")
@@ -67,6 +68,7 @@ async function main() {
 	profileName.textContent = json.Nume
     profileCompanyName.textContent = json.Nume
 	profileCompanyCui.textContent = json.Cui
+	profileCompanyEuid.textContent = json.Euid
 	profileCompanyId.textContent = json.CodInmatriculare
 	profileCompanyForma.textContent = json.FormaJuridica
 	profileCompanyStatus.textContent = json.Statusuri.sort((a, b) => {
@@ -81,8 +83,8 @@ async function main() {
 	setValueIfExist(profileCompanyCodPostal, json.CodPostal)
 	setValueIfExist(profileCompanyCaen, json.CoduriCaen?.join(", "))
 
-	if (json.Tva != null) {
-		profileCompanyTva.textContent = json.Tva ? "Da" : "Nu"
+	if (json.Tva === true) {
+		profileCompanyTva.textContent = "Da"
 	}
 
 	if (json.Reprezentanti) {
