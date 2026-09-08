@@ -17,8 +17,10 @@ import (
 type Server struct {
 	host string
 	port int
+
 	repository *Repository
 	cache *Cache
+	juridicClient *JuridicClient
 }
 
 func NewServer(host string, port int, repository *Repository) *Server {
@@ -27,6 +29,7 @@ func NewServer(host string, port int, repository *Repository) *Server {
 		port: port,
 		repository: repository,
 		cache: newCache(),
+		juridicClient: NewJuridicClient(),
 	}
 }
 
@@ -46,11 +49,13 @@ func (self *Server) Start() {
 	router.GET("/search/:page_number", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
 	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
+	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("./public/dosareJuridice.html"))
 
 	router.GET("/firme/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
 	router.GET("/firma/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
 	router.GET("/topFirme/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
 	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
+	router.GET("/dosareJuridiceFirma/:cod_inmatriculare/:page_number", self.cache.ApiPagedCache(self.getDosareJuridiceFirma))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
 		err, ok := p.(error)
@@ -72,7 +77,10 @@ func (self *Server) Start() {
 		Handler: router,
 	}
 
-	server.ListenAndServe()
+	err := server.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (self *Server) returnSuccess(w http.ResponseWriter, content any) {
@@ -190,4 +198,40 @@ func (self *Server) getAdminsFirme(w http.ResponseWriter, r *http.Request, ps ht
 	firme := self.repository.GetAdminFirme(numar_inmatriculare, admin, pageNumber)
 
 	self.returnSuccess(w, firme)
+}
+
+func getDosareForPage(dosare []Dosar, pageNumber int) []Dosar {
+	perPage := 20
+
+	start := (pageNumber - 1) * perPage
+	if start >= len(dosare) {
+		return nil
+	}
+
+	end := min(len(dosare)-1, start+perPage)
+
+	return dosare[start:end]
+}
+
+func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	numar_inmatriculare := ps.ByName("cod_inmatriculare")
+	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+
+	fmt.Println("firma:" + numar_inmatriculare)
+
+	pageNumber := getPageNumber(ps)
+	fmt.Println(pageNumber)
+
+	dosare, found := self.cache.GetJuridic(numar_inmatriculare)
+	if !found {
+		numeFirma := self.repository.GetNumeFirma(numar_inmatriculare)
+		if numeFirma == "" {
+			panic(fmt.Errorf("Firma doesn't exist"))
+		}
+
+		dosare = self.juridicClient.GetDosare(numeFirma)
+		self.cache.SetForJuridic(numar_inmatriculare, dosare)
+	}
+
+	self.returnSuccess(w, getDosareForPage(dosare, pageNumber))
 }

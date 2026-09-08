@@ -137,9 +137,12 @@ async function main() {
         endpoint = `/topFirme`
     } else if (pageEndpoint.includes("search")) {
         endpoint = `/firme`
-    } else {
+    } else if (pageEndpoint.includes("admin")){
 		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
 		document.getElementById("company-administrator").textContent = `Companii admnistrate de: ${decodeURIComponent(path[3])}`
+	} else if (pageEndpoint.includes("dosareJuridice")) {
+		endpoint = `/dosareJuridiceFirma/${path[2]}`
+		document.getElementById("company-administrator").textContent = `Dosare juridice pentru: ${decodeURIComponent(path[2])}`
 	}
 
     endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`

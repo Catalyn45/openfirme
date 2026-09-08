@@ -78,6 +78,21 @@ func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 	w.Write(cachedWriter.body.Bytes())
 }
 
+const portalQuery = "portalquery.just.ro/"
+
+func (self *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found bool) {
+	value, found := self.c.Get(portalQuery + numarInmatriculare)
+	if !found {
+		return nil, false
+	}
+
+	return value.([]Dosar), found
+}
+
+func (self *Cache) SetForJuridic(numarInmatriculare string, dosare []Dosar) {
+	self.c.Set(portalQuery + numarInmatriculare, dosare, 20 * time.Minute)
+}
+
 func (self *Cache) HtmlCache(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		self.cacheFunc(w, r, handler.ServeHTTP, r.URL.Path, cache.DefaultExpiration)

@@ -1,3 +1,11 @@
+function openDosareJuridice(button) {
+	let inregistrare = document.getElementById("profileCompanyId").textContent
+	inregistrare = inregistrare.replaceAll("/", "-")
+
+    button.href = `/dosareJuridice/${inregistrare}/1`
+}
+
+
 function createAddress(json) {
 	let adresa = ""
 

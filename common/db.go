@@ -1162,3 +1162,26 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 
 	return result;
 }
+
+func (this *Repository) GetNumeFirma(numarInmatriculare string) string {
+	stmt := `SELECT
+				firme.denumire
+			FROM firme
+			WHERE firme.cod_inmatriculare = ?`
+
+	nume := ""
+	rowCallback := func (rows *sql.Rows) {
+		err := rows.Scan(&nume)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	this.executeQuery(
+		stmt,
+		[]any { numarInmatriculare },
+		rowCallback,
+		nil)
+
+	return nume
+}

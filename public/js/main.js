@@ -132,7 +132,7 @@ function resetFilters() {
    COMPANY PROFILE
 ============================================================ */
 
-async function openProfile(button) {
+function openProfile(button) {
 	card = button.parentElement.parentElement;
 
 	let inregistrare = card.getElementsByClassName("company-inregistrare")[0].textContent
