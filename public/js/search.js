@@ -187,6 +187,7 @@ async function main() {
 			}
 
 			companyStatus.textContent = statusFirma
+			companyStatus.title = statusFirma
 			companyStatus.classList.remove("active")
 			companyStatus.classList.remove("inactive")
 			if (statusFirma === "funcțiune") {

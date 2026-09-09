@@ -56,19 +56,21 @@ header {
     color: var(--dark);
 }
 
-nav {
+nav.menu {
     display: flex;
     gap: 28px;
+    align-items: center;
+    justify-content: center;
 }
 
-nav a {
+nav.menu a {
     text-decoration: none;
     color: var(--muted);
     font-size: 14px;
     font-weight: 500;
 }
 
-nav a:hover {
+nav.menu a:hover {
     color: var(--primary);
 }
 
@@ -359,6 +361,14 @@ main {
     font-size: 13px;
 }
 
+.company-status-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 5px;
+    min-width: 0;
+}
+
 .company-status {
     white-space: nowrap;
     height: fit-content;
@@ -366,6 +376,8 @@ main {
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .company-status.active {

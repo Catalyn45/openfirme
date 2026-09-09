@@ -5,12 +5,13 @@
 .pagination {
     max-width: 1250px;
     margin: 10px auto 60px;
-    padding: 0 20px;
+    padding: 0 15px;
 
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    
+    gap: 4px;
 }
 
 #paginationContainer {
@@ -72,10 +73,6 @@
     color: var(--muted);
     font-size: 14px;
     user-select: none;
-}
-.pagination {
-    gap: 4px;
-    padding: 0 15px;
 }
 
 .pagination-button {
