@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"runtime/debug"
+	"slices"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -50,12 +52,14 @@ func (self *Server) Start() {
 	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
 	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
 	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("./public/dosareJuridice.html"))
+	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("./public/dosarJuridic.html"))
 
 	router.GET("/firme/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
 	router.GET("/firma/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
 	router.GET("/topFirme/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
 	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
 	router.GET("/dosareJuridiceFirma/:cod_inmatriculare/:page_number", self.cache.ApiPagedCache(self.getDosareJuridiceFirma))
+	router.GET("/dosarJuridicFirma/:cod_inmatriculare/:numar_dosar", self.cache.DefaultApiCache(self.getDosarJuridicFirma))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
 		err, ok := p.(error)
@@ -205,12 +209,78 @@ func getDosareForPage(dosare []Dosar, pageNumber int) []Dosar {
 
 	start := (pageNumber - 1) * perPage
 	if start >= len(dosare) {
-		return nil
+		return []Dosar{}
 	}
 
 	end := min(len(dosare)-1, start+perPage)
 
 	return dosare[start:end]
+}
+
+type DosareJuridiceResponse struct {
+	Count int
+	Dosare []Dosar
+}
+
+type FiltersDosare struct {
+	tribunal string
+	categorie string
+	stadiuProcesual string
+}
+
+func (self *Server) FilterDosare(dosare []Dosar, filters *FiltersDosare) []Dosar {
+	if filters.tribunal == "" && filters.categorie == "" && filters.stadiuProcesual == "" {
+		return dosare
+	}
+
+	dosareFiltered := []Dosar{}
+	for _, dosar := range dosare {
+		if filters.tribunal != "" && dosar.Institutie != filters.tribunal {
+			continue
+		}
+
+		if filters.categorie != "" && dosar.CategorieCazNume != filters.categorie {
+			continue
+		}
+
+		if filters.stadiuProcesual != "" && dosar.StadiuProcesualNume != filters.stadiuProcesual {
+			continue
+		}
+
+		dosareFiltered = append(dosareFiltered, dosar)
+	}
+
+	return dosareFiltered
+}
+
+func (self *Server) OrderDosare(dosare *[]Dosar, sortBy string, sortOrder string) {
+	if sortBy == "" {
+		return
+	}
+
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+
+	sort.Slice(*dosare, func(i, j int) bool {
+		if sortBy == "data" {
+			if sortOrder == "asc" {
+				return (*dosare)[i].Data < (*dosare)[j].Data
+			}
+
+			return (*dosare)[i].Data > (*dosare)[j].Data
+		}
+
+		if sortBy == "parti" {
+			if sortOrder == "asc" {
+				return len((*dosare)[i].Parti.DosareParte) < len((*dosare)[j].Parti.DosareParte)
+			}
+
+			return len((*dosare)[i].Parti.DosareParte) > len((*dosare)[j].Parti.DosareParte)
+		}
+
+		panic(fmt.Errorf("invalid sortBy"))
+	})
 }
 
 func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -233,5 +303,49 @@ func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Reques
 		self.cache.SetForJuridic(numar_inmatriculare, dosare)
 	}
 
-	self.returnSuccess(w, getDosareForPage(dosare, pageNumber))
+	query := r.URL.Query()
+
+	filters := &FiltersDosare {
+		tribunal: query.Get("tribunal"),
+		categorie: query.Get("categorie"),
+		stadiuProcesual: query.Get("stadiu_procesual"),
+	}
+
+	dosare = self.FilterDosare(dosare, filters)
+
+	sort_by := query.Get("sort_by")
+	sort_order := query.Get("sort_order")
+
+	self.OrderDosare(&dosare, sort_by, sort_order)
+
+	self.returnSuccess(w, &DosareJuridiceResponse{
+		Count: len(dosare),
+		Dosare: getDosareForPage(dosare, pageNumber),
+	})
+}
+
+func (self *Server) getDosarJuridicFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	numar_inmatriculare := ps.ByName("cod_inmatriculare")
+	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+
+	numar_dosar := ps.ByName("numar_dosar")
+	numar_dosar = strings.ReplaceAll(numar_dosar, "-", "/")
+
+	dosare, found := self.cache.GetJuridic(numar_inmatriculare)
+	if !found {
+		numeFirma := self.repository.GetNumeFirma(numar_inmatriculare)
+		if numeFirma == "" {
+			panic(fmt.Errorf("Firma doesn't exist"))
+		}
+
+		dosare = self.juridicClient.GetDosare(numeFirma)
+		self.cache.SetForJuridic(numar_inmatriculare, dosare)
+	}
+
+	index := slices.IndexFunc(dosare, func(dosar Dosar) bool { return dosar.Numar == numar_dosar })
+	if index == -1 {
+		panic(fmt.Errorf("Dosar doesn't exist"))
+	}
+
+	self.returnSuccess(w, &dosare[index])
 }

@@ -18,6 +18,18 @@ const formaJuridica =
     document
         .getElementById("formaFilter")
 
+const tribunal =
+    document
+        .getElementById("tribunalFilter")
+
+const categorie =
+    document
+        .getElementById("categorieFilter")
+
+const stadiuProcesual =
+    document
+        .getElementById("stadiuProcesualFilter")
+
 const sortBy =
     document
         .getElementById("sortField")
@@ -45,6 +57,18 @@ function getFilterParameters() {
 	if (formaJuridica?.value) {
         params.set('forma_juridica', formaJuridica.value)
     }
+
+	if (tribunal?.value) {
+		params.set("tribunal", tribunal.value)
+	}
+
+	if (categorie?.value) {
+		params.set("categorie", categorie.value)
+	}
+
+	if (stadiuProcesual?.value) {
+		params.set("stadiu_procesual", stadiuProcesual.value)
+	}
 
 	if (sortBy?.value) {
 		params.set('sort_by', sortBy.value)
@@ -158,6 +182,18 @@ function updateFilters() {
 
 	if (formaJuridica) {
 		formaJuridica.value = params.get("forma_juridica") ?? formaJuridica.value
+	}
+
+	if (tribunal) {
+		tribunal.value = params.get("tribunal") ?? tribunal.value
+	}
+
+	if (categorie) {
+		categorie.value = params.get("categorie") ?? categorie.value
+	}
+
+	if (stadiuProcesual) {
+		stadiuProcesual.value = params.get("stadiu_procesual") ?? stadiuProcesual.value
 	}
 
 	if (sortBy) {

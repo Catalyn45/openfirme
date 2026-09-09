@@ -25,6 +25,22 @@ const rightPages = document.getElementsByClassName("right-page-number")
 const backButton = document.getElementById("pageBack")
 const nextButton = document.getElementById("pageNext")
 
+function openDosar(button) {
+    let inregistrare = window.location.pathname.split('/').at(-2)
+
+    let numar_dosar = button.parentNode.parentNode.getElementsByClassName("company-tip")[0].textContent
+	numar_dosar = numar_dosar.replaceAll("/", "-")
+
+    button.href = `/dosarJuridic/${inregistrare}/${numar_dosar}`
+}
+
+function changeDosarFilter(el) {
+    let inregistrare = window.location.pathname.split("/").at(-2)
+
+    const params = getFilterParameters()
+	window.location = `/dosareJuridice/${inregistrare}/1?${params}`
+}
+
 function updatePageNumbers(currentPage, totalResults) {
 	if (totalResults <= 20) {
 		return
@@ -97,7 +113,7 @@ function updatePageNumbers(currentPage, totalResults) {
 	pagesContainer.style.display = "flex"
 }
 
-let pageEndpoint = window.location.pathname.split('/').slice(1, -1)
+let pageEndpoint = window.location.pathname.split('/').slice(1, -1).join("/")
 
 function goToPage(pageButton) {
 	const pageNumber = parseInt(pageButton.innerText)
@@ -111,7 +127,7 @@ function goToNextPage(pageButton) {
 
 function goToPrevPage(pageButton) {
 	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    pageButton = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
+    pageButton.href = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
 }
 
 function showEmpty(title, description) {
@@ -126,41 +142,7 @@ function showEmpty(title, description) {
 	}
 }
 
-async function main() {
-	let path = window.location.pathname.split('/')
-
-	const pageNumber = path.pop();
-
-    let endpoint = ''
-
-    if (pageEndpoint.includes("top")) {
-        endpoint = `/topFirme`
-    } else if (pageEndpoint.includes("search")) {
-        endpoint = `/firme`
-    } else if (pageEndpoint.includes("admin")){
-		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
-		document.getElementById("company-administrator").textContent = `Companii admnistrate de: ${decodeURIComponent(path[3])}`
-	} else if (pageEndpoint.includes("dosareJuridice")) {
-		endpoint = `/dosareJuridiceFirma/${path[2]}`
-		document.getElementById("company-administrator").textContent = `Dosare juridice pentru: ${decodeURIComponent(path[2])}`
-	}
-
-    endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
-
-	console.log("searching")
-    const response = await fetch(endpoint)
-	if (response.status === 422) {
-		showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume de firmă mai specific sau modifică filtrele de căutare.")
-		return
-	}
-
-    const data = await response.json()
-
-    console.log(data)
-
-    let resultCount = data.Count
-	console.log(resultCount)
-
+function populateSearch(data) {
     for (let firma of data.Data) {
         companyName.textContent = firma.Nume
 		companyJudet.textContent = firma.Judet
@@ -216,6 +198,66 @@ async function main() {
 
         prototypeCard.before(clone)
     }
+}
+
+function populateDosare(data) {
+    for (let dosar of data.Dosare) {
+        companyName.textContent = dosar.Obiect
+		companyJudet.textContent = dosar.CategorieCazNume
+		companyTip.textContent = dosar.Numar
+		companyCui.textContent = dosar.Institutie
+		companyInregistrare.textContent = dosar.Departament
+		companyDate.textContent = dosar.Data
+		companyStatus.textContent = dosar.StadiuProcesualNume
+
+        clone = prototypeCard.cloneNode(true)
+
+        clone.style.display = "block"
+        clone.removeAttribute("id")
+
+        prototypeCard.before(clone)
+    }
+}
+
+async function main() {
+	let path = window.location.pathname.split('/')
+
+	const pageNumber = path.pop();
+
+    let endpoint = ''
+
+    if (pageEndpoint.includes("top")) {
+        endpoint = `/topFirme`
+    } else if (pageEndpoint.includes("search")) {
+        endpoint = `/firme`
+    } else if (pageEndpoint.includes("admin")){
+		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
+		document.getElementById("company-administrator").textContent = `Companii admnistrate de: ${decodeURIComponent(path[3])}`
+	} else if (pageEndpoint.includes("dosareJuridice")) {
+		endpoint = `/dosareJuridiceFirma/${path[2]}`
+		document.getElementById("company-administrator").textContent = `Dosare juridice pentru: ${decodeURIComponent(path[2])}`
+	}
+
+    endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
+
+	console.log("searching")
+    const response = await fetch(endpoint)
+	if (response.status === 422) {
+		showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume de firmă mai specific sau modifică filtrele de căutare.")
+		return
+	}
+
+    const data = await response.json()
+    console.log(data)
+
+    let resultCount = data.Count
+	console.log(resultCount)
+
+	if (pageEndpoint.includes("dosareJuridice")) {
+		populateDosare(data)
+	} else {
+		populateSearch(data)
+	}
 
     document
         .getElementById("resultCount")

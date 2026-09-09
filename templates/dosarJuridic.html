@@ -1,0 +1,206 @@
+{{ template "base.html" }}
+
+{{ define "styles"}}
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/profile.css">
+    <link rel="stylesheet" href="/public/css/administratori.css">
+{{ end }}
+
+
+{{ define "scripts" }}
+<script src="/public/js/main.js" defer></script>
+<script src="/public/js/dosarJuridic.js" defer></script>
+{{ end }}
+
+{{ define "sorting" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "filters" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "sidebar" }}
+    {{ template "sidebar.html" }}
+{{ end }}
+
+
+{{ define "content" }}
+        <section>
+
+            <!-- ====================================================
+                 MODAL / COMPANY PROFILE
+            ==================================================== -->
+
+            <div class="modal" id="profileModal" >
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h2 id="profileObiect">
+                            Loading...
+                        </h2>
+
+                        <p>
+                            Dosar juridic • România
+                        </p>
+                    </div>
+
+
+                    <div class="modal-body">
+
+                        <div class="card-footer">
+                            <a href="/" class="view-button" onclick="openPortalJust(this)" >
+                                Cauta pe portaljust →
+                            </a>
+                        </div>
+
+                        <!-- IDENTIFICATION -->
+
+                        <div class="profile-section">
+
+                            <h3>
+                                Date dosar
+                            </h3>
+
+                            <div class="profile-grid">
+
+                                <div class="profile-field">
+
+                                    <small>
+                                        Numar
+                                    </small>
+
+                                    <strong id="profileNumarDosar">
+										Loading...
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="profile-field">
+
+                                    <small>
+                                        Categorie
+                                    </small>
+
+                                    <strong id="profileCategorie">
+										Loading...
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="profile-field">
+
+                                    <small>
+                                        Tribunal
+                                    </small>
+
+                                    <strong id="profileTribunal">
+										Loading...
+                                    </strong>
+
+                                </div>
+
+                                <div class="profile-field">
+
+                                    <small>
+                                        Departament
+                                    </small>
+
+                                    <strong id="profileDepartament">
+										Loading...
+                                    </strong>
+
+                                </div>
+
+                                <div class="profile-field">
+
+                                    <small>
+                                        Data
+                                    </small>
+
+                                    <strong id="profileData">
+										Loading...
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="profile-field">
+
+                                    <small>
+                                        Stadiu procesual
+                                    </small>
+
+                                    <strong id="profileStadiuProcesual">
+										Loading...
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ADDRESS -->
+
+                        <div class="profile-section">
+
+                            <h3>
+                                Parti
+                            </h3>
+
+                            <div class="profile-grid">
+                                <div class="profile-field" id="numePartePrototype" style="display:none;">
+                                    <small>
+                                        Nume
+                                    </small>
+
+                                    <strong id="numePartePrototypeValue">
+                                        Loading...
+                                    </strong>
+                                </div>
+                                <div class="profile-field" id="calitatePartePrototype" style="display:none;">
+                                    <small>
+                                        Calitate
+                                    </small>
+
+                                    <strong id="calitatePartePrototypeValue">
+                                        Loading...
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="profile-section">
+
+                            <h3>
+                                Surse și actualizare
+                            </h3>
+
+                            <div class="source">
+
+                                Informațiile afișate trebuie verificate
+                                în sursele publice oficiale înainte de
+                                utilizarea lor în scopuri juridice,
+                                comerciale sau financiare.
+
+                                <br><br>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+{{ end }}
