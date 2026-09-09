@@ -24,6 +24,16 @@
     {{ template "sidebar.html" }}
 {{ end }}
 
+{{ define "emptyResult" }}
+    <h3 id="emptyStateTitle">
+        Căutare...
+    </h3>
+
+    <p id="emptyStateDescription">
+        Se caută administratorii...
+    </p>
+{{ end }}
+
 {{ define "content" }}
     {{ template "results.html" }}
 {{ end }}

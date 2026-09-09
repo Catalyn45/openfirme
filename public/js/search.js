@@ -243,7 +243,7 @@ async function main() {
 	console.log("searching")
     const response = await fetch(endpoint)
 	if (response.status === 422) {
-		showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume de firmă mai specific sau modifică filtrele de căutare.")
+		showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare.")
 		return
 	}
 
