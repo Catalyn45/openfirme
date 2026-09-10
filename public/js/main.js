@@ -50,7 +50,7 @@ function getFilterParameters() {
         params.set('judet', county.value)
     }
 
-    if (status?.value) {
+    if (status?.value != null) {
         params.set('status', status.value)
     }
 

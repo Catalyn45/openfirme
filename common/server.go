@@ -283,6 +283,11 @@ func (self *Server) OrderDosare(dosare *[]Dosar, sortBy string, sortOrder string
 	})
 }
 
+type FormaJuridicaMap struct {
+	initialForma string
+	juridicForma string
+}
+
 func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("cod_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")

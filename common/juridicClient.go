@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -162,7 +163,27 @@ type CautareDosareResponseSOAPEnvelope struct {
 	Body    CautareDosareResponseSOAPBody `xml:"Body"`
 }
 
+
+var formeJuridiceMap = []FormaJuridicaMap {
+	FormaJuridicaMap{initialForma: " S.R.L.", juridicForma: " SRL"},
+	FormaJuridicaMap{initialForma: " P.F.A.", juridicForma: " PFA"},
+	FormaJuridicaMap{initialForma: " P.F.", juridicForma: " PF"},
+	FormaJuridicaMap{initialForma: " S.A.", juridicForma: " SA"},
+	FormaJuridicaMap{initialForma: " I.I.", juridicForma: " II"},
+	FormaJuridicaMap{initialForma: " C.A.", juridicForma: " CA"},
+}
+
+func (this *JuridicClient) normalizeNumeFirma(numeFirma string) string {
+	for _, formaJuridica := range formeJuridiceMap {
+		numeFirma = strings.ReplaceAll(numeFirma, formaJuridica.initialForma, formaJuridica.juridicForma)
+	}
+
+	return numeFirma
+}
+
 func (this *JuridicClient) GetDosare(numeFirma string) []Dosar {
+	numeFirma = this.normalizeNumeFirma(numeFirma)
+
 	requestData := this.CreateJuridicBody(
 		CautareDosare{
 			XMLNS:      domain,

@@ -38,6 +38,7 @@ function changeDosarFilter(el) {
     let inregistrare = window.location.pathname.split("/").at(-2)
 
     const params = getFilterParameters()
+    params.set("nume_firma", new URLSearchParams(window.location.search).get("nume_firma"))
 	window.location = `/dosareJuridice/${inregistrare}/1?${params}`
 }
 
@@ -235,7 +236,8 @@ async function main() {
 		document.getElementById("company-administrator").textContent = `Companii admnistrate de: ${decodeURIComponent(path[3])}`
 	} else if (pageEndpoint.includes("dosareJuridice")) {
 		endpoint = `/dosareJuridiceFirma/${path[2]}`
-		document.getElementById("company-administrator").textContent = `Dosare juridice pentru: ${decodeURIComponent(path[2])}`
+        nume_firma = new URLSearchParams(window.location.search).get("nume_firma")
+		document.getElementById("company-administrator").textContent = `Dosare juridice pentru: ${nume_firma}`
 	}
 
     endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
@@ -264,7 +266,7 @@ async function main() {
         .textContent = `${resultCount} rezultate`
 
 	if (resultCount === 0) {
-		showEmpty("Nu am găsit nicio companie", "Încearcă o altă denumire sau modifică filtrele de căutare.")
+		showEmpty("Nu s-a găsit nici un rezultat", "Nici un rezultat găsit, incearcă să schimbi filtrele de căutare.")
 	} else {
 		document
 			.getElementById("emptyState")

@@ -1,8 +1,9 @@
 function openDosareJuridice(button) {
 	let inregistrare = document.getElementById("profileCompanyId").textContent
 	inregistrare = inregistrare.replaceAll("/", "-")
+    companyName = document.getElementById("profileCompanyName").textContent
 
-    button.href = `/dosareJuridice/${inregistrare}/1`
+    button.href = `/dosareJuridice/${inregistrare}/1?nume_firma=${companyName}`
 }
 
 
