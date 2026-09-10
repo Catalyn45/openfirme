@@ -652,8 +652,15 @@ func (this *Repository) mapSortFiled(sortBy string) string {
 func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, params *[]any) string {
 	if filters != nil {
 		if filters.numePartial != "" {
+			words := strings.Fields(filters.numePartial)
+
+			for i := range words {
+				words[i] = `"` + strings.ReplaceAll(words[i], `"`, `""`) + `"`
+			}
+			ftsQuery := strings.Join(words, " ")
+
 			stmt += " AND firme_search MATCH ? "
-			*params = append(*params, filters.numePartial)
+			*params = append(*params, ftsQuery)
 		}
 
 		if filters.judet != "" {
