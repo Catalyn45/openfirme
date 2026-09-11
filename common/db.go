@@ -1127,10 +1127,9 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 		JOIN (
 			SELECT *
 			FROM reprezentanti
-			WHERE cod_inmatriculare = ? AND persoana_imputernicita = ? and calitate = 'administrator'
+			WHERE cod_inmatriculare = ? AND persoana_imputernicita = ?
 			LIMIT 1
 		) r ON reprezentanti.persoana_imputernicita = r.persoana_imputernicita
-			AND reprezentanti.calitate = r.calitate
 			AND reprezentanti.data_nastere = r.data_nastere
 			AND reprezentanti.judet_nastere = r.judet_nastere
 	`

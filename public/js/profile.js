@@ -117,9 +117,14 @@ async function main() {
 					profileCompanyAsociati.textContent = ""
 				}
 
-				const span = document.createElement("span");
-				span.textContent = `${name} - ${role}`
+				const link = document.createElement("a");
+                link.textContent = name
+				link.href = `/admins/${profileId}/${name}/1`
 
+                const span = document.createElement("span");
+				span.textContent = ` - ${role}`
+
+				profileCompanyAsociati.appendChild(link)
 				profileCompanyAsociati.appendChild(span)
 				profileCompanyAsociati.appendChild(document.createElement("br"))
 			}

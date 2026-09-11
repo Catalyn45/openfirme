@@ -6,13 +6,11 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
 type JuridicClient struct {
 	httpClient *http.Client
-	mu sync.Mutex
 }
 
 func NewJuridicClient() *JuridicClient {
@@ -74,9 +72,6 @@ func (this *JuridicClient) CreateJuridicBody(body interface{}) []byte {
 }
 
 func (this *JuridicClient) sendJuridicRequest(action string, data []byte) []byte {
-	this.mu.Lock()
-	defer this.mu.Unlock()
-
 	req, err := http.NewRequest(
 		"POST",
 		endpoint,
