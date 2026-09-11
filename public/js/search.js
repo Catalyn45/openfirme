@@ -233,7 +233,7 @@ async function main() {
         endpoint = `/firme`
     } else if (pageEndpoint.includes("admin")){
 		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
-		document.getElementById("company-administrator").textContent = `Companii admnistrate de: ${decodeURIComponent(path[3])}`
+		document.getElementById("company-administrator").textContent = `Companii asociate cu: ${decodeURIComponent(path[3])}`
 	} else if (pageEndpoint.includes("dosareJuridice")) {
 		endpoint = `/dosareJuridiceFirma/${path[2]}`
         nume_firma = new URLSearchParams(window.location.search).get("nume_firma")
