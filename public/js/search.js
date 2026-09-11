@@ -18,9 +18,9 @@ const secondDots = document.getElementById("pageSecondDots")
 
 const pagesContainer = document.getElementById("paginationContainer")
 
-const leftPages = document.getElementsByClassName("left-page-number")
+const leftPage = document.getElementsByClassName("left-page-number")[0]
 const middlePages = document.getElementsByClassName("middle-page-number")
-const rightPages = document.getElementsByClassName("right-page-number")
+const rightPage = document.getElementsByClassName("right-page-number")[0]
 
 const backButton = document.getElementById("pageBack")
 const nextButton = document.getElementById("pageNext")
@@ -55,14 +55,13 @@ function updatePageNumbers(currentPage, totalResults) {
 		nextButton.style.display = "none"
 	}
 
-	rightPages[rightPages.length - 1].textContent = totalPages
-	rightPages[rightPages.length - 2].textContent = totalPages - 1
+	rightPage.textContent = totalPages
 
-	if (totalPages <= 9) {
+	if (totalPages <= 5) {
 		firstDots.style.display = "none"
 		secondDots.style.display = "none"
 
-		for (const [index, item] of [...leftPages, ...middlePages, ...rightPages].entries()) {
+		for (const [index, item] of [leftPage, ...middlePages, rightPage].entries()) {
 			if (index + 1 > totalPages) {
 				item.style.display = "none"
 				continue
@@ -80,19 +79,19 @@ function updatePageNumbers(currentPage, totalResults) {
 		return
 	}
 
-	if (currentPage <= 5) {
+	if (currentPage <= 3) {
 		firstDots.style.display = "none"
 	}
 
-	if (currentPage > totalPages - 5) {
+	if (currentPage > totalPages - 3) {
 		secondDots.style.display = "none"
 	}
 
-	let startingPage = currentPage - 2
-	if (currentPage <= 5) {
-		startingPage = 3
-	} else if (currentPage > totalPages - 5) {
-		startingPage = totalPages - 7
+	let startingPage = currentPage - 1
+	if (currentPage <= 3) {
+		startingPage = 2
+	} else if (currentPage > totalPages - 3) {
+		startingPage = totalPages - 3
 	}
 
 	for (let el of middlePages) {
@@ -105,10 +104,10 @@ function updatePageNumbers(currentPage, totalResults) {
 		startingPage = startingPage + 1
 	}
 
-	if (currentPage <= 2) {
-		leftPages[currentPage-1].classList.add("active")
-	} else if (currentPage > totalPages - 2) {
-		rightPages[currentPage - totalPages + 1].classList.add("active")
+	if (currentPage <= 1) {
+		leftPage.classList.add("active")
+	} else if (currentPage > totalPages - 1) {
+		rightPage.classList.add("active")
 	}
 
 	pagesContainer.style.display = "flex"
