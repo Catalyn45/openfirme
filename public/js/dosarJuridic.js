@@ -56,6 +56,11 @@ class InfoDosarJuridicPage extends BaseComponent {
 
     async Start() {
         const data = await fetch(`/dosarJuridicFirma/${this.inregistrare}/${this.numarDosar}`)
+        if (data.status !== 200) {
+            await setErrorPage(data.status)
+            return
+        }
+
         const json = await data.json()
 
         console.log(json)

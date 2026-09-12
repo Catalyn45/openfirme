@@ -191,6 +191,11 @@ class InfoPage extends BaseComponent {
         super.Start()
 
         const data = await fetch(`/firma/${this.inregistrare}`)
+        if (data.status !== 200) {
+            await setErrorPage(data.status)
+            return
+        }
+
         const json = await data.json()
 
         console.log(json)

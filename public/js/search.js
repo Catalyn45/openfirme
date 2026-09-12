@@ -211,7 +211,10 @@ class SearchPage extends BaseComponent {
 		if (response.status === 422) {
 			this.showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare.")
 			return
-		}
+		} else if (response.status !== 200) {
+            await setErrorPage(data.status)
+            return
+        }
 
 		const searchTitle = this.getSearchTitle()
 		if (searchTitle) {
