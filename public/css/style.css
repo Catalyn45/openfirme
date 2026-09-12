@@ -329,6 +329,8 @@ main {
 #resultCount {
     color: var(--muted);
     font-size: 14px;
+    padding-left: 10px;
+    text-wrap: nowrap;
 }
 
 
@@ -496,16 +498,16 @@ main {
 
 .modal {
     inset: 0;
-    padding: 30px 15px;
+    padding: 0px 15px;
     overflow-y: auto;
 }
 
 .modal-content {
     background: white;
     max-width: 1200px;
-    margin: 30px auto;
     border-radius: 16px;
     overflow: hidden;
+    margin: auto;
 }
 
 .modal-header {
