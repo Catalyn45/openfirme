@@ -1,4 +1,31 @@
 /* ============================================================
+   CLIPBOARD FUNCTIONALITY
+============================================================ */
+
+function copyContentToClipboard(event) {
+	let targetId = event.dataset.target
+	
+	if (targetId === undefined)
+		return
+
+	target = document.getElementById(targetId)
+
+	if (target === undefined)
+		return
+
+	setClipboard(target.innerHTML)
+}
+
+async function setClipboard(text) {
+  const type = "text/plain";
+  const clipboardItemData = {
+    [type]: text,
+  };
+  const clipboardItem = new ClipboardItem(clipboardItemData);
+  await navigator.clipboard.write([clipboardItem]);
+}
+
+/* ============================================================
    SEARCH
 ============================================================ */
 

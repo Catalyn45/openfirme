@@ -571,6 +571,7 @@ main {
     background: #f8fafc;
     padding: 14px;
     border-radius: 8px;
+    position: relative;
 }
 
 .profile-field small {
@@ -583,6 +584,24 @@ main {
 .profile-field strong {
     color: var(--dark);
     font-size: 14px;
+}
+
+.profile-field:hover .content-copy-button {
+    display: block;
+}
+
+.content-copy-button {
+    display: none;
+    border: 1px solid var(--primary);
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-size: 11px;
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    color: var(--primary);
+    background: none;
+    cursor: pointer;
 }
 
 .source {
