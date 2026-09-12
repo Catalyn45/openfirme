@@ -30,9 +30,17 @@ class DosareSearchPage extends SearchPage {
     getFilters() {
 		const params = new URLSearchParams();
 
-		params.set("tribunal", this.tribunal.value)
-		params.set("categorie", this.categorie.value)
-		params.set("stadiu_procesual", this.stadiuProcesual.value)
+        if (this.tribunal.value) {
+            params.set("tribunal", this.tribunal.value)
+        }
+
+        if (this.categorie.value) {
+            params.set("categorie", this.categorie.value)
+        }
+
+        if (this.stadiuProcesual.value) {
+            params.set("stadiu_procesual", this.stadiuProcesual.value)
+        }
 
 		params.set('sort_by', this.sortBy.value)
         params.set('sort_order', this.sortOrder.value)

@@ -22,9 +22,18 @@ class BaseComponent {
 			params.set('nume_partial', nume_partial)
 		}
 
-        params.set('judet', this.county.value)
-        params.set('status', this.status.value)
-        params.set('forma_juridica', this.formaJuridica.value)
+        if (this.county.value) {
+            params.set('judet', this.county.value)
+        }
+
+        // always set status if exists since it's defaulted to active
+        if (this.status) {
+            params.set('status', this.status.value)
+        }
+
+        if (this.formaJuridica.value) {
+            params.set('forma_juridica', this.formaJuridica.value)
+        }
 
 		return params
 	}
@@ -47,9 +56,20 @@ class BaseComponent {
         // TODO: find a better way
         if (this.judetSearchParam) {
             let params = this.getFilters()
-            this.judetSearchParam.value = params.get("judet")
+
+            let judet = params.get("judet")
+            if (judet) {
+                this.judetSearchParam.value = judet
+                this.judetSearchParam.disabled = false
+            }
+
             this.statusSearchParam.value = params.get("status")
-            this.formaJuridicaSearchParam.value = params.get("forma_juridica")
+
+            let formaJuridica = params.get("forma_juridica")
+            if (formaJuridica) {
+                this.formaJuridicaSearchParam.value = formaJuridica
+                this.formaJuridicaSearchparam.disabled = false
+            }
         }
     }
 
