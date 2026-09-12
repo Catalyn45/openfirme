@@ -86,3 +86,7 @@
 .pagination-dots {
     min-width: 20px;
 }
+
+.reset-btn {
+    width: 100%;
+}
