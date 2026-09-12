@@ -303,6 +303,7 @@ main {
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
+    width: 100%;
 }
 
 .reset-btn:hover {
@@ -444,6 +445,9 @@ main {
     display: flex;
     align-items: center;
     justify-content: right;
+}
+
+.company-card .card-footer {
     margin-top: 20px;
 }
 
@@ -665,8 +669,16 @@ footer {
     }
 
     .card-footer {
-        gap: 12px;
+        padding: 12px;
         flex-direction: column;
+    }
+
+    main {
+        padding: 0 10px;
+    }
+
+    .modal {
+        padding: 0;
     }
 }
 
