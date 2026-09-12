@@ -68,7 +68,7 @@ class BaseComponent {
             let formaJuridica = params.get("forma_juridica")
             if (formaJuridica) {
                 this.formaJuridicaSearchParam.value = formaJuridica
-                this.formaJuridicaSearchparam.disabled = false
+                this.formaJuridicaSearchParam.disabled = false
             }
         }
     }
