@@ -1,278 +1,243 @@
-const prototypeCard = document.getElementById("prototype")
+class SearchPage extends BaseComponent {
+	constructor() {
+        super()
 
-const companyName = prototypeCard.getElementsByClassName("company-name")[0]
-const companyStatus = prototypeCard.getElementsByClassName("company-status")[0]
-const companyCui = prototypeCard.getElementsByClassName("company-cui")[0]
-const companyInregistrare = prototypeCard.getElementsByClassName("company-inregistrare")[0]
-const companyTip = prototypeCard.getElementsByClassName("company-tip")[0]
-const companyJudet = prototypeCard.getElementsByClassName("company-judet")[0]
-const companyDate = prototypeCard.getElementsByClassName("company-date")[0]
-const companyVeziProfil = prototypeCard.getElementsByClassName("view-button")[0]
-
-const companyAngajati = prototypeCard.getElementsByClassName("company-angajati")?.[0]
-const companyProfit = prototypeCard.getElementsByClassName("company-profit")?.[0]
-const companyCifraAfaceri = prototypeCard.getElementsByClassName("company-cifra-afaceri")?.[0]
-
-const firstDots = document.getElementById("pageFirstDots")
-const secondDots = document.getElementById("pageSecondDots")
-
-const pagesContainer = document.getElementById("paginationContainer")
-
-const leftPage = document.getElementsByClassName("left-page-number")[0]
-const middlePages = document.getElementsByClassName("middle-page-number")
-const rightPage = document.getElementsByClassName("right-page-number")[0]
-
-const backButton = document.getElementById("pageBack")
-const nextButton = document.getElementById("pageNext")
-
-function openDosar(button) {
-    let inregistrare = window.location.pathname.split('/').at(-2)
-
-    let numar_dosar = button.parentNode.parentNode.getElementsByClassName("company-tip")[0].textContent
-	numar_dosar = numar_dosar.replaceAll("/", "-")
-
-    button.href = `/dosarJuridic/${inregistrare}/${numar_dosar}`
-}
-
-function changeDosarFilter(el) {
-    let inregistrare = window.location.pathname.split("/").at(-2)
-
-    const params = getFilterParameters()
-    params.set("nume_firma", new URLSearchParams(window.location.search).get("nume_firma"))
-	window.location = `/dosareJuridice/${inregistrare}/1?${params}`
-}
-
-function updatePageNumbers(currentPage, totalResults) {
-	if (totalResults <= 20) {
-		return
+		this.initPrototype()
+		this.initPages()
 	}
 
-	const totalPages = Math.ceil(totalResults / 20);
+	initPrototype() {
+		this.prototypeCard = document.getElementById("prototype")
 
-	if (currentPage == 1) {
-		backButton.style.display = "none"
-	} else if (currentPage == totalPages) {
-		nextButton.style.display = "none"
+		this.companyName = this.prototypeCard.getElementsByClassName("company-name")[0]
+		this.companyStatus = this.prototypeCard.getElementsByClassName("company-status")[0]
+		this.companyCui = this.prototypeCard.getElementsByClassName("company-cui")[0]
+		this.companyInregistrare = this.prototypeCard.getElementsByClassName("company-inregistrare")[0]
+		this.companyTip = this.prototypeCard.getElementsByClassName("company-tip")[0]
+		this.companyJudet = this.prototypeCard.getElementsByClassName("company-judet")[0]
+		this.companyDate = this.prototypeCard.getElementsByClassName("company-date")[0]
+
+		this.companyVeziProfil = this.prototypeCard.getElementsByClassName("view-button")[0]
+
+		this.resultCount = document.getElementById("resultCount")
+		this.emptyState = document.getElementById("emptyState")
 	}
 
-	rightPage.textContent = totalPages
+	initPages() {
+		this.firstDots = document.getElementById("pageFirstDots")
+		this.secondDots = document.getElementById("pageSecondDots")
 
-	if (totalPages <= 5) {
-		firstDots.style.display = "none"
-		secondDots.style.display = "none"
+		this.pagesContainer = document.getElementById("paginationContainer")
 
-		for (const [index, item] of [leftPage, ...middlePages, rightPage].entries()) {
-			if (index + 1 > totalPages) {
-				item.style.display = "none"
-				continue
-			}
+		this.leftPage = document.getElementsByClassName("left-page-number")[0]
+		this.middlePages = document.getElementsByClassName("middle-page-number")
+		this.rightPage = document.getElementsByClassName("right-page-number")[0]
 
-			item.innerText = index + 1
+		this.backButton = document.getElementById("pageBack")
+		this.nextButton = document.getElementById("pageNext")
 
-			if (index + 1 == currentPage) {
-				item.classList.add("active")
-			}
-		}
-
-		pagesContainer.style.display = "flex"
-
-		return
+		this.pageNumber = parseInt(window.location.pathname.split("/").pop())
 	}
 
-	if (currentPage <= 3) {
-		firstDots.style.display = "none"
+	onChangeFilter() {
+		const params = this.getFilters()
+		const endpoint = this.getLinkForPage(1)
+
+		window.location = `${endpoint}?${params}`
 	}
 
-	if (currentPage > totalPages - 3) {
-		secondDots.style.display = "none"
+	getLinkForPage(pageNumber) {
+		return `/search/${pageNumber}`
 	}
 
-	let startingPage = currentPage - 1
-	if (currentPage <= 3) {
-		startingPage = 2
-	} else if (currentPage > totalPages - 3) {
-		startingPage = totalPages - 3
+	getLinkForDataRequest() {
+		return "/firme"
 	}
 
-	for (let el of middlePages) {
-		el.innerText = startingPage
+	populatePrototype(data) {
+		this.companyName.textContent = data.Nume
+		this.companyJudet.textContent = data.Judet
 
-		if (startingPage == currentPage) {
-			el.classList.add("active")
-		}
+		this.companyTip.textContent = data.FormaJuridica
+		this.companyCui.textContent = data.Cui
+		this.companyInregistrare.textContent = data.CodInmatriculare
+		this.companyDate.textContent = formatDate(data.DataInregistrare)
 
-		startingPage = startingPage + 1
-	}
-
-	if (currentPage <= 1) {
-		leftPage.classList.add("active")
-	} else if (currentPage > totalPages - 1) {
-		rightPage.classList.add("active")
-	}
-
-	pagesContainer.style.display = "flex"
-}
-
-let pageEndpoint = window.location.pathname.split('/').slice(1, -1).join("/")
-
-function goToPage(pageButton) {
-	const pageNumber = parseInt(pageButton.innerText)
-    pageButton.href = `/${pageEndpoint}/${pageNumber}?${getFilterParameters()}`
-}
-
-function goToNextPage(pageButton) {
-	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    pageButton.href = `/${pageEndpoint}/${pageNumber+1}?${getFilterParameters()}`
-}
-
-function goToPrevPage(pageButton) {
-	const pageNumber = parseInt(window.location.pathname.split('/').pop());
-    pageButton.href = `/${pageEndpoint}/${pageNumber-1}?${getFilterParameters()}`
-}
-
-function showEmpty(title, description) {
-	if (title) {
-		const emptyStateTitle = document.getElementById("emptyStateTitle")
-		emptyStateTitle.textContent = title
-	}
-
-	if (description) {
-		const emptyStateDescription = document.getElementById("emptyStateDescription")
-		emptyStateDescription.textContent = description
-	}
-}
-
-function populateSearch(data) {
-    for (let firma of data.Data) {
-        companyName.textContent = firma.Nume
-		companyJudet.textContent = firma.Judet
-
-		companyTip.textContent = firma.FormaJuridica
-		companyCui.textContent = firma.Cui
-		companyInregistrare.textContent = firma.CodInmatriculare
-		companyDate.textContent = formatDate(firma.DataInregistrare)
-
-		for (let child of companyStatus.parentNode.children) {
-			if (child !== companyStatus) {
+		for (let child of this.companyStatus.parentNode.children) {
+			if (child !== this.companyStatus) {
 				child.remove()
 			}
 		}
 
-		firma.Statusuri.sort((a, b) => {
+		data.Statusuri.sort((a, b) => {
 			return (a === "funcțiune") - (b === "funcțiune")
 		})
 
-		for (let [index, statusFirma] of firma.Statusuri.entries()) {
+		for (let [index, statusFirma] of data.Statusuri.entries()) {
 			if (index > 0) {
-				let statusClone = companyStatus.cloneNode(true)
-				companyStatus.before(statusClone)
+				let statusClone = this.companyStatus.cloneNode(true)
+				this.companyStatus.before(statusClone)
 			}
 
-			companyStatus.textContent = statusFirma
-			companyStatus.title = statusFirma
-			companyStatus.classList.remove("active")
-			companyStatus.classList.remove("inactive")
+			this.companyStatus.textContent = statusFirma
+			this.companyStatus.title = statusFirma
+
+			this.companyStatus.classList.remove("active")
+			this.companyStatus.classList.remove("inactive")
 			if (statusFirma === "funcțiune") {
-				companyStatus.classList.add("active")
+				this.companyStatus.classList.add("active")
 			} else {
-				companyStatus.classList.add("inactive")
+				this.companyStatus.classList.add("inactive")
 			}
 		}
 
-		if (companyProfit) {
-			companyProfit.textContent = formatMoney(firma.ProfitNet)
-		}
-
-		if (companyCifraAfaceri) {
-			companyCifraAfaceri.textContent = formatMoney(firma.CifraAfaceri)
-		}
-
-		if (companyAngajati) {
-			companyAngajati.textContent = firma.Angajati ?? 0
-		}
-
-        clone = prototypeCard.cloneNode(true)
-
-        clone.style.display = "block"
-        clone.removeAttribute("id")
-
-        prototypeCard.before(clone)
-    }
-}
-
-function populateDosare(data) {
-    for (let dosar of data.Dosare) {
-        companyName.textContent = dosar.Obiect
-		companyJudet.textContent = dosar.CategorieCazNume
-		companyTip.textContent = dosar.Numar
-		companyCui.textContent = dosar.Institutie
-		companyInregistrare.textContent = dosar.Departament
-		companyDate.textContent = dosar.Data
-		companyStatus.textContent = dosar.StadiuProcesualNume
-
-        clone = prototypeCard.cloneNode(true)
-
-        clone.style.display = "block"
-        clone.removeAttribute("id")
-
-        prototypeCard.before(clone)
-    }
-}
-
-async function main() {
-	let path = window.location.pathname.split('/')
-
-	const pageNumber = path.pop();
-
-    let endpoint = ''
-
-    if (pageEndpoint.includes("top")) {
-        endpoint = `/topFirme`
-    } else if (pageEndpoint.includes("search")) {
-        endpoint = `/firme`
-    } else if (pageEndpoint.includes("admin")){
-		endpoint = `/adminsFirme/${path[2]}/${path[3]}`
-		document.getElementById("company-administrator").textContent = `Companii asociate cu: ${decodeURIComponent(path[3])}`
-	} else if (pageEndpoint.includes("dosareJuridice")) {
-		endpoint = `/dosareJuridiceFirma/${path[2]}`
-        nume_firma = new URLSearchParams(window.location.search).get("nume_firma")
-		document.getElementById("company-administrator").textContent = `Dosare juridice pentru: ${nume_firma}`
+		let inregistrare = data.CodInmatriculare.replaceAll("/", "-")
+		this.companyVeziProfil.href = `/profile/${inregistrare}?${this.getFilters()}`
 	}
 
-    endpoint = `${endpoint}/${pageNumber}?${getFilterParameters()}`
+	createResults(data) {
+		for (let firma of data.Data) {
+			this.populatePrototype(firma)
 
-	console.log("searching")
-    const response = await fetch(endpoint)
-	if (response.status === 422) {
-		showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare.")
-		return
+			let clone = this.prototypeCard.cloneNode(true)
+
+			clone.style.display = "block"
+			clone.removeAttribute("id")
+
+			this.prototypeCard.before(clone)
+		}
 	}
 
-    const data = await response.json()
-    console.log(data)
-
-    let resultCount = data.Count
-	console.log(resultCount)
-
-	if (pageEndpoint.includes("dosareJuridice")) {
-		populateDosare(data)
-	} else {
-		populateSearch(data)
+	getSearchTitle() {
+		return null
 	}
 
-    document
-        .getElementById("resultCount")
-        .textContent = `${resultCount} rezultate`
+	setPageNumber(pageElement, pageNumber) {
+		pageElement.textContent = pageNumber
+		pageElement.href = `${this.getLinkForPage(pageNumber)}?${this.getFilters()}`
+	}
 
-	if (resultCount === 0) {
-		showEmpty("Nu s-a găsit nici un rezultat", "Nici un rezultat găsit, incearcă să schimbi filtrele de căutare.")
-	} else {
-		document
-			.getElementById("emptyState")
-			.style.display = "none"
-    }
+	updatePageNumbers(totalResults) {
+		if (totalResults <= 20) {
+			return
+		}
 
-	updatePageNumbers(pageNumber, resultCount)
+		const totalPages = Math.ceil(totalResults / 20);
+
+		if (this.pageNumber == 1) {
+			this.backButton.style.display = "none"
+		} else if (this.pageNumber == totalPages) {
+			this.nextButton.style.display = "none"
+		}
+
+		this.setPageNumber(this.rightPage, totalPages)
+        this.setPageNumber(this.leftPage, 1)
+
+		if (totalPages <= 5) {
+			this.firstDots.style.display = "none"
+			this.secondDots.style.display = "none"
+
+			for (const [index, item] of [this.leftPage, ...this.middlePages, this.rightPage].entries()) {
+				if (index + 1 > totalPages) {
+					item.style.display = "none"
+					continue
+				}
+
+				this.setPageNumber(item, index+1)
+
+				if (index + 1 == this.pageNumber) {
+					item.classList.add("active")
+				}
+			}
+
+			this.pagesContainer.style.display = "flex"
+
+			return
+		}
+
+		if (this.pageNumber <= 3) {
+			this.firstDots.style.display = "none"
+		}
+
+		if (this.pageNumber > totalPages - 3) {
+			this.secondDots.style.display = "none"
+		}
+
+		let startingPage = this.pageNumber - 1
+		if (this.pageNumber <= 3) {
+			startingPage = 2
+		} else if (this.pageNumber > totalPages - 3) {
+			startingPage = totalPages - 3
+		}
+
+		for (let el of this.middlePages) {
+			this.setPageNumber(el, startingPage)
+
+			if (startingPage == this.pageNumber) {
+				el.classList.add("active")
+			}
+
+			startingPage = startingPage + 1
+		}
+
+		if (this.pageNumber <= 1) {
+			this.leftPage.classList.add("active")
+		} else if (this.pageNumber > totalPages - 1) {
+			this.rightPage.classList.add("active")
+		}
+
+		this.pagesContainer.style.display = "flex"
+	}
+
+	showEmpty(title, description) {
+		if (title) {
+			const emptyStateTitle = document.getElementById("emptyStateTitle")
+			emptyStateTitle.textContent = title
+		}
+
+		if (description) {
+			const emptyStateDescription = document.getElementById("emptyStateDescription")
+			emptyStateDescription.textContent = description
+		}
+	}
+
+	async Start() {
+        super.Start()
+
+		let dataRequestLink = `${this.getLinkForDataRequest()}/${this.pageNumber}?${this.getFilters()}`
+
+		console.log("searching")
+		const response = await fetch(dataRequestLink)
+		if (response.status === 422) {
+			this.showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare.")
+			return
+		}
+
+		const searchTitle = this.getSearchTitle()
+		if (searchTitle) {
+			document.getElementById("company-administrator").textContent = searchTitle
+		}
+
+		const data = await response.json()
+		console.log(data)
+
+		let resultCount = data.Count
+		console.log(resultCount)
+
+		this.createResults(data)
+
+		this.resultCount.textContent = `${resultCount} rezultate`
+
+		if (resultCount === 0) {
+			this.showEmpty("Nu s-a găsit nici un rezultat", "Nici un rezultat găsit, incearcă să schimbi filtrele de căutare.")
+		} else {
+			this.emptyState.style.display = "none"
+		}
+
+		this.updatePageNumbers(resultCount)
+	}
 }
 
-main().catch(console.error);
+function CreateComponent() {
+    return new SearchPage()
+}

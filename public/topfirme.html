@@ -13,10 +13,13 @@
 
     <title>OpenFirme România — Informații despre companii</title>
 
+    <script src="/public/js/common.js" defer></script>
+    <script src="/public/js/index.js" defer></script>
 	
-<script src="/public/js/main.js" defer></script>
 <script src="/public/js/search.js" defer></script>
+<script src="/public/js/topFirme.js" defer></script>
 
+    <script src="/public/js/main.js" defer></script>
 
 </head>
 
@@ -73,7 +76,7 @@
                         Sortează după
                     </label>
 
-                    <select id="sortField" onchange="changeFilter(this)">
+                    <select id="sortField" onchange="component.onChangeFilter(this)">
                         <option value="infiintare">
                             An înființare
                         </option>
@@ -101,7 +104,7 @@
                         Ordine
                     </label>
 
-                    <select id="sortDirection" onchange="changeFilter(this)">
+                    <select id="sortDirection" onchange="component.onChangeFilter(this)">
                         <option value="desc">
                             Descrescător
                         </option>
@@ -132,7 +135,7 @@
                         Județ
                     </label>
 
-					 <select id="countyFilter" onchange="changeFilter(this)">
+					 <select id="countyFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Toate județele
@@ -192,7 +195,7 @@
                         Status firmă
                     </label>
 
-                    <select id="statusFilter" onchange="changeFilter(this)">
+                    <select id="statusFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Orice status
@@ -221,7 +224,7 @@
                         Formă juridică
                     </label>
 
-                    <select id="formaFilter" onchange="changeFilter(this)">
+                    <select id="formaFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Oricare
@@ -454,6 +457,7 @@
     publice despre companii din România.
 
 </footer>
+
 </body>
 </html>
 

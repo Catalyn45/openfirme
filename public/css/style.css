@@ -143,7 +143,7 @@ nav.menu a:hover {
     min-width: 0;
 }
 
-.search-box a {
+.search-box button {
     display: block;
     border: none;
     background: var(--primary);
@@ -157,7 +157,7 @@ nav.menu a:hover {
     text-decoration: none;
 }
 
-.search-box a:hover {
+.search-box button:hover {
     background: var(--primary-dark);
 }
 

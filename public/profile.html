@@ -12,10 +12,12 @@
 
     <title>OpenFirme România — Informații despre companii</title>
 
+    <script src="/public/js/common.js" defer></script>
+    <script src="/public/js/index.js" defer></script>
 	
-<script src="/public/js/main.js" defer></script>
 <script src="/public/js/profile.js" defer></script>
 
+    <script src="/public/js/main.js" defer></script>
 
 </head>
 
@@ -50,21 +52,27 @@
     
     <div class="search-wrapper">
 
-    <div class="search-box">
+    <form method="GET" class="search-box" action="/search/1">
 
         <input
             type="text"
-            enterkeyhint="go",
+            enterkeyhint="go"
+            name="nume_partial"
+            minlength="3"
+            required
             id="searchInput"
             placeholder="Caută după nume firmă..."
-            onkeydown="handleEnter(event)"
         >
 
-        <a href="/" onclick="searchCompanies(event, this)">
-            🔍 Caută
-        </a>
+        <input type="hidden" name="judet" value="" id="judetSearchParam">
+        <input type="hidden" name="status" value="" id="statusSearchParam">
+        <input type="hidden" name="forma_juridica" value="" id="formaJuridicaSearchParam">
 
-    </div>
+        <button type="submit">
+            🔍 Caută
+        </button>
+
+    </form>
 
 </div>
 
@@ -99,7 +107,7 @@
                         Județ
                     </label>
 
-					 <select id="countyFilter" onchange="changeFilter(this)">
+					 <select id="countyFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Toate județele
@@ -159,7 +167,7 @@
                         Status firmă
                     </label>
 
-                    <select id="statusFilter" onchange="changeFilter(this)">
+                    <select id="statusFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Orice status
@@ -188,7 +196,7 @@
                         Formă juridică
                     </label>
 
-                    <select id="formaFilter" onchange="changeFilter(this)">
+                    <select id="formaFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Oricare
@@ -249,7 +257,7 @@
                     <div class="modal-body">
 
 						<div class="card-footer">
-							<a href="/" class="view-button" onclick="openDosareJuridice(this)" >
+							<a href="/" class="view-button">
 								Vezi dosare juridice →
 							</a>
 
@@ -275,6 +283,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileName" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
 
@@ -287,6 +297,8 @@
                                     <strong id="profileCompanyCui">
 										Loading...
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCompanyCui" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -301,6 +313,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyId" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
                                 <div class="profile-field">
@@ -313,6 +327,8 @@
 										Indisponibil
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyEuid" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
                                 <div class="profile-field">
@@ -324,6 +340,8 @@
                                     <strong id="profileCompanyForma">
 										Loading...
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCompanyForma" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -338,6 +356,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyStatus" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
 
@@ -350,6 +370,8 @@
                                     <strong id="profileCompanyData">
 										Loading...
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCompanyData" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -378,6 +400,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyJudet" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
 
@@ -390,6 +414,8 @@
                                     <strong id="profileCompanyLocalitate">
 										Indisponibil
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCompanyLocalitate" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -404,6 +430,8 @@
 										Indisponibil
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyAdresa" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
 
@@ -416,6 +444,8 @@
                                     <strong id="profileCompanyCodPostal">
 										Indisponibil
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCompanyCodPostal" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -444,6 +474,8 @@
 										Indisponibil
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyPrimaryCaen" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
                                 <div class="profile-field">
@@ -456,6 +488,8 @@
 										Indisponibil
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileCompanyCaen" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
                                 <div class="profile-field">
@@ -467,6 +501,8 @@
                                     <strong id="profileCompanyTva">
 										Nu
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCompanyTva" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -604,6 +640,7 @@
     publice despre companii din România.
 
 </footer>
+
 </body>
 </html>
 

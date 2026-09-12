@@ -12,10 +12,13 @@
 
     <title>OpenFirme România — Informații despre companii</title>
 
+    <script src="/public/js/common.js" defer></script>
+    <script src="/public/js/index.js" defer></script>
 	
-<script src="/public/js/main.js" defer></script>
 <script src="/public/js/search.js" defer></script>
+<script src="/public/js/dosareJuridice.js" defer></script>
 
+    <script src="/public/js/main.js" defer></script>
 
 </head>
 
@@ -72,7 +75,7 @@
             Sortează după
         </label>
 
-        <select id="sortField" onchange="changeDosarFilter(this)">
+        <select id="sortField" onchange="component.onChangeFilter(this)">
             <option value="data">
                 Data
             </option>
@@ -91,7 +94,7 @@
             Ordine
         </label>
 
-        <select id="sortDirection" onchange="changeDosarFilter(this)">
+        <select id="sortDirection" onchange="component.onChangeFilter(this)">
             <option value="desc">
                 Descrescător
             </option>
@@ -118,7 +121,7 @@
                         Tribunal
                     </label>
 
-					 <select id="tribunalFilter" onchange="changeDosarFilter(this)">
+					 <select id="tribunalFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Orice tribunal
@@ -380,7 +383,7 @@
                         Categorie
                     </label>
 
-                    <select id="categorieFilter" onchange="changeDosarFilter(this)">
+                    <select id="categorieFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Orice categorie
@@ -409,7 +412,7 @@
                         Stadiu procesual
                     </label>
 
-                    <select id="stadiuProcesualFilter" onchange="changeDosarFilter(this)">
+                    <select id="stadiuProcesualFilter" onchange="component.onChangeFilter(this)">
 
                         <option value="">
                             Oricare
@@ -606,6 +609,7 @@
     publice despre companii din România.
 
 </footer>
+
 </body>
 </html>
 

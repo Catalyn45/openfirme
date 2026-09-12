@@ -1,59 +1,69 @@
-function openPortalJust(button) {
-    let numarDosar = window.location.pathname.split('/').at(-1)
-    numarDosar = numarDosar.replaceAll('-', '/')
+class InfoDosarJuridicPage extends BaseComponent {
+    constructor() {
+        super()
 
-    let portalJustEndpoint = `https://portal.just.ro/SitePages/cautare.aspx?k=${encodeURIComponent(numarDosar)}&v1=default`
-    button.href = portalJustEndpoint
-}
+        this.numarDosar = window.location.pathname.split('/').at(-1)
+        this.inregistrare = window.location.pathname.split('/').at(-2)
 
-async function main() {
-	const numarDosar = window.location.pathname.split('/').at(-1)
-	const inregistrare = window.location.pathname.split('/').at(-2)
+        this.profileNumarDosar = document.getElementById("profileNumarDosar")
+        this.profileObiect = document.getElementById("profileObiect")
+        this.profileCategorie = document.getElementById("profileCategorie")
+        this.profileTribunal = document.getElementById("profileTribunal")
+        this.profileDepartament = document.getElementById("profileDepartament")
+        this.profileData = document.getElementById("profileData")
+        this.profileStadiuProcesual = document.getElementById("profileStadiuProcesual")
 
-	let profileNumarDosar = document.getElementById("profileNumarDosar")
-	let profileObiect = document.getElementById("profileObiect")
-	let profileCategorie = document.getElementById("profileCategorie")
-	let profileTribunal = document.getElementById("profileTribunal")
-	let profileDepartament = document.getElementById("profileDepartament")
-	let profileData = document.getElementById("profileData")
-	let profileStadiuProcesual = document.getElementById("profileStadiuProcesual")
+        this.numePartePrototype = document.getElementById("numePartePrototype")
+        this.calitatePartePrototype = document.getElementById("calitatePartePrototype")
+        this.numePartePrototypeValue = document.getElementById("numePartePrototypeValue")
+        this.calitatePartePrototypeValue = document.getElementById("calitatePartePrototypeValue")
 
-    let numePartePrototype = document.getElementById("numePartePrototype")
-    let calitatePartePrototype = document.getElementById("calitatePartePrototype")
-    let numePartePrototypeValue = document.getElementById("numePartePrototypeValue")
-    let calitatePartePrototypeValue = document.getElementById("calitatePartePrototypeValue")
+        this.portalJustButton = document.getElementsByClassName("view-button")[0]
+    }
 
-	const data = await fetch(`/dosarJuridicFirma/${inregistrare}/${numarDosar}`)
-	const json = await data.json()
+    populateWithData(data) {
+        let numarDosar = this.numarDosar.replaceAll('-', '/')
+        let portalJustEndpoint = `https://portal.just.ro/SitePages/cautare.aspx?k=${encodeURIComponent(numarDosar)}&v1=default`
+        this.portalJustButton.href = portalJustEndpoint
 
-    console.log(json)
+        this.profileNumarDosar.textContent = data.Numar
+        this.profileObiect.textContent = data.Obiect
+        this.profileCategorie.textContent = data.CategorieCazNume
+        this.profileTribunal.textContent = data.Institutie
+        this.profileDepartament.textContent = data.Departament
+        this.profileData.textContent = data.Data
+        this.profileStadiuProcesual.textContent = data.StadiuProcesualNume
 
-	profileNumarDosar.textContent = json.Numar
-    profileObiect.textContent = json.Obiect
-    profileCategorie.textContent = json.CategorieCazNume
-    profileTribunal.textContent = json.Institutie
-    profileDepartament.textContent = json.Departament
-    profileData.textContent = json.Data
-    profileStadiuProcesual.textContent = json.StadiuProcesualNume
+        for (let parte of data.Parti.DosareParte) {
+            console.log(parte)
 
-    for (let parte of json.Parti.DosareParte) {
-        console.log(parte)
+            this.numePartePrototypeValue.textContent = parte.Nume
+            this.calitatePartePrototypeValue.textContent = parte.CalitateParte
 
-        numePartePrototypeValue.textContent = parte.Nume
-        calitatePartePrototypeValue.textContent = parte.CalitateParte
+            let numeClone = this.numePartePrototype.cloneNode(true)
+            let calitateClone = this.calitatePartePrototype.cloneNode(true)
 
-        numeClone = numePartePrototype.cloneNode(true)
-        calitateClone = calitatePartePrototype.cloneNode(true)
+            numeClone.style.display = "block"
+            numeClone.removeAttribute("id")
 
-        numeClone.style.display = "block"
-        numeClone.removeAttribute("id")
+            calitateClone.style.display = "block"
+            calitateClone.removeAttribute("id")
 
-        calitateClone.style.display = "block"
-        calitateClone.removeAttribute("id")
+            this.numePartePrototype.before(numeClone)
+            this.numePartePrototype.before(calitateClone)
+        }
+    }
 
-        numePartePrototype.before(numeClone)
-        numePartePrototype.before(calitateClone)
+    async Start() {
+        const data = await fetch(`/dosarJuridicFirma/${this.inregistrare}/${this.numarDosar}`)
+        const json = await data.json()
+
+        console.log(json)
+
+        this.populateWithData(json)
     }
 }
 
-main().catch(console.error);
+function CreateComponent() {
+    return new InfoDosarJuridicPage()
+}
