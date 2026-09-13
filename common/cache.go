@@ -37,7 +37,7 @@ type Cache struct {
 func newCache() *Cache {
 	return &Cache{
 		c: cache.New(20*time.Minute, 10*time.Minute),
-		active: true,
+		active: false,
 	}
 }
 

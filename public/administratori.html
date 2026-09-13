@@ -14,7 +14,6 @@
     <title>OpenFirme România — Informații despre companii</title>
 
     <script src="/public/js/common.js" defer></script>
-    <script src="/public/js/index.js" defer></script>
 	
 <script src="/public/js/search.js" defer></script>
 <script src="/public/js/administratori.js" defer></script>
@@ -162,7 +161,7 @@
 
 
             <div class="card-footer">
-                <a href="/" class="view-button" onclick="openProfile(this)" >
+                <a href="/" class="view-button" >
                     Vezi profilul →
                 </a>
 
@@ -191,35 +190,35 @@
 
     <nav class="pagination" aria-label="Paginare" id="paginationContainer">
 
-        <a href="/" class="pagination-button pagination-prev" id="pageBack" type="button" onclick="goToPrevPage(this)">
+        <a href="/" class="pagination-button pagination-prev" id="pageBack" type="button">
             ←
         </a>
 
-        <a href="/" class="pagination-button left-page-number" type="button" onclick="goToPage(this)">
+        <a href="/" class="pagination-button left-page-number" type="button">
             1
         </a>
 
         <span class="pagination-dots" id="pageFirstDots">...</span>
 
-        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        <a href="/" class="pagination-button middle-page-number" type="button">
             9
         </a>
 
-        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        <a href="/" class="pagination-button middle-page-number" type="button">
             10
         </a>
 
-        <a href="/" class="pagination-button middle-page-number" type="button" onclick="goToPage(this)">
+        <a href="/" class="pagination-button middle-page-number" type="button">
             11
         </a>
 
         <span class="pagination-dots" id="pageSecondDots">...</span>
 
-        <a href="/" class="pagination-button right-page-number" type="button" id="lastPage" onclick="goToPage(this)">
+        <a href="/" class="pagination-button right-page-number" type="button" id="lastPage">
             20
         </a>
 
-        <a href="/" class="pagination-button pagination-next" id="pageNext" type="button" onclick="goToNextPage(this)">
+        <a href="/" class="pagination-button pagination-next" id="pageNext" type="button">
             →
         </a>
 

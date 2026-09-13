@@ -1,15 +1,14 @@
 class AdministratoriSearchPage extends SearchPage {
-    constructor() {
-        super()
-
+	init() {
 		const path = window.location.pathname.split("/")
 
         this.numeAdmin = decodeURIComponent(path.at(-2))
         this.inregistrare = path.at(-3)
-    }
 
-    initFilters() {
-    }
+		this.initFilters()
+		this.initPrototype()
+		this.initPages()
+	}
 
     setFilters() {
         return ""

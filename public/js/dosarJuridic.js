@@ -1,7 +1,5 @@
-class InfoDosarJuridicPage extends BaseComponent {
+class InfoDosarJuridicPage {
     constructor() {
-        super()
-
         this.numarDosar = window.location.pathname.split('/').at(-1)
         this.inregistrare = window.location.pathname.split('/').at(-2)
 
@@ -53,9 +51,6 @@ class InfoDosarJuridicPage extends BaseComponent {
             this.numePartePrototype.before(calitateClone)
         }
     }
-
-    initSearchBar() { }
-    setSearchBar() { }
 
     async Start() {
         const data = await fetch(`/dosarJuridicFirma/${this.inregistrare}/${this.numarDosar}`)

@@ -13,9 +13,10 @@
     <title>OpenFirme România — Informații despre companii</title>
 
     <script src="/public/js/common.js" defer></script>
-    <script src="/public/js/index.js" defer></script>
 	
-	
+<script src="/public/js/search.js" defer></script>
+<script src="/public/js/index.js" defer></script>
+
     <script src="/public/js/main.js" defer></script>
 
 </head>
@@ -51,27 +52,21 @@
     
     <div class="search-wrapper">
 
-    <form method="GET" class="search-box" action="/search/1">
+    <div class="search-box">
 
         <input
             type="text"
             enterkeyhint="go"
-            name="nume_partial"
-            minlength="3"
-            required
             id="searchInput"
             placeholder="Caută după nume firmă..."
+			onkeydown="if (event.key === 'Enter') component.searchFirma()"
         >
 
-        <input type="hidden" name="judet" disabled id="judetSearchParam">
-        <input type="hidden" name="status" id="statusSearchParam">
-        <input type="hidden" name="forma_juridica" disabled id="formaJuridicaSearchParam">
-
-        <button type="submit">
+        <button onclick="component.searchFirma()">
             🔍 Caută
         </button>
 
-    </form>
+    </div>
 
 </div>
 
@@ -243,6 +238,8 @@
 
 </body>
 </html>
+
+
 
 
 

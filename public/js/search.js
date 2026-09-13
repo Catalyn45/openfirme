@@ -1,10 +1,22 @@
-class SearchPage extends BaseComponent {
+class SearchPage {
 	constructor() {
-        super()
+		this.init()
+	}
 
+	init() {
+		this.initSearchBar()
+		this.initFilters()
 		this.initPrototype()
 		this.initPages()
 	}
+
+    initSearchBar() {
+		this.numePartial = window.location.pathname.split("/").at(-2)
+
+        this.query = document.getElementById("searchInput")
+
+		this.query.value = decodeURIComponent(this.numePartial)
+    }
 
 	initPrototype() {
 		this.prototypeCard = document.getElementById("prototype")
@@ -39,6 +51,45 @@ class SearchPage extends BaseComponent {
 		this.pageNumber = parseInt(window.location.pathname.split("/").pop())
 	}
 
+    initFilters() {
+        this.county = document.getElementById("countyFilter")
+        this.status = document.getElementById("statusFilter")
+        this.formaJuridica = document.getElementById("formaFilter")
+    }
+
+	getFilters() {
+		const params = new URLSearchParams();
+
+        if (this.county.value) {
+            params.set('judet', this.county.value)
+        }
+
+        // always set status if exists since it's defaulted to active
+        if (this.status) {
+            params.set('status', this.status.value)
+        }
+
+        if (this.formaJuridica.value) {
+            params.set('forma_juridica', this.formaJuridica.value)
+        }
+
+		return params
+	}
+
+	setFilters() {
+		const params = new URLSearchParams(window.location.search);
+
+        this.county.value = params.get("judet") ?? this.county.value
+        this.status.value = params.get("status") ?? this.status.value
+        this.formaJuridica.value = params.get("forma_juridica") ?? this.formaJuridica.value
+
+        return params
+	}
+
+    resetFilters() {
+        window.location = window.location.pathname
+    }
+
 	onChangeFilter() {
 		const params = this.getFilters()
 		const endpoint = this.getLinkForPage(1)
@@ -46,12 +97,23 @@ class SearchPage extends BaseComponent {
 		window.location = `${endpoint}?${params}`
 	}
 
+    searchFirma() {
+        let numePartial = this.query.value?.toLowerCase().trim()
+        if (numePartial.length < 3) {
+            return
+        }
+
+        let encoded = encodeURIComponent(numePartial)
+        window.location = `/search/${encoded}/1?${this.getFilters()}`
+
+    }
+
 	getLinkForPage(pageNumber) {
-		return `/search/${pageNumber}`
+		return `/search/${this.numePartial}/${pageNumber}`
 	}
 
 	getLinkForDataRequest() {
-		return "/firme"
+		return `/firme/${this.numePartial}`
 	}
 
 	populatePrototype(data) {
@@ -202,7 +264,7 @@ class SearchPage extends BaseComponent {
 	}
 
 	async Start() {
-        super.Start()
+        this.setFilters()
 
 		let dataRequestLink = `${this.getLinkForDataRequest()}/${this.pageNumber}?${this.getFilters()}`
 
@@ -212,7 +274,7 @@ class SearchPage extends BaseComponent {
 			this.showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare.")
 			return
 		} else if (response.status !== 200) {
-            await setErrorPage(data.status)
+            await setErrorPage(response.status)
             return
         }
 

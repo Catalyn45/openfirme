@@ -56,10 +56,8 @@ async function setClipboard(text) {
 	await navigator.clipboard.write([clipboardItem]);
 }
 
-class InfoPage extends BaseComponent {
+class InfoPage {
     constructor() {
-        super()
-
         this.inregistrare = window.location.pathname.split('/').pop();
 
 		this.veziDosareButton = document.getElementsByClassName("view-button")[0]
@@ -188,8 +186,6 @@ class InfoPage extends BaseComponent {
     }
 
     async Start() {
-        super.Start()
-
         const data = await fetch(`/firma/${this.inregistrare}`)
         if (data.status !== 200) {
             await setErrorPage(data.status)

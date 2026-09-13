@@ -48,14 +48,14 @@ func (self *Server) Start() {
 
 	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
 
-	router.GET("/search/:page_number", self.serveHtmlFunc("./public/search.html"))
+	router.GET("/search/:nume_partial/:page_number", self.serveHtmlFunc("./public/search.html"))
 	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
 	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
 	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("./public/dosareJuridice.html"))
 	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("./public/dosarJuridic.html"))
 	router.GET("/error", self.serveHtmlFunc("./public/errorPage.html"))
 
-	router.GET("/firme/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
+	router.GET("/firme/:nume_partial/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
 	router.GET("/firma/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
 	router.GET("/topFirme/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
 	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
@@ -132,7 +132,7 @@ func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 	fmt.Println(query)
 
 	filters := FirmeFilters {
-		numePartial: normalize(query.Get("nume_partial")),
+		numePartial: normalize(ps.ByName("nume_partial")),
 		judet: query.Get("judet"),
 		status: query.Get("status"),
 		formaJuridica: query.Get("forma_juridica"),

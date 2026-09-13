@@ -13,6 +13,7 @@ class DosareSearchPage extends SearchPage {
 
         this.sortBy = document.getElementById("sortField")
         this.sortOrder = document.getElementById("sortDirection")
+
         this.numeFirma = decodeURIComponent(new URLSearchParams(window.location.search).get("nume_firma"))
     }
 
