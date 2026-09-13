@@ -266,6 +266,8 @@ class SearchPage {
 	async Start() {
         this.setFilters()
 
+        this.resultCount.scrollIntoView()
+
 		let dataRequestLink = `${this.getLinkForDataRequest()}/${this.pageNumber}?${this.getFilters()}`
 
 		console.log("searching")
