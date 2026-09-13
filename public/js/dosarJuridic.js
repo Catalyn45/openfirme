@@ -31,7 +31,7 @@ class InfoDosarJuridicPage extends BaseComponent {
         this.profileCategorie.textContent = data.CategorieCazNume
         this.profileTribunal.textContent = data.Institutie
         this.profileDepartament.textContent = data.Departament
-        this.profileData.textContent = data.Data
+        this.profileData.textContent = formatDateDosare(data.Data)
         this.profileStadiuProcesual.textContent = data.StadiuProcesualNume
 
         for (let parte of data.Parti.DosareParte) {

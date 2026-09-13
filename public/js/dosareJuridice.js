@@ -75,7 +75,7 @@ class DosareSearchPage extends SearchPage {
 		this.companyTip.textContent = data.Numar
 		this.companyCui.textContent = data.Institutie
 		this.companyInregistrare.textContent = data.Departament
-		this.companyDate.textContent = data.Data
+		this.companyDate.textContent = formatDateDosare(data.Data)
 		this.companyStatus.textContent = data.StadiuProcesualNume
     }
 

@@ -18,6 +18,18 @@ function formatDate(d) {
 	return formatted
 }
 
+function formatDateDosare(d) {
+    const date = new Date(d);
+
+    const formatted = date.toLocaleDateString("en-GB") + " " + date.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+    })
+
+    return formatted
+}
+
 function setValueIfExist(element, value) {
 	if (value) {
 		element.textContent = value
