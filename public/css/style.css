@@ -604,6 +604,11 @@ main {
     cursor: pointer;
 }
 
+.content-copy-button-success {
+    border: 1px solid green!important;
+    color: green!important;
+}
+
 .source {
     font-size: 12px;
     color: var(--muted);
@@ -698,6 +703,10 @@ footer {
 
     .modal {
         padding: 0;
+    }
+
+    .content-copy-button {
+        display: block;
     }
 }
 

@@ -47,3 +47,47 @@ async function setErrorPage(statusCode) {
     let errorText = document.getElementById("profileCompanyName")
     errorText.textContent += statusCode
 }
+
+async function copyContentToClipboard(button) {
+	let targetId = button.dataset.target
+
+	if (targetId === undefined)
+		return
+
+	let target = document.getElementById(targetId)
+
+	if (target === undefined)
+		return
+
+	let success = await setClipboard(target.innerText)
+
+    if (!success)
+        return
+
+    let originalText = button.innerText
+    button.innerText = "Copiat"
+    button.classList.add("content-copy-button-success")
+
+    setTimeout(() => {
+        button.innerText = originalText
+        button.classList.remove("content-copy-button-success")
+    }, 500)
+
+}
+
+async function setClipboard(text) {
+	const type = "text/plain";
+	const clipboardItemData = {
+		[type]: text,
+	};
+
+    const clipboardItem = new ClipboardItem(clipboardItemData);
+
+	try {
+        await navigator.clipboard.write([clipboardItem]);
+        return true;
+    } catch (error) {
+        console.error("Clipboard write failed:", error);
+        return false;
+    }
+}

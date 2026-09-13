@@ -17,6 +17,9 @@ class InfoDosarJuridicPage extends BaseComponent {
         this.calitatePartePrototype = document.getElementById("calitatePartePrototype")
         this.numePartePrototypeValue = document.getElementById("numePartePrototypeValue")
         this.calitatePartePrototypeValue = document.getElementById("calitatePartePrototypeValue")
+        this.numePartePrototypeClipboardButton = document.getElementById("numePartePrototypeClipboardButton")
+        this.calitatePartePrototypeClipboardButton = document.getElementById("calitatePartePrototypeClipboardButton")
+        
 
         this.portalJustButton = document.getElementsByClassName("view-button")[0]
     }
@@ -34,11 +37,24 @@ class InfoDosarJuridicPage extends BaseComponent {
         this.profileData.textContent = formatDateDosare(data.Data)
         this.profileStadiuProcesual.textContent = data.StadiuProcesualNume
 
+        let indexParte = 0
+        let numeParteId = this.numePartePrototypeValue.getAttribute("id")
+        let calitateParteId = this.calitatePartePrototypeValue.getAttribute("id")
+        
+        this.numePartePrototypeClipboardButton.removeAttribute("id")
+        this.calitatePartePrototypeClipboardButton.removeAttribute("id")
+        
         for (let parte of data.Parti.DosareParte) {
             console.log(parte)
 
             this.numePartePrototypeValue.textContent = parte.Nume
+            this.numePartePrototypeValue.setAttribute("id", `${numeParteId}-${indexParte}`)
+
             this.calitatePartePrototypeValue.textContent = parte.CalitateParte
+            this.calitatePartePrototypeValue.setAttribute("id", `${calitateParteId}-${indexParte}`)
+
+            this.numePartePrototypeClipboardButton.dataset.target = this.numePartePrototypeValue.getAttribute("id")
+            this.calitatePartePrototypeClipboardButton.dataset.target = this.calitatePartePrototypeValue.getAttribute("id")
 
             let numeClone = this.numePartePrototype.cloneNode(true)
             let calitateClone = this.calitatePartePrototype.cloneNode(true)
@@ -51,7 +67,12 @@ class InfoDosarJuridicPage extends BaseComponent {
 
             this.numePartePrototype.before(numeClone)
             this.numePartePrototype.before(calitateClone)
+
+            indexParte++
         }
+
+        this.numePartePrototypeValue.setAttribute("id", numeParteId)
+        this.calitatePartePrototypeValue.setAttribute("id", calitateParteId)
     }
 
     initSearchBar() { }
