@@ -91,6 +91,9 @@ class DosareSearchPage extends SearchPage {
 			this.prototypeCard.before(clone)
 		}
 	}
+
+    initSearchBar() { }
+    setSearchBar() { }
 }
 
 function CreateComponent() {

@@ -1,10 +1,13 @@
 class BaseComponent {
     constructor() {
+        this.initSearchBar()
+        this.initFilters()
+    }
+
+    initSearchBar() {
         this.judetSearchParam = document.getElementById("judetSearchParam")
         this.statusSearchParam = document.getElementById("statusSearchParam")
         this.formaJuridicaSearchParam = document.getElementById("formaJuridicaSearchParam")
-
-        this.initFilters()
     }
 
     initFilters() {
@@ -56,34 +59,31 @@ class BaseComponent {
         window.location = window.location.pathname
     }
 
-    setSearchAction() {
-        // TODO: find a better way
-        if (this.judetSearchParam) {
-            let params = this.getFilters()
+    setSearchBar() {
+        let params = this.getFilters()
 
-            let judet = params.get("judet")
-            if (judet) {
-                this.judetSearchParam.value = judet
-                this.judetSearchParam.disabled = false
-            }
+        let judet = params.get("judet")
+        if (judet) {
+            this.judetSearchParam.value = judet
+            this.judetSearchParam.disabled = false
+        }
 
-            this.statusSearchParam.value = params.get("status")
+        this.statusSearchParam.value = params.get("status")
 
-            let formaJuridica = params.get("forma_juridica")
-            if (formaJuridica) {
-                this.formaJuridicaSearchParam.value = formaJuridica
-                this.formaJuridicaSearchParam.disabled = false
-            }
+        let formaJuridica = params.get("forma_juridica")
+        if (formaJuridica) {
+            this.formaJuridicaSearchParam.value = formaJuridica
+            this.formaJuridicaSearchParam.disabled = false
         }
     }
 
 	onChangeFilter() {
-        this.setSearchAction()
+        this.setSearchBar()
     }
 
     Start() {
         this.setFilters()
-        this.setSearchAction()
+        this.setSearchBar()
     }
 }
 

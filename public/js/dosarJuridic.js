@@ -54,6 +54,9 @@ class InfoDosarJuridicPage extends BaseComponent {
         }
     }
 
+    initSearchBar() { }
+    setSearchBar() { }
+
     async Start() {
         const data = await fetch(`/dosarJuridicFirma/${this.inregistrare}/${this.numarDosar}`)
         if (data.status !== 200) {

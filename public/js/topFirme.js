@@ -45,6 +45,9 @@ class TopFirmeSearchPage extends SearchPage {
 	getLinkForDataRequest() {
 		return "/topFirme"
 	}
+
+    initSearchBar() { }
+    setSearchBar() { }
 }
 
 function CreateComponent() {
