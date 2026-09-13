@@ -19,7 +19,13 @@ func NewGenerator(templatesDir string, outputDir string) *Generator {
 }
 
 func (this *Generator) Generate() {
+	_, err := os.Stat(this.templatesDir)
+	if err != nil {
+		return
+	}
+
 	os.Mkdir(this.outputDir, 0755)
+
 
 	partials, err := template.ParseGlob(this.templatesDir +  "/partials/*.html")
 	if err != nil {
