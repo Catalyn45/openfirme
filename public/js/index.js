@@ -52,6 +52,10 @@ class BaseComponent {
         return params
 	}
 
+    resetFilters() {
+        window.location = window.location.pathname
+    }
+
     setSearchAction() {
         // TODO: find a better way
         if (this.judetSearchParam) {

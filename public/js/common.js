@@ -1,7 +1,3 @@
-function resetFilters() {
-    window.location = window.location.pathname
-}
-
 function formatMoney(amount) {
 	return new Intl.NumberFormat('de-DE', {
 	  style: 'currency',

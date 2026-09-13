@@ -50,6 +50,10 @@ class DosareSearchPage extends SearchPage {
         return params
     }
 
+    resetFilters() {
+        window.location = `${window.location.pathname}?nume_firma=${this.numeFirma}`
+    }
+
 	getLinkForPage(pageNumber) {
 		return `/dosareJuridice/${this.inregistrare}/${pageNumber}`
 	}
