@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -127,6 +128,15 @@ func getPageNumber(ps httprouter.Params) int {
 	return pageNumber
 }
 
+func isNumeric(s string) bool {
+	for _, r := range s {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return s != ""
+}
+
 func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
 	pageNumber := getPageNumber(ps)
 	fmt.Println(pageNumber)
@@ -135,11 +145,21 @@ func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 
 	fmt.Println(query)
 
+
 	filters := FirmeFilters {
-		numePartial: normalize(ps.ByName("nume_partial")),
 		judet: query.Get("judet"),
 		status: query.Get("status"),
 		formaJuridica: query.Get("forma_juridica"),
+	}
+
+	numePartial := normalize(ps.ByName("nume_partial"))
+
+	// If numePartial is a number, then we search by cui
+	cui, err := strconv.Atoi(numePartial)
+	if err == nil {
+		filters.cui = cui
+	} else {
+		filters.numePartial = numePartial
 	}
 
 	ordering := FirmeOrdering{}

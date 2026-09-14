@@ -220,14 +220,14 @@ class SearchPageBase extends Base {
 
     getEmptyMessage() {
         return [
-            "Căutarea este prea generică",
+            "Nu s-a găsit nici un rezultat",
             "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare."
         ]
     }
 
     getTimeoutMessage() {
         return [
-            "Nu s-a găsit nici un rezultat",
+            "Căutarea este prea generică",
             "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare."
         ]
     }

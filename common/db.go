@@ -612,6 +612,7 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 }
 
 type FirmeFilters struct {
+	cui int
 	numePartial string
 	judet string
 	status string
@@ -677,6 +678,11 @@ func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, pa
 
 			stmt += " AND firme_search MATCH ? "
 			*params = append(*params, ftsQuery)
+		}
+
+		if filters.cui != 0 {
+			stmt += " AND firme.cui = ? "
+			*params = append(*params, filters.cui)
 		}
 
 		if filters.judet != "" {
@@ -838,11 +844,14 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 				ON firme.rowid = firme_search.rowid
 			WHERE 1=1 `
 
-	ordering := FirmeOrdering {
-		sortBy: "rank",
-		sortOrder: "asc",
-	}
+	var ordering *FirmeOrdering = nil
 
+	if filters.numePartial != "" {
+		ordering = &FirmeOrdering {
+			sortBy: "rank",
+			sortOrder: "asc",
+		}
+	}
 	timeout := 10 * time.Second
 	opt := &QueryOptions {
 		timeout: &timeout,
@@ -873,7 +882,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		stmt,
 		nil,
 		filters,
-		&ordering,
+		ordering,
 		pageNumber,
 		rowCallback,
 		opt)
