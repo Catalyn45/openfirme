@@ -25,7 +25,7 @@ class SearchPage extends SearchPageBase {
 	}
 
 	getSearchTitle() {
-		return null
+		return `Rezultate căutare: ${decodeURIComponent(this.numePartial)}`
 	}
 }
 

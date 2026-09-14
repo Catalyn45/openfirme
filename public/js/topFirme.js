@@ -45,6 +45,10 @@ class TopFirmeSearchPage extends SearchPageBase {
 	getLinkForDataRequest() {
 		return `/topFirme/${this.pageNumber}?${this.getFilters()}`
 	}
+
+	getSearchTitle() {
+		return `Top companii ordonate după: ${this.sortBy.options[this.sortBy.selectedIndex].text}`
+	}
 }
 
 function CreateComponent() {
