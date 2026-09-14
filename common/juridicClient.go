@@ -16,20 +16,24 @@ type JuridicClient struct {
 func NewJuridicClient() *JuridicClient {
 	return &JuridicClient{
 		httpClient: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 20 * time.Second,
 		},
 	}
 }
 
 type CautareDosare struct {
-	XMLName    xml.Name `xml:"CautareDosare"`
+	XMLName    xml.Name `xml:"PagedSearchDocket"`
 	XMLNS      string   `xml:"xmlns,attr"`
-	NumarDosar string   `xml:"numarDosar"`
-	Obiect     string   `xml:"obiectDosar"`
-	NumeParte  string   `xml:"numeParte"`
+
+	NumarDosar *string   `xml:"numarDosar,omitempty"`
+	Obiect     *string   `xml:"obiectDosar,omitempty"`
+	NumeParte  *string   `xml:"numeParte,omitempty"`
 	Institutie *string  `xml:"institutie,omitempty"`
 	DataStart  *string  `xml:"dataStart,omitempty"`
 	DataStop   *string  `xml:"dataStop,omitempty"`
+
+	Page int `xml:"page"`
+	RowsPerPage int `xml:"rowsPerPage"`
 }
 
 type SOAPBody struct {
@@ -39,20 +43,20 @@ type SOAPBody struct {
 type SOAPEnvelope struct {
 	XMLNSXSI string `xml:"xmlns:xsi,attr"`
 	XMLNSXSD string `xml:"xmlns:xsd,attr"`
-	XMLNSSoap string `xml:"xmlns:soap,attr"`
-	XMLName xml.Name `xml:"soap:Envelope"`
+	XMLNSSoap string `xml:"xmlns:soap12,attr"`
+	XMLName xml.Name `xml:"soap12:Envelope"`
 	Soap    string   `xml:"-"`
-	Body    SOAPBody `xml:"soap:Body"`
+	Body    SOAPBody `xml:"soap12:Body"`
 }
 
-const domain = "portalquery.just.ro"
-const endpoint = "http://" + domain + "/query.asmx"
+const domain = "http://tempuri.org/"
+const endpoint = "http://portalquery.just.ro/QueryDocket.asmx"
 
 func (this *JuridicClient) CreateJuridicBody(body interface{}) []byte {
 	reqBody := SOAPEnvelope{
 		XMLNSXSI:  "http://www.w3.org/2001/XMLSchema-instance",
 		XMLNSXSD:  "http://www.w3.org/2001/XMLSchema",
-		XMLNSSoap: "http://schemas.xmlsoap.org/soap/envelope/",
+		XMLNSSoap: "http://www.w3.org/2003/05/soap-envelope",
 		Body: SOAPBody{
 			Body: body,
 		},
@@ -83,7 +87,6 @@ func (this *JuridicClient) sendJuridicRequest(action string, data []byte) []byte
 	}
 
 	req.Header.Set("Content-Type", "text/xml; charset=utf-8")
-	req.Header.Set("SOAPAction", `"` + domain + `/` + action + `"`)
 
 	resp, err := this.httpClient.Do(req)
 	if err != nil {
@@ -126,7 +129,7 @@ type Sedinte struct {
 }
 
 type Dosar struct {
-	XMLName xml.Name `xml:"Dosar" json:"-"`
+	XMLName xml.Name `xml:"DosarDocket" json:"-"`
 	Parti Parti
 	Sedinte Sedinte
 	Numar string `xml:"numar"`
@@ -139,17 +142,17 @@ type Dosar struct {
 }
 
 type CautareDosareResult struct {
-	XMLName xml.Name `xml:"CautareDosareResult" json:"-"`
-	Dosare []Dosar`xml:"Dosar"`
+	XMLName xml.Name `xml:"PagedSearchDocketResult" json:"-"`
+	Dosare []Dosar`xml:"DosarDocket"`
 }
 
 type CautareDosareResponse struct {
-	XMLName    xml.Name `xml:"CautareDosareResponse"`
+	XMLName    xml.Name `xml:"PagedSearchDocketResponse"`
 	CautareDosareResult CautareDosareResult
 }
 
 type CautareDosareResponseSOAPBody struct {
-	Body CautareDosareResponse `xml:"CautareDosareResponse"`
+	Body CautareDosareResponse `xml:"PagedSearchDocketResponse"`
 }
 
 type CautareDosareResponseSOAPEnvelope struct {
@@ -182,9 +185,11 @@ func (this *JuridicClient) GetDosare(numeFirma string) []Dosar {
 	requestData := this.CreateJuridicBody(
 		CautareDosare{
 			XMLNS:      domain,
-			NumarDosar: "",
-			Obiect:     "",
-			NumeParte:  numeFirma,
+			NumarDosar: nil,
+			Obiect:     nil,
+			NumeParte:  &numeFirma,
+			Page: 0,
+			RowsPerPage: 200,
 		},
 	)
 
