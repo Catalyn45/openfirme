@@ -118,8 +118,8 @@
                     <div class="modal-body">
 
                         <div class="card-footer">
-                            <a href="/" class="view-button" onclick="openPortalJust(this)" >
-                                Cauta pe portaljust →
+                            <a href="/" class="view-button" target="_blank" rel="noopener noreferrer">
+                                Caută pe portaljust →
                             </a>
                         </div>
 
@@ -143,6 +143,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileNumarDosar" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
 
@@ -155,6 +157,8 @@
                                     <strong id="profileCategorie">
 										Loading...
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileCategorie" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -169,6 +173,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileTribunal" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
                                 <div class="profile-field">
@@ -180,6 +186,8 @@
                                     <strong id="profileDepartament">
 										Loading...
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileDepartament" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -193,6 +201,8 @@
 										Loading...
                                     </strong>
 
+                                    <button class="content-copy-button" data-target="profileData" onclick="copyContentToClipboard(this)">Copiază</button>
+
                                 </div>
 
 
@@ -205,6 +215,8 @@
                                     <strong id="profileStadiuProcesual">
 										Loading...
                                     </strong>
+
+                                    <button class="content-copy-button" data-target="profileStadiuProcesual" onclick="copyContentToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -221,7 +233,7 @@
                                 Parti
                             </h3>
 
-                            <div class="profile-grid">
+                            <div class="profile-grid" >
                                 <div class="profile-field" id="numePartePrototype" style="display:none;">
                                     <small>
                                         Nume
@@ -230,6 +242,8 @@
                                     <strong id="numePartePrototypeValue">
                                         Loading...
                                     </strong>
+
+                                    <button id="numePartePrototypeClipboardButton" class="content-copy-button" data-target="numePartePrototypeValue" onclick="copyContentToClipboard(this)">Copiază</button>
                                 </div>
                                 <div class="profile-field" id="calitatePartePrototype" style="display:none;">
                                     <small>
@@ -239,6 +253,8 @@
                                     <strong id="calitatePartePrototypeValue">
                                         Loading...
                                     </strong>
+
+                                    <button id="calitatePartePrototypeClipboardButton" class="content-copy-button" data-target="calitatePartePrototypeValue" onclick="copyContentToClipboard(this)">Copiază</button>
                                 </div>
 
                             </div>
