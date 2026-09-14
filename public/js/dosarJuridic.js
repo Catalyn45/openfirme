@@ -76,7 +76,7 @@ class InfoDosarJuridicPage extends Base {
     }
 
     async Start() {
-        const data = await fetch(`/dosarJuridicFirma/${this.inregistrare}/${this.numarDosar}`)
+        const data = await fetch(`/api/dosarJuridic/${this.inregistrare}/${this.numarDosar}`)
         if (data.status !== 200) {
             await setErrorPage(data.status)
             return

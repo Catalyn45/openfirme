@@ -43,7 +43,7 @@ class TopFirmeSearchPage extends SearchPageBase {
 	}
 
 	getLinkForDataRequest() {
-		return `/topFirme/${this.pageNumber}?${this.getFilters()}`
+		return `/api/top/${this.pageNumber}?${this.getFilters()}`
 	}
 
 	getSearchTitle() {

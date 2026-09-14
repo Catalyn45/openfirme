@@ -46,21 +46,25 @@ func (self *Server) Start() {
 
 	router.GET("/", self.serveHtmlFunc("./public/index.html"))
 
-	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
-
 	router.GET("/search/:nume_partial/:page_number", self.serveHtmlFunc("./public/search.html"))
-	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
-	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
-	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("./public/dosareJuridice.html"))
-	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("./public/dosarJuridic.html"))
-	router.GET("/error", self.serveHtmlFunc("./public/errorPage.html"))
+	router.GET("/api/search/:nume_partial/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
 
-	router.GET("/firme/:nume_partial/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
-	router.GET("/firma/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
-	router.GET("/topFirme/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
-	router.GET("/adminsFirme/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
-	router.GET("/dosareJuridiceFirma/:cod_inmatriculare/:page_number", self.cache.ApiPagedCache(self.getDosareJuridiceFirma))
-	router.GET("/dosarJuridicFirma/:cod_inmatriculare/:numar_dosar", self.cache.DefaultApiCache(self.getDosarJuridicFirma))
+	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
+	router.GET("/api/profile/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
+
+	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
+	router.GET("/api/top/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
+
+	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
+	router.GET("/api/admins/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
+
+	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("./public/dosareJuridice.html"))
+	router.GET("/api/dosareJuridice/:cod_inmatriculare/:page_number", self.cache.ApiPagedCache(self.getDosareJuridiceFirma))
+
+	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("./public/dosarJuridic.html"))
+	router.GET("/api/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.cache.DefaultApiCache(self.getDosarJuridicFirma))
+
+	router.GET("/error", self.serveHtmlFunc("./public/errorPage.html"))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
 		err, ok := p.(error)

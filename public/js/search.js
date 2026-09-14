@@ -21,7 +21,7 @@ class SearchPage extends SearchPageBase {
 	}
 
 	getLinkForDataRequest() {
-		return `/firme/${this.numePartial}/${this.pageNumber}?${this.getFilters()}`
+		return `/api/search/${this.numePartial}/${this.pageNumber}?${this.getFilters()}`
 	}
 
 	getSearchTitle() {

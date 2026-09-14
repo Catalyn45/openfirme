@@ -75,7 +75,7 @@ class DosareSearchPage extends SearchPageBase {
 	}
 
 	getLinkForDataRequest() {
-		return `/dosareJuridiceFirma/${this.inregistrare}/${this.pageNumber}?${this.getFilters()}`
+		return `/api/dosareJuridice/${this.inregistrare}/${this.pageNumber}?${this.getFilters()}`
 	}
 
 	getSearchTitle() {

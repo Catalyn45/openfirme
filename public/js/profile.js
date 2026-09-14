@@ -164,7 +164,7 @@ class InfoPage extends Base {
     }
 
     async Start() {
-        const data = await fetch(`/firma/${this.inregistrare}`)
+        const data = await fetch(`/api/profile/${this.inregistrare}`)
         if (data.status !== 200) {
             await setErrorPage(data.status)
             return

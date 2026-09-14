@@ -31,7 +31,7 @@ class AdministratoriSearchPage extends SearchPageBase {
 	}
 
 	getLinkForDataRequest() {
-		return `/adminsFirme/${this.inregistrare}/${this.numeAdmin}/${this.pageNumber}`
+		return `/api/admins/${this.inregistrare}/${this.numeAdmin}/${this.pageNumber}`
 	}
 
 	getSearchTitle() {
