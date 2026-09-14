@@ -1,4 +1,4 @@
-class TopFirmeSearchPage extends SearchPage {
+class TopFirmeSearchPage extends SearchPageBase {
 	initPrototype() {
 		super.initPrototype()
 
@@ -39,15 +39,12 @@ class TopFirmeSearchPage extends SearchPage {
     }
 
 	getLinkForPage(pageNumber) {
-		return `/top/${pageNumber}`
+		return `/top/${pageNumber}?${this.getFilters()}`
 	}
 
 	getLinkForDataRequest() {
-		return "/topFirme"
+		return `/topFirme/${this.pageNumber}?${this.getFilters()}`
 	}
-
-    initSearchBar() { }
-    setSearchBar() { }
 }
 
 function CreateComponent() {

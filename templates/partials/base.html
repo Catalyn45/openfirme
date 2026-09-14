@@ -12,6 +12,7 @@
     <title>OpenFirme România — Informații despre companii</title>
 
     <script src="/public/js/common.js" defer></script>
+    <script src="/public/js/base.js" defer></script>
 	{{ block "scripts" . }}
 	{{ end }}
     <script src="/public/js/main.js" defer></script>
@@ -50,8 +51,7 @@
         Caută informații publice despre societăți comerciale
         folosind denumirea firmei    </p>
 
-    {{ block "searchbar" . }}
-    {{ end }}
+    {{ template "searchbar.html" }}
 
 </section>
 

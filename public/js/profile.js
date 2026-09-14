@@ -56,8 +56,10 @@ async function setClipboard(text) {
 	await navigator.clipboard.write([clipboardItem]);
 }
 
-class InfoPage {
-    constructor() {
+class InfoPage extends Base {
+    init() {
+        super.init()
+
         this.inregistrare = window.location.pathname.split('/').pop();
 
 		this.veziDosareButton = document.getElementsByClassName("view-button")[0]

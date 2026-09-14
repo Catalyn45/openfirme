@@ -1,9 +1,14 @@
-class DosareSearchPage extends SearchPage {
-    constructor() {
-        super()
-
+class DosareSearchPage extends SearchPageBase {
+    init() {
 		const path = window.location.pathname.split("/")
         this.inregistrare = path.at(-2)
+
+        this.numeFirma = decodeURIComponent(new URLSearchParams(window.location.search).get("nume_firma"))
+
+		this.initSearchBar()
+		this.initFilters()
+		this.initPrototype()
+		this.initPages()
     }
 
     initFilters() {
@@ -13,8 +18,6 @@ class DosareSearchPage extends SearchPage {
 
         this.sortBy = document.getElementById("sortField")
         this.sortOrder = document.getElementById("sortDirection")
-
-        this.numeFirma = decodeURIComponent(new URLSearchParams(window.location.search).get("nume_firma"))
     }
 
     setFilters() {
@@ -46,8 +49,6 @@ class DosareSearchPage extends SearchPage {
 		params.set('sort_by', this.sortBy.value)
         params.set('sort_order', this.sortOrder.value)
 
-        params.set("nume_firma", this.numeFirma)
-
         return params
     }
 
@@ -56,11 +57,11 @@ class DosareSearchPage extends SearchPage {
     }
 
 	getLinkForPage(pageNumber) {
-		return `/dosareJuridice/${this.inregistrare}/${pageNumber}`
+		return `/dosareJuridice/${this.inregistrare}/${pageNumber}?nume_firma=${this.numeFirma}&${this.getFilters()}`
 	}
 
 	getLinkForDataRequest() {
-		return `/dosareJuridiceFirma/${this.inregistrare}`
+		return `/dosareJuridiceFirma/${this.inregistrare}/${this.pageNumber}?${this.getFilters()}`
 	}
 
 	getSearchTitle() {
@@ -92,9 +93,6 @@ class DosareSearchPage extends SearchPage {
 			this.prototypeCard.before(clone)
 		}
 	}
-
-    initSearchBar() { }
-    setSearchBar() { }
 }
 
 function CreateComponent() {

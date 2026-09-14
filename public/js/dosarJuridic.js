@@ -1,5 +1,7 @@
-class InfoDosarJuridicPage {
-    constructor() {
+class InfoDosarJuridicPage extends Base {
+    init() {
+        super.init()
+
         this.numarDosar = window.location.pathname.split('/').at(-1)
         this.inregistrare = window.location.pathname.split('/').at(-2)
 

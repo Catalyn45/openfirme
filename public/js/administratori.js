@@ -1,4 +1,4 @@
-class AdministratoriSearchPage extends SearchPage {
+class AdministratoriSearchPage extends SearchPageBase {
 	init() {
 		const path = window.location.pathname.split("/")
 
@@ -10,20 +10,14 @@ class AdministratoriSearchPage extends SearchPage {
 		this.initPages()
 	}
 
-    setFilters() {
-        return ""
-    }
-
-    getFilters() {
-        return ""
-    }
+    setFilters() { }
 
 	getLinkForPage(pageNumber) {
 		return `/admins/${this.inregistrare}/${this.numeAdmin}/${pageNumber}`
 	}
 
 	getLinkForDataRequest() {
-		return `/adminsFirme/${this.inregistrare}/${this.numeAdmin}`
+		return `/adminsFirme/${this.inregistrare}/${this.numeAdmin}/${this.pageNumber}`
 	}
 
 	getSearchTitle() {

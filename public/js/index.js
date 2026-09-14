@@ -4,12 +4,9 @@ class HomePage extends SearchPage {
         this.initFilters()
     }
 
-	onChangeFilter() {
-    }
+	onChangeFilter() { }
 
-    Start() {
-        this.setFilters()
-    }
+    Start() { }
 }
 
 function CreateComponent() {

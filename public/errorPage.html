@@ -13,6 +13,7 @@
     <title>OpenFirme România — Informații despre companii</title>
 
     <script src="/public/js/common.js" defer></script>
+    <script src="/public/js/base.js" defer></script>
 	
 	
     <script src="/public/js/main.js" defer></script>
@@ -47,8 +48,26 @@
         Caută informații publice despre societăți comerciale
         folosind denumirea firmei    </p>
 
-    
-    
+    <div class="search-wrapper">
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            enterkeyhint="go"
+            id="searchInput"
+            placeholder="Caută după nume firmă..."
+			onkeydown="if (event.key === 'Enter') component.searchFirma()"
+        >
+
+        <button onclick="component.searchFirma()">
+            🔍 Caută
+        </button>
+
+    </div>
+
+</div>
+
 
 </section>
 
