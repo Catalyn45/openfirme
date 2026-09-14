@@ -12,6 +12,20 @@ class AdministratoriSearchPage extends SearchPageBase {
 
     setFilters() { }
 
+    getEmptyMessage() {
+        return [
+            "Nici un administrator găsit.",
+            "Administratorul nu este asociat cu nici-o firmă."
+        ]
+    }
+
+    getTimeoutMessage() {
+        return [
+            "Nici un administrator găsit.",
+            "Administratorul nu este asociat cu nici-o firmă."
+        ]
+    }
+
 	getLinkForPage(pageNumber) {
 		return `/admins/${this.inregistrare}/${this.numeAdmin}/${pageNumber}`
 	}

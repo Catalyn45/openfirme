@@ -218,6 +218,20 @@ class SearchPageBase extends Base {
 		this.pagesContainer.style.display = "flex"
 	}
 
+    getEmptyMessage() {
+        return [
+            "Căutarea este prea generică",
+            "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare."
+        ]
+    }
+
+    getTimeoutMessage() {
+        return [
+            "Nu s-a găsit nici un rezultat",
+            "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare."
+        ]
+    }
+
 	showEmpty(title, description) {
 		if (title) {
 			const emptyStateTitle = document.getElementById("emptyStateTitle")
@@ -238,7 +252,8 @@ class SearchPageBase extends Base {
 		console.log("searching")
 		const response = await fetch(this.getLinkForDataRequest())
 		if (response.status === 422) {
-			this.showEmpty("Căutarea este prea generică", "Încearcă să folosești un nume mai specific sau modifică filtrele de căutare.")
+            let timeoutMessage = this.getTimeoutMessage()
+			this.showEmpty(timeoutMessage[0], timeoutMessage[1])
 			return
 		} else if (response.status !== 200) {
             await setErrorPage(response.status)
@@ -261,7 +276,8 @@ class SearchPageBase extends Base {
 		this.resultCount.textContent = `${resultCount} rezultate`
 
 		if (resultCount === 0) {
-			this.showEmpty("Nu s-a găsit nici un rezultat", "Nici un rezultat găsit, incearcă să schimbi filtrele de căutare.")
+            let emptyMessage = this.getEmptyMessage()
+			this.showEmpty(emptyMessage[0], emptyMessage[1])
 		} else {
 			this.emptyState.style.display = "none"
 		}

@@ -56,6 +56,20 @@ class DosareSearchPage extends SearchPageBase {
         window.location = `${window.location.pathname}?nume_firma=${this.numeFirma}`
     }
 
+    getEmptyMessage() {
+        return [
+            "Nici un dosar găsit.",
+            "Portaljust nu a returnat nici un dosar juridic."
+        ]
+    }
+
+    getTimeoutMessage() {
+        return [
+            "Timeout căutare.",
+            "Portaljust nu a răspuns în timp util."
+        ]
+    }
+
 	getLinkForPage(pageNumber) {
 		return `/dosareJuridice/${this.inregistrare}/${pageNumber}?nume_firma=${this.numeFirma}&${this.getFilters()}`
 	}
