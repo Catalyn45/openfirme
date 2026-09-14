@@ -233,6 +233,7 @@ func (this *Repository) InitReprezentanti() {
 		CREATE TABLE IF NOT EXISTS reprezentanti (
 			cod_inmatriculare TEXT NOT NULL,
 			persoana_imputernicita TEXT NOT NULL,
+			persoana_imputernicita_norm TEXT NOT NULL,
 			calitate TEXT NOT NULL,
 			data_nastere TEXT,
 			localitate_nastere TEXT,
@@ -244,10 +245,10 @@ func (this *Repository) InitReprezentanti() {
 		);
 
 		CREATE INDEX IF NOT EXISTS idx_reprezentanti_cod_inmatriculare
-		ON reprezentanti(cod_inmatriculare, calitate);
+		ON reprezentanti(cod_inmatriculare);
 
 		CREATE INDEX IF NOT EXISTS idx_reprezentanti_persoana_imputernicita
-		ON reprezentanti(persoana_imputernicita, calitate, cod_inmatriculare);
+		ON reprezentanti(persoana_imputernicita_norm, cod_inmatriculare);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -258,6 +259,21 @@ func (this *Repository) InitReprezentanti() {
 
 func (this *Repository) IsReprezentantiOnDataset(dataset string) bool {
 	return this.isOnDataset(dataset, "reprezentanti")
+}
+
+func (this *Repository) normalizeNumeReprezentant(nume string) string {
+	splitted := strings.Fields(nume)
+
+	result := []string{}
+	for _, item := range splitted {
+		if strings.HasSuffix(item, ".")  {
+			continue
+		}
+
+		result = append(result, strings.ToLower(item))
+	}
+
+	return strings.Join(result, " ")
 }
 
 func (this *Repository) UpdateReprezentanti(dataset []map[string]string, datasetName string) {
@@ -273,8 +289,8 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string, dataset
 	this.DeleteFromTable(transaction, "reprezentanti")
 
 	stmt := `
-		INSERT INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara)
-		VALUES (?,?,?,?,?,?,?,?,?,?);`
+		INSERT INTO reprezentanti (cod_inmatriculare, persoana_imputernicita, persoana_imputernicita_norm, calitate, data_nastere, localitate_nastere, judet_nastere, tara_nastere, localitate, judet, tara)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -284,7 +300,7 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string, dataset
 	defer preparedStmt.Close()
 
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["PERSOANA_IMPUTERNICITA"], data["CALITATE"], data["DATA_NASTERE"], data["LOCALITATE_NASTERE"], data["JUDET_NASTERE"], data["TARA_NASTERE"], data["LOCALITATE"], data["JUDET"], data["TARA"])
+		_, err = preparedStmt.Exec(data["COD_INMATRICULARE"], data["PERSOANA_IMPUTERNICITA"], this.normalizeNumeReprezentant(data["PERSOANA_IMPUTERNICITA"]), data["CALITATE"], strings.Split(data["DATA_NASTERE"], " ")[0], data["LOCALITATE_NASTERE"], strings.ToUpper(data["JUDET_NASTERE"]), data["TARA_NASTERE"], data["LOCALITATE"], data["JUDET"], data["TARA"])
 		if err != nil {
 			panic(err)
 		}
@@ -1129,7 +1145,7 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 			FROM reprezentanti
 			WHERE cod_inmatriculare = ? AND persoana_imputernicita = ?
 			LIMIT 1
-		) r ON reprezentanti.persoana_imputernicita = r.persoana_imputernicita
+		) r ON reprezentanti.persoana_imputernicita_norm = r.persoana_imputernicita_norm
 			AND reprezentanti.data_nastere = r.data_nastere
 			AND reprezentanti.judet_nastere = r.judet_nastere
 	`

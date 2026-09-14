@@ -5,6 +5,7 @@ class AdministratoriSearchPage extends SearchPageBase {
         this.numeAdmin = decodeURIComponent(path.at(-2))
         this.inregistrare = path.at(-3)
 
+        this.initSearchBar()
 		this.initFilters()
 		this.initPrototype()
 		this.initPages()
