@@ -103,18 +103,18 @@ func (this *JuridicClient) sendJuridicRequest(action string, data []byte) []byte
 }
 
 type DosarParte struct {
-	XMLName xml.Name `xml:"DosarParte" json:"-"`
+	XMLName xml.Name `xml:"DosarParteDocket" json:"-"`
 	Nume string `xml:"nume"`
 	CalitateParte string `xml:"calitateParte"`
 }
 
 type Parti struct {
 	XMLName xml.Name `xml:"parti" json:"-"`
-	DosareParte []DosarParte `xml:"DosarParte"`
+	DosareParte []DosarParte `xml:"DosarParteDocket"`
 }
 
 type DosarSedinta struct {
-	XMLName xml.Name `xml:"DosarSedinta" json:"-"`
+	XMLName xml.Name `xml:"DosarSedintaDocket" json:"-"`
 	Complet string `xml:"complet"`
 	Data string `xml:"data"`
 	Ora string `xml:"ora"`
@@ -125,7 +125,7 @@ type DosarSedinta struct {
 
 type Sedinte struct {
 	XMLName xml.Name `xml:"sedinte" json:"-"`
-	DosareSedinta []DosarSedinta `xml:"DosarSedinta"`
+	DosareSedinta []DosarSedinta `xml:"DosarSedintaDocket"`
 }
 
 type Dosar struct {
