@@ -69,9 +69,18 @@ class InfoPage extends Base {
         this.profileCompanyEuid.textContent = data.Euid
         this.profileCompanyId.textContent = data.CodInmatriculare
         this.profileCompanyForma.textContent = data.FormaJuridica
-        this.profileCompanyStatus.textContent = data.Statusuri.sort((a, b) => {
+
+        data.Statusuri = data.Statusuri.sort((a, b) => {
             return (a === "funcțiune") - (b === "funcțiune")
-        }).join(", ")
+        })
+
+        this.profileCompanyStatus.textContent = ""
+        for (let status of data.Statusuri) {
+            const p = document.createElement("p")
+            p.textContent = `- ${status}`
+
+            this.profileCompanyStatus.appendChild(p)
+        }
 
         this.profileCompanyData.textContent = formatDate(data.DataInregistrare)
         this.profileCompanyJudet.textContent = data.Judet
@@ -79,7 +88,20 @@ class InfoPage extends Base {
 
         setValueIfExist(this.profileCompanyAdresa, createAddress(data))
         setValueIfExist(this.profileCompanyCodPostal, data.CodPostal)
-        setValueIfExist(this.profileCompanyCaen, data.CoduriCaen?.join(", "))
+
+        let caenDescriere = {}
+        for (let codCaen of data.CoduriCaen ?? []) {
+            let [cod_caen, descriere_caen] = codCaen.split('^')
+            caenDescriere[cod_caen] = descriere_caen
+            this.profileCompanyCaen.textContent = ""
+        }
+
+        for (let [codCaen, descriereCaen] of Object.entries(caenDescriere)) {
+            const p = document.createElement("p");
+            p.textContent = `${codCaen} - ${descriereCaen}`
+            this.profileCompanyCaen.appendChild(p)
+
+        }
 
         if (data.Tva === true) {
             this.profileCompanyTva.textContent = "Da"
@@ -89,34 +111,37 @@ class InfoPage extends Base {
             for (let reprezentant of data.Reprezentanti) {
                 let [name, role] = reprezentant.split('^')
 
+                const p = document.createElement("p")
+                const link = document.createElement("a");
+
                 if (role === 'administrator') {
                     if (this.profileCompanyAdministratori.children.length === 0) {
                         this.profileCompanyAdministratori.textContent = ""
                     }
 
-                    const link = document.createElement("a");
-
                     link.href = `/admins/${this.inregistrare}/${name}/1`
                     link.textContent = name
 
-                    this.profileCompanyAdministratori.appendChild(link)
-                    this.profileCompanyAdministratori.appendChild(document.createElement("br"))
+                    p.appendChild(link)
+
+                    this.profileCompanyAdministratori.appendChild(p)
                 } else {
                     if (this.profileCompanyAsociati.children.length === 0) {
                         this.profileCompanyAsociati.textContent = ""
                     }
 
-                    const link = document.createElement("a");
                     link.textContent = name
                     link.href = `/admins/${this.inregistrare}/${name}/1`
 
                     const span = document.createElement("span");
                     span.textContent = ` - ${role}`
 
-                    this.profileCompanyAsociati.appendChild(link)
-                    this.profileCompanyAsociati.appendChild(span)
-                    this.profileCompanyAsociati.appendChild(document.createElement("br"))
+                    p.appendChild(link)
+                    p.appendChild(span)
+
+                    this.profileCompanyAsociati.appendChild(p)
                 }
+
             }
         }
 
@@ -141,7 +166,7 @@ class InfoPage extends Base {
 
         for (let [index, bilant] of data.BilanturiFirma.entries()) {
             if (index == 0) {
-                profileCompanyPrimaryCaen.textContent = bilant.Caen
+                profileCompanyPrimaryCaen.textContent = `${bilant.Caen} - ${caenDescriere[bilant.Caen]}`
             }
 
             financiarAn.textContent = bilant.An

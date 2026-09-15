@@ -65,6 +65,14 @@ func (this *Parser) getCaenDataset() string {
 	return this.metadata["od_caen_autorizat.csv"]
 }
 
+func (this *Parser) parseDescriereCaen() []map[string]string {
+	return readData(filepath.Join(this.dataDirectory, "n_caen.csv"))
+}
+
+func (this *Parser) getDescriereCaenDataset() string {
+	return this.metadata["n_caen.csv"]
+}
+
 func (this *Parser) parseBilantSimplu(an int) ([]map[string]int, bool) {
 	filePath := filepath.Join(this.dataDirectory, "web_bl_bs_sl_an" + strconv.Itoa(an) + ".txt")
 	_, err := os.Stat(filePath)
@@ -179,6 +187,11 @@ func (this *Parser) Parse() {
 	datasetName = this.getCaenDataset()
 	if !this.repository.IsCaenOnDataset(datasetName) {
 		this.repository.UpdateCaen(this.parseCaen(), datasetName)
+	}
+
+	datasetName = this.getDescriereCaenDataset()
+	if !this.repository.IsDescriereCaenOnDataset(datasetName) {
+		this.repository.UpdateDescriereCaen(this.parseDescriereCaen(), datasetName)
 	}
 
 	datasetName = this.getDateIdentificareDataset()

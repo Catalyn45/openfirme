@@ -35,6 +35,7 @@ func (this *Repository) Init() {
 	this.InitReprezentanti()
 	this.InitStari()
 	this.InitCaen()
+	this.InitDescriereCaen()
 	this.InitDateIdentificare()
 	this.InitBilanturi()
 }
@@ -431,6 +432,70 @@ func (this *Repository) UpdateCaen(dataset []map[string]string, datasetName stri
 	}
 
 	this.UpdateMetadata(transaction, datasetName, "caen")
+
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) InitDescriereCaen() {
+	createTableStmt := `
+		CREATE TABLE IF NOT EXISTS descriere_caen (
+			sectiunea TEXT,
+			subsectiunea TEXT,
+			diviziunea INTEGER,
+			grupa INTEGER,
+			clasa INTEGER,
+			denumire TEXT,
+			versiune_caen TEXT
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_descriere_caen_clasa_versiune
+		ON descriere_caen(clasa, versiune_caen);
+	`
+
+	_, err := this.db.Exec(createTableStmt)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) IsDescriereCaenOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "descriere_caen")
+}
+
+func (this *Repository) UpdateDescriereCaen(dataset []map[string]string, datasetName string) {
+	fmt.Println("Updating descriere_caen")
+
+	transaction, err := this.db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	defer transaction.Rollback()
+
+	this.DeleteFromTable(transaction, "descriere_caen")
+
+	stmt := `
+		INSERT INTO descriere_caen (sectiunea, subsectiunea, diviziunea, grupa, clasa, denumire, versiune_caen)
+		VALUES (?,?,?,?,?,?,?);`
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
+		_, err = preparedStmt.Exec(data["SECTIUNEA"], data["SUBSECTIUNEA"], data["DIVIZIUNEA"], data["GRUPA"], data["CLASA"], data["DENUMIRE"], data["VERSIUNE_CAEN"])
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	this.UpdateMetadata(transaction, datasetName, "descriere_caen")
 
 	err = transaction.Commit()
 	if err != nil {
@@ -1023,7 +1088,7 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 				firme.forma_juridica,
 				firme.cui,
 				(
-					SELECT GROUP_CONCAT(r.persoana_imputernicita || '^' || r.calitate, ',')
+					SELECT GROUP_CONCAT(r.persoana_imputernicita || '^' || r.calitate, '@')
 					FROM reprezentanti r
 					WHERE r.cod_inmatriculare = firme.cod_inmatriculare
 				) AS persoane_imputernicite,
@@ -1039,13 +1104,15 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 				firme.cod_postal,
 				firme.sector,
 				(
-					SELECT GROUP_CONCAT(s.status, ',')
+					SELECT GROUP_CONCAT(s.status, '^')
 					FROM stari s
 					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
 				) AS statuses,
 				(
-					SELECT GROUP_CONCAT(DISTINCT c.cod_caen)
+					SELECT GROUP_CONCAT(c.cod_caen || '^' || dc.denumire, '@')
 					FROM caen c
+					LEFT JOIN descriere_caen dc
+					ON c.cod_caen = dc.clasa AND c.versiune_caen = dc.versiune_caen
 					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
 				) AS coduri_caen,
 				dateidentificare.tva
@@ -1066,15 +1133,15 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 		}
 
 		if reprezentanti.Valid {
-			infoFirma.Reprezentanti = strings.Split(reprezentanti.String, ",")
+			infoFirma.Reprezentanti = strings.Split(reprezentanti.String, "@")
 		}
 
 		if statuses.Valid {
-			infoFirma.Statusuri = strings.Split(statuses.String, ",")
+			infoFirma.Statusuri = strings.Split(statuses.String, "^")
 		}
 
 		if coduriCaen.Valid {
-			infoFirma.CoduriCaen = strings.Split(coduriCaen.String, ",")
+			infoFirma.CoduriCaen = strings.Split(coduriCaen.String, "@")
 		}
 	}
 
