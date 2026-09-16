@@ -6,7 +6,7 @@ func main() {
 	generator := common.NewGenerator("./templates", "./public")
 	generator.Generate()
 
-	repository := common.NewRepository("./foo.db")
+	repository := common.NewRepository("file:foo.db?mode=ro")
 	server := common.NewServer("127.0.0.1", 8080, repository)
 	server.Start()
 }
