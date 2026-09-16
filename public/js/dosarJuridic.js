@@ -59,10 +59,10 @@ class InfoDosarJuridicPage extends Base {
             let numeClone = this.numePartePrototype.cloneNode(true)
             let calitateClone = this.calitatePartePrototype.cloneNode(true)
 
-            numeClone.style.display = "block"
+            numeClone.style.removeProperty("display")
             numeClone.removeAttribute("id")
 
-            calitateClone.style.display = "block"
+            calitateClone.style.removeProperty("display")
             calitateClone.removeAttribute("id")
 
             this.numePartePrototype.before(numeClone)

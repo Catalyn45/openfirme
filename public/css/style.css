@@ -551,6 +551,7 @@ main {
 
 .profile-section {
     margin-bottom: 32px;
+    position: relative;
 }
 
 .profile-section h3 {
@@ -628,15 +629,15 @@ main {
 }
 
 .collapsible-content:not(.collapsible-content-active):has(> :nth-child(2))::after {
-    content: "...";
+    content: "... și altele";
     color: var(--muted);
 }
 
-.collapsible-content:not(.collapsible-content-active) > :not(:first-child) {
+.collapsible-content:not(.collapsible-content-active) > :nth-child(n + 3) {
     display: none;
 }
 
-.collapsible-content-active > :not(:first-child) {
+.collapsible-content-active > :nth-child(n + 3) {
     display: block;
     height: auto;
 }
