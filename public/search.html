@@ -221,6 +221,110 @@ Look into "templates" directory for changing HTML files.
 
                 </div>
 
+                <div class="filter-group">
+
+                    <label for="domeniuFilter">
+                        Domeniu activitate
+                    </label>
+
+                    <select id="domeniuFilter" onchange="component.onChangeFilter(this)">
+
+                        <option value="">
+                            Oricare
+                        </option>
+
+                        <option value="A">
+                            Agricultură, silvicultură și pescuit
+                        </option>
+
+                        <option value="B">
+                            Industria extractivă
+                        </option>
+
+                        <option value="C">
+                            Industria prelucrătoare
+                        </option>
+
+                        <option value="D">
+                            Producția și furnizarea de energie electrică și termică, gaze, apă caldă și aer condiționat
+                        </option>
+
+                        <option value="E">
+                            Distribuția apei; salubritate, gestionarea deșeurilor, activități de decontaminare
+                        </option>
+
+                        <option value="F">
+                            Construcții
+                        </option>
+
+                        <option value="G">
+                            Comerț cu ridicata și cu amănuntul
+                        </option>
+
+                        <option value="H">
+                            Transport și depozitare
+                        </option>
+
+                        <option value="I">
+                            Hoteluri și restaurante
+                        </option>
+
+                        <option value="J">
+                            Activități de editare; difuzarea de programe de radio și televiziune; activități de producție și distribuție de conținuturi
+                        </option>
+
+                        <option value="K">
+                            Telecomunicații; activități de programare și de consultanță în tehnologia informației; alte servicii informaționale
+                        </option>
+
+                        <option value="L">
+                            Intermedieri financiare și asigurări
+                        </option>
+
+                        <option value="M">
+                            Tranzacții imobiliare
+                        </option>
+
+                        <option value="N">
+                            Activități profesionale, științifice și tehnice
+                        </option>
+
+                        <option value="O">
+                            Activități de servicii administrative și activități de servicii-suport
+                        </option>
+
+                        <option value="P">
+                            Administrație publică și apărare; asigurări sociale din sistemul public
+                        </option>
+
+                        <option value="Q">
+                            Învățământ
+                        </option>
+
+                        <option value="R">
+                            Sănătate și asistență socială
+                        </option>
+
+                        <option value="S">
+                            Activități de spectacole, culturale, sportive și recreative
+                        </option>
+
+                        <option value="T">
+                            Alte activități de servicii
+                        </option>
+
+                        <option value="U">
+                            Activități ale gospodăriilor private în calitate de angajator de personal casnic; activități ale gospodăriilor private de producere de bunuri și servicii destinate consumului propriu
+                        </option>
+
+                        <option value="V">
+                            Activități ale organizațiilor și organismelor extrateritoriale
+                        </option>
+
+                    </select>
+
+                </div>
+
                 <button
                     class="reset-btn"
                     onclick="component.resetFilters()"

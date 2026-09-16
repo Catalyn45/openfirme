@@ -137,7 +137,7 @@ main {
 .filters {
     display: grid;
 
-    grid-template-columns: 3;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 
     gap: 12px 14px;
 
@@ -186,7 +186,7 @@ main {
 /* Reset button */
 
 .reset-btn {
-    grid-column: 3;
+    grid-column: 4;
     grid-row: 1;
 
     width: min-content;
@@ -343,7 +343,7 @@ main {
 
     .reset-btn {
         grid-column: 1;
-        grid-row: 5;
+        grid-row: 6;
 
         justify-self: stretch;
 

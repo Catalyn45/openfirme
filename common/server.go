@@ -150,6 +150,7 @@ func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 		judet: query.Get("judet"),
 		status: query.Get("status"),
 		formaJuridica: query.Get("forma_juridica"),
+		domeniu: query.Get("domeniu"),
 	}
 
 	numePartial := normalize(ps.ByName("nume_partial"))

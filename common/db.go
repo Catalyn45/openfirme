@@ -452,7 +452,10 @@ func (this *Repository) InitDescriereCaen() {
 		);
 
 		CREATE INDEX IF NOT EXISTS idx_descriere_caen_clasa_versiune
-		ON descriere_caen(clasa, versiune_caen);
+		ON descriere_caen(versiune_caen, clasa);
+
+		CREATE INDEX IF NOT EXISTS idx_descriere_caen_sectiunea_clasa_versiune
+		ON descriere_caen(sectiunea, versiune_caen, clasa);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -682,6 +685,7 @@ type FirmeFilters struct {
 	judet string
 	status string
 	formaJuridica string
+	domeniu string
 }
 
 type FirmeOrdering struct {
@@ -768,6 +772,17 @@ func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, pa
 				AND s.status = ?
 			) `
 			*params = append(*params, filters.status)
+		}
+
+		if filters.domeniu != "" {
+			stmt += ` AND EXISTS(
+				SELECT 1
+				FROM descriere_caen
+				WHERE descriere_caen.clasa = bilanturi.cod_caen
+				AND descriere_caen.versiune_caen = 3
+				AND descriere_caen.sectiunea = ?
+			) `
+			*params = append(*params, filters.domeniu)
 		}
 
 		stmt += "\n"
@@ -907,7 +922,21 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 			FROM firme
 			JOIN firme_search
 				ON firme.rowid = firme_search.rowid
-			WHERE 1=1 `
+			`
+
+	if filters.domeniu != "" {
+		stmt += `
+			LEFT JOIN bilanturi
+				ON bilanturi.an = (
+					SELECT MAX(b.an)
+					FROM bilanturi b
+				)
+				AND firme.cui = bilanturi.cui
+		`
+	}
+
+	stmt += `
+	WHERE 1=1 `
 
 	var ordering *FirmeOrdering = nil
 

@@ -44,6 +44,7 @@ class SearchPageBase extends Base {
         this.county = document.getElementById("countyFilter")
         this.status = document.getElementById("statusFilter")
         this.formaJuridica = document.getElementById("formaFilter")
+        this.domeniu = document.getElementById("domeniuFilter")
     }
 
 	getFilters() {
@@ -62,6 +63,10 @@ class SearchPageBase extends Base {
             params.set('forma_juridica', this.formaJuridica.value)
         }
 
+        if (this.domeniu.value) {
+            params.set('domeniu', this.domeniu.value)
+        }
+
 		return params
 	}
 
@@ -71,6 +76,7 @@ class SearchPageBase extends Base {
         this.county.value = params.get("judet") ?? this.county.value
         this.status.value = params.get("status") ?? this.status.value
         this.formaJuridica.value = params.get("forma_juridica") ?? this.formaJuridica.value
+        this.domeniu.value = params.get("domeniu") ?? this.domeniu.value
 
         return params
 	}
