@@ -166,7 +166,12 @@ class InfoPage extends Base {
 
         for (let [index, bilant] of data.BilanturiFirma.entries()) {
             if (index == 0) {
-                profileCompanyPrimaryCaen.textContent = `${bilant.Caen} - ${caenDescriere[bilant.Caen]}`
+                profileCompanyPrimaryCaen.textContent = bilant.Caen
+
+                let descriere = caenDescriere[bilant.Caen]
+                if (descriere) {
+                    profileCompanyPrimaryCaen.textContent += ` - ${caenDescriere[bilant.Caen]}`
+                }
             }
 
             financiarAn.textContent = bilant.An
