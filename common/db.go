@@ -900,7 +900,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 				firme.data_inmatriculare,
 				firme.judet,
 				(
-					SELECT GROUP_CONCAT(s.status, ',')
+					SELECT GROUP_CONCAT(s.status, '^')
 					FROM stari s
 					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
 				) AS statuses
@@ -937,7 +937,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 		}
 
 		if statuses.Valid {
-			infoFirma.Statusuri = strings.Split(statuses.String, ",")
+			infoFirma.Statusuri = strings.Split(statuses.String, "^")
 		}
 
 		result.Data = append(result.Data, &infoFirma)
@@ -974,7 +974,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 				firme.data_inmatriculare,
 				firme.judet,
 				(
-					SELECT GROUP_CONCAT(s.status, ',')
+					SELECT GROUP_CONCAT(s.status, '^')
 					FROM stari s
 					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
 				) AS statuses,
@@ -1026,7 +1026,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 		}
 
 		if statuses.Valid {
-			infoFirma.Statusuri = strings.Split(statuses.String, ",")
+			infoFirma.Statusuri = strings.Split(statuses.String, "^")
 		}
 
 		result.Data = append(result.Data, &infoFirma)
@@ -1209,7 +1209,7 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 			firme.data_inmatriculare,
 			firme.judet,
 			(
-				SELECT GROUP_CONCAT(s.status, ',')
+				SELECT GROUP_CONCAT(s.status, '^')
 				FROM stari s
 				WHERE s.cod_inmatriculare = firme.cod_inmatriculare
 			) AS statuses
@@ -1243,7 +1243,7 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 		}
 
 		if statuses.Valid {
-			infoFirma.Statusuri = strings.Split(statuses.String, ",")
+			infoFirma.Statusuri = strings.Split(statuses.String, "^")
 		}
 
 		result.Data = append(result.Data, &infoFirma)
