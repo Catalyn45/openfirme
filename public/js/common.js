@@ -59,17 +59,17 @@ async function copyContentToClipboard(button) {
 	if (target === undefined)
 		return
 
-	let success = await setClipboard(target.innerText)
+	let success = await setClipboard(target.textContent)
 
     if (!success)
         return
 
-    let originalText = button.innerText
-    button.innerText = "Copiat"
+    let originalText = button.textContent
+    button.textContent = "Copiat"
     button.classList.add("content-copy-button-success")
 
     setTimeout(() => {
-        button.innerText = originalText
+        button.textContent = originalText
         button.classList.remove("content-copy-button-success")
     }, 500)
 
@@ -90,4 +90,27 @@ async function setClipboard(text) {
         console.error("Clipboard write failed:", error);
         return false;
     }
+}
+
+const LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_SHOW = "+ Extinde"
+const LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_HIDE = "- Ascunde"
+
+async function toggleCollapsibleContent(button) {
+	let targetId = button.dataset.target
+
+	if (targetId === undefined)
+		return
+
+	let target = document.getElementById(targetId)
+
+	if (target === undefined)
+		return
+
+	if (target.classList.contains("collapsible-content-active"))
+        button.textContent = LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_SHOW
+    else
+        button.textContent = LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_HIDE
+    
+
+    target.classList.toggle("collapsible-content-active")
 }

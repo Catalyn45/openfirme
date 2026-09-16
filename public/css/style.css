@@ -609,6 +609,38 @@ main {
     color: green!important;
 }
 
+.expand-content-button {
+    border: 1px solid var(--primary);
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-size: 11px;
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    color: var(--primary);
+    background: none;
+    cursor: pointer;
+}
+
+.collapsible-content {
+    height: auto;
+    animation: height 1s ease-out;
+}
+
+.collapsible-content:not(.collapsible-content-active):has(> :nth-child(2))::after {
+    content: "...";
+    color: var(--muted);
+}
+
+.collapsible-content:not(.collapsible-content-active) > :not(:first-child) {
+    display: none;
+}
+
+.collapsible-content-active > :not(:first-child) {
+    display: block;
+    height: auto;
+}
+
 .source {
     font-size: 12px;
     color: var(--muted);
