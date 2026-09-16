@@ -41,6 +41,22 @@ func newCache() *Cache {
 	}
 }
 
+func (self *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Duration) bool {
+	value := r.Header.Get("If-Modified-Since")
+	if value == "" {
+		return false
+	}
+
+	t, err := http.ParseTime(value)
+	if err != nil {
+		return false
+	}
+
+	age := time.Since(t)
+
+	return age >= 0 && age < expiration
+}
+
 func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
 	if !self.active {
 		handler(w, r)
@@ -52,7 +68,17 @@ func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 	var cachedWriter *CachedResponseWriter
 	if found {
 		fmt.Println("cache hit: ", key)
-		cachedWriter = cached.(*CachedResponseWriter)
+
+		if self.clientAlreadyHaveData(r, expiration) {
+			fmt.Println("client already have data")
+
+			cachedWriter = &CachedResponseWriter{
+				header: make(http.Header),
+				status: 304,
+			}
+		} else {
+			cachedWriter = cached.(*CachedResponseWriter)
+		}
 	} else {
 		fmt.Println("cache miss, adding ", key, " for duration: ", expiration.Minutes())
 
@@ -63,7 +89,10 @@ func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 
 		handler(cachedWriter, r)
 
-		self.c.Set(key, cachedWriter, expiration)
+		// don't save in cache if the response is 3XX
+		if cachedWriter.status < 300 || cachedWriter.status >= 400 {
+			self.c.Set(key, cachedWriter, expiration)
+		}
 	}
 
 	cachedWriter.Header().Set("Cache-Control", "public, max-age=60")
