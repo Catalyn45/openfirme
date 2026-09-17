@@ -89,7 +89,7 @@ class DosareSearchPage extends SearchPageBase {
         this.companyName.textContent = data.Obiect
 		this.companyJudet.textContent = data.CategorieCazNume
 		this.companyTip.textContent = data.Numar
-		this.companyCui.textContent = data.Institutie
+		this.companyCui.textContent = normalizeJudecatorie(data.Institutie)
 		this.companyInregistrare.textContent = data.Departament
 		this.companyDate.textContent = formatDateDosare(data.Data)
 		this.companyStatus.textContent = data.StadiuProcesualNume

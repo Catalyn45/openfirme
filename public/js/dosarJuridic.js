@@ -19,7 +19,6 @@ class InfoDosarJuridicPage extends Base {
         this.calitatePartePrototypeValue = document.getElementById("calitatePartePrototypeValue")
         this.numePartePrototypeClipboardButton = document.getElementById("numePartePrototypeClipboardButton")
         this.calitatePartePrototypeClipboardButton = document.getElementById("calitatePartePrototypeClipboardButton")
-        
 
         this.portalJustButton = document.getElementsByClassName("view-button")[0]
     }
@@ -32,7 +31,7 @@ class InfoDosarJuridicPage extends Base {
         this.profileNumarDosar.textContent = data.Numar
         this.profileObiect.textContent = data.Obiect
         this.profileCategorie.textContent = data.CategorieCazNume
-        this.profileTribunal.textContent = data.Institutie
+        this.profileTribunal.textContent = normalizeJudecatorie(data.Institutie)
         this.profileDepartament.textContent = data.Departament
         this.profileData.textContent = formatDateDosare(data.Data)
         this.profileStadiuProcesual.textContent = data.StadiuProcesualNume
@@ -40,10 +39,10 @@ class InfoDosarJuridicPage extends Base {
         let indexParte = 0
         let numeParteId = this.numePartePrototypeValue.getAttribute("id")
         let calitateParteId = this.calitatePartePrototypeValue.getAttribute("id")
-        
+
         this.numePartePrototypeClipboardButton.removeAttribute("id")
         this.calitatePartePrototypeClipboardButton.removeAttribute("id")
-        
+
         for (let parte of data.Parti.DosareParte) {
             console.log(parte)
 
