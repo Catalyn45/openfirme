@@ -712,10 +712,6 @@ type InfoFirmeResult struct {
 }
 
 func (this *Repository) mapSortFiled(sortBy string) string {
-	if sortBy == "infiintare" {
-		return "firme.data_inmatriculare"
-	}
-
 	if sortBy == "profit" {
 		return "bilanturi.profit_net"
 	}
@@ -986,62 +982,40 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 
 func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
 	if filters.formaJuridica != "" &&
-		!slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) &&
-		ordering.sortBy != "infiintare" {
+		!slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) {
 		return &InfoFirmeResult {
 			Count: 0,
 			Data: []*InfoFirmaLight{},
 		}
 	}
 
-	fields := `
+	stmt := `
 			SELECT
-				firme.denumire,
-				firme.cod_inmatriculare,
-				firme.forma_juridica,
-				firme.cui,
-				firme.data_inmatriculare,
-				firme.judet,
-				(
-					SELECT GROUP_CONCAT(s.status, '^')
-					FROM stari s
-					WHERE s.cod_inmatriculare = firme.cod_inmatriculare
-				) AS statuses,
-		 		bilanturi.cifra_afaceri,
-		 		bilanturi.profit_net,
-		 		bilanturi.numar_mediu_salariati
-			`
-
-	dataInmatriculareOrderEfficientStmt := fields + `
-			FROM firme
-			LEFT JOIN bilanturi
-				ON bilanturi.an = (
-					SELECT MAX(b.an)
-					FROM bilanturi b
-				)
-				AND firme.cui = bilanturi.cui
-			WHERE 1=1
-	`
-
-	bilanturiEfficientStmt := fields + `
+			firme.denumire,
+			firme.cod_inmatriculare,
+			firme.forma_juridica,
+			firme.cui,
+			firme.data_inmatriculare,
+			firme.judet,
+			(
+				SELECT GROUP_CONCAT(s.status, '^')
+				FROM stari s
+				WHERE s.cod_inmatriculare = firme.cod_inmatriculare
+			) AS statuses,
+			bilanturi.cifra_afaceri,
+			bilanturi.profit_net,
+			bilanturi.numar_mediu_salariati
 			FROM bilanturi
 			RIGHT JOIN firme
 				ON firme.cui = bilanturi.cui
 			WHERE bilanturi.an = (
-					SELECT MAX(b.an)
-					FROM bilanturi b
-				)
-	`
-
-	var stmt string
-	if ordering.sortBy == "infiintare" {
-		stmt = dataInmatriculareOrderEfficientStmt
-	} else {
-		stmt = bilanturiEfficientStmt
-	}
+				SELECT MAX(b.an)
+				FROM bilanturi b
+			)
+		`
 
 	result := &InfoFirmeResult {
-		Count: this.getCount(dataInmatriculareOrderEfficientStmt, nil, filters, nil),
+		Count: this.getCount(stmt, nil, filters, nil),
 		Data: []*InfoFirmaLight{},
 	}
 
