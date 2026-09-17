@@ -92,8 +92,8 @@ async function setClipboard(text) {
     }
 }
 
-const LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_SHOW = "+ Extinde"
-const LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_HIDE = "- Ascunde"
+const LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_SHOW = "Arată mai mult"
+const LABEL_TOGGLE_COLLAPSIBLE_CONTENT_BUTTON_HIDE = "Arată mai puțin"
 
 async function toggleCollapsibleContent(button) {
 	let targetId = button.dataset.target

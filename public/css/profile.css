@@ -1,3 +1,16 @@
 main {
 	max-width: 1500px;
 }
+
+.collapsible-content {
+    height: auto;
+    animation: height 1s ease-out;
+}
+
+.collapsible-content:not(.collapsible-content-active) > :nth-child(n + 3) {
+    display: none;
+}
+.collapsible-content-active > :nth-child(n + 3) {
+    display: block;
+    height: auto;
+}

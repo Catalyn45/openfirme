@@ -611,35 +611,17 @@ main {
 }
 
 .expand-content-button {
-    border: 1px solid var(--primary);
-    border-radius: 5px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    text-decoration: underline;
     padding: 2px 7px;
     font-size: 14px;
-    position: absolute;
     right: 14px;
     top: 14px;
     color: var(--primary);
-    background: #eff6ff;
     cursor: pointer;
-}
-
-.collapsible-content {
-    height: auto;
-    animation: height 1s ease-out;
-}
-
-.collapsible-content:not(.collapsible-content-active):has(> :nth-child(2))::after {
-    content: "... și altele";
-    color: var(--muted);
-}
-
-.collapsible-content:not(.collapsible-content-active) > :nth-child(n + 3) {
     display: none;
-}
-
-.collapsible-content-active > :nth-child(n + 3) {
-    display: block;
-    height: auto;
 }
 
 .source {

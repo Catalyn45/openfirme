@@ -5,6 +5,8 @@ class InfoDosarJuridicPage extends Base {
         this.numarDosar = window.location.pathname.split('/').at(-1)
         this.inregistrare = window.location.pathname.split('/').at(-2)
 
+        this.expandContentButton = document.getElementsByClassName("expand-content-button")[0]
+
         this.profileNumarDosar = document.getElementById("profileNumarDosar")
         this.profileObiect = document.getElementById("profileObiect")
         this.profileCategorie = document.getElementById("profileCategorie")
@@ -42,6 +44,10 @@ class InfoDosarJuridicPage extends Base {
 
         this.numePartePrototypeClipboardButton.removeAttribute("id")
         this.calitatePartePrototypeClipboardButton.removeAttribute("id")
+
+        if (data.Parti.DosareParte.length > 4) {
+            this.expandContentButton.style.display = "block"
+        }
 
         for (let parte of data.Parti.DosareParte) {
             console.log(parte)

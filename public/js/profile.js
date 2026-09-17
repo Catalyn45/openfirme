@@ -39,6 +39,7 @@ class InfoPage extends Base {
         this.inregistrare = window.location.pathname.split('/').pop();
 
 		this.veziDosareButton = document.getElementsByClassName("view-button")[0]
+        this.expandContentButton = document.getElementsByClassName("expand-content-button")[0]
 
         this.profileName = document.getElementById("profileName")
         this.profileCompanyName = document.getElementById("profileCompanyName")
@@ -88,6 +89,10 @@ class InfoPage extends Base {
 
         setValueIfExist(this.profileCompanyAdresa, createAddress(data))
         setValueIfExist(this.profileCompanyCodPostal, data.CodPostal)
+
+        if (data.CoduriCaen?.length > 2) {
+            this.expandContentButton.style.display = "block"
+        }
 
         let caenDescriere = {}
         for (let codCaen of data.CoduriCaen ?? []) {
