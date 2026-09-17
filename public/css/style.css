@@ -595,13 +595,13 @@ main {
     display: none;
     border: 1px solid var(--primary);
     border-radius: 5px;
-    padding: 2px 5px;
-    font-size: 11px;
+    padding: 2px 7px;
+    font-size: 14px;
     position: absolute;
     right: 14px;
     top: 14px;
     color: var(--primary);
-    background: none;
+    background: #eff6ff;
     cursor: pointer;
 }
 
@@ -613,13 +613,13 @@ main {
 .expand-content-button {
     border: 1px solid var(--primary);
     border-radius: 5px;
-    padding: 2px 5px;
-    font-size: 11px;
+    padding: 2px 7px;
+    font-size: 14px;
     position: absolute;
     right: 14px;
     top: 14px;
     color: var(--primary);
-    background: none;
+    background: #eff6ff;
     cursor: pointer;
 }
 
