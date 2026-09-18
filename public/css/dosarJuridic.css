@@ -1,8 +1,8 @@
-.collapsible-content:not(.collapsible-content-active) > * {
+.collapsible-content:not(.collapsible-content-active) > :nth-child(n + 3) {
     display: unset;
 }
-.collapsible-content > * {
-    height: unset;
+.collapsible-content-active > :nth-child(n + 3) {
+    height: unset
 }
 
 .collapsible-content:not(.collapsible-content-active) > :nth-child(n + 5) {
