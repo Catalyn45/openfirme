@@ -45,7 +45,7 @@ class InfoDosarJuridicPage extends Base {
         this.numePartePrototypeClipboardButton.removeAttribute("id")
         this.calitatePartePrototypeClipboardButton.removeAttribute("id")
 
-        if (data.Parti.DosareParte.length > 4) {
+        if (data.Parti.DosareParte.length > 2) {
             this.expandContentButton.style.display = "block"
         }
 
