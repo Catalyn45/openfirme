@@ -653,14 +653,10 @@ footer {
 ========================= */
 
 @media (max-width: 900px) {
-
     .layout {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    /*
-       Disable sticky sidebar on tablet/mobile.
-    */
     .sidebar {
         position: static;
     }
@@ -669,14 +665,30 @@ footer {
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .info-item {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        align-items: baseline;
+        column-gap: 6px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .info-item small {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .info-item strong {
+        white-space: normal;
+    }
+
     .hero h1 {
         font-size: 36px;
     }
 }
 
-
 @media (max-width: 600px) {
-
     header {
         padding: 0 20px;
     }
@@ -701,6 +713,24 @@ footer {
     .company-info,
     .profile-grid {
         grid-template-columns: 1fr;
+    }
+
+    .info-item {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        align-items: baseline;
+        column-gap: 6px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .info-item small {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .info-item strong {
+        white-space: normal;
     }
 
     .company-top {
