@@ -657,6 +657,10 @@ footer {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    .modal-body {
+        padding: 10px;
+    }
+
     .sidebar {
         position: static;
     }
@@ -685,6 +689,10 @@ footer {
 
     .hero h1 {
         font-size: 36px;
+    }
+
+    .view-button {
+        padding: 9px 70px;
     }
 }
 
