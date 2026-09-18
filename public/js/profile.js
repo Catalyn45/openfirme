@@ -41,6 +41,8 @@ class InfoPage extends Base {
 		this.veziDosareButton = document.getElementsByClassName("view-button")[0]
         this.expandContentButton = document.getElementsByClassName("expand-content-button")[0]
 
+        this.lastUpdated = document.getElementById("lastUpdated")
+
         this.profileName = document.getElementById("profileName")
         this.profileCompanyName = document.getElementById("profileCompanyName")
         this.profileCompanyCui = document.getElementById("profileCompanyCui")
@@ -63,6 +65,8 @@ class InfoPage extends Base {
 
     populatePage(data) {
         this.veziDosareButton.href = `/dosareJuridice/${this.inregistrare}/1?nume_firma=${data.Nume}`
+
+        this.lastUpdated.textContent = data.UpdatedDate.replaceAll("-", "/")
 
         this.profileName.textContent = data.Nume
         this.profileCompanyName.textContent = data.Nume

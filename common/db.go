@@ -1048,6 +1048,7 @@ func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrderi
 }
 
 type InfoFirma struct {
+	UpdatedDate string
 	Nume string
 	CodInmatriculare string
 	Euid string
@@ -1085,6 +1086,11 @@ type BilantFirma struct {
 
 func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 	stmt := `SELECT
+				(
+					SELECT dataset
+					FROM METADATA
+					WHERE tablename = 'firme'
+				) as dataset,
 				firme.denumire,
 				firme.cod_inmatriculare,
 				firme.euid,
@@ -1129,11 +1135,14 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 		var reprezentanti sql.NullString
 		var coduriCaen sql.NullString
 		var statuses sql.NullString
+		var dataset string
 
-		err := rows.Scan(&infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva)
+		err := rows.Scan(&dataset, &infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva)
 		if err != nil {
 			panic(err)
 		}
+
+		infoFirma.UpdatedDate = dataset[6:16]
 
 		if reprezentanti.Valid {
 			infoFirma.Reprezentanti = strings.Split(reprezentanti.String, "@")
