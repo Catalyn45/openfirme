@@ -6,10 +6,7 @@ import (
 )
 
 func main() {
-	repository := common.NewRepository("./foo.db")
-	repository.Init()
-
-	parser := common.NewParser("./data", repository)
+	parser := common.NewParser()
 	parser.Parse()
 
 	fmt.Println("Finished")

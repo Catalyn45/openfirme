@@ -17,32 +17,33 @@ Look into "templates" directory for changing HTML files.
 `
 
 type Generator struct {
-	outputDir    string
-	templatesDir string
+	config *WebsiteGeneratorConfig
 }
 
-func NewGenerator(templatesDir string, outputDir string) *Generator {
+func NewGenerator() *Generator {
 	return &Generator{
-		outputDir:    outputDir,
-		templatesDir: templatesDir,
+		config: &config.WebsiteGeneratorConfig,
 	}
 }
 
 func (this *Generator) Generate() {
-	_, err := os.Stat(this.templatesDir)
+	if !this.config.Enabled {
+		return
+	}
+
+	_, err := os.Stat(this.config.TemplatesDirectory)
 	if err != nil {
 		return
 	}
 
-	os.Mkdir(this.outputDir, 0755)
+	os.Mkdir(this.config.OutputDirectory, 0755)
 
-
-	partials, err := template.ParseGlob(this.templatesDir +  "/partials/*.html")
+	partials, err := template.ParseGlob(this.config.TemplatesDirectory +  "/partials/*.html")
 	if err != nil {
 		panic(err)
 	}
 
-	entries, err := os.ReadDir(this.templatesDir)
+	entries, err := os.ReadDir(this.config.TemplatesDirectory)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +53,7 @@ func (this *Generator) Generate() {
 			continue
 		}
 
-		f, err := os.Create(filepath.Join(this.outputDir, entry.Name()))
+		f, err := os.Create(filepath.Join(this.config.OutputDirectory, entry.Name()))
 		if err != nil {
 			panic(err)
 		}
@@ -64,7 +65,7 @@ func (this *Generator) Generate() {
 			panic(err)
 		}
 
-	   _, err = templ.ParseFiles(filepath.Join(this.templatesDir, entry.Name()))
+	   _, err = templ.ParseFiles(filepath.Join(this.config.TemplatesDirectory, entry.Name()))
 		if err != nil {
 			panic(err)
 		}

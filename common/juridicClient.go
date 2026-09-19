@@ -16,7 +16,7 @@ type JuridicClient struct {
 func NewJuridicClient() *JuridicClient {
 	return &JuridicClient{
 		httpClient: &http.Client{
-			Timeout: 20 * time.Second,
+			Timeout: time.Duration(config.DosareJuridiceClientConfig.RequstTimeoutInSeconds) * time.Second,
 		},
 	}
 }

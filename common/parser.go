@@ -9,20 +9,19 @@ import (
 )
 
 type Parser struct {
-	dataDirectory string
-	repository *Repository
 	metadata map[string]string
+
+	repository *Repository
 }
 
-func NewParser(dataDirectory string, repository *Repository) *Parser {
+func NewParser() *Parser {
 	return &Parser{
-		dataDirectory: dataDirectory,
-		repository: repository,
+		repository: NewRepository(config.DBFilePath),
 	}
 }
 
 func (this *Parser) parseFirme() []map[string]string {
-	return readData(filepath.Join(this.dataDirectory, "od_firme.csv"))
+	return readData(filepath.Join(config.DataDirectory, "od_firme.csv"))
 }
 
 func (this *Parser) getFirmeDataset() string {
@@ -30,7 +29,7 @@ func (this *Parser) getFirmeDataset() string {
 }
 
 func (this *Parser) parseReprezentanti() []map[string]string {
-	return readData(filepath.Join(this.dataDirectory, "od_reprezentanti_legali.csv"))
+	return readData(filepath.Join(config.DataDirectory, "od_reprezentanti_legali.csv"))
 }
 
 func (this *Parser) getReprezentantiDataset() string {
@@ -45,9 +44,9 @@ func (this *Parser) resolveStariNomenclatura(dataset []map[string]string, nomenc
 }
 
 func (this *Parser) parseStari() []map[string]string {
-	data := readData(filepath.Join(this.dataDirectory, "od_stare_firma.csv"))
+	data := readData(filepath.Join(config.DataDirectory, "od_stare_firma.csv"))
 
-	nomenclatura := readData(filepath.Join(this.dataDirectory, "n_stare_firma.csv"))
+	nomenclatura := readData(filepath.Join(config.DataDirectory, "n_stare_firma.csv"))
 	this.resolveStariNomenclatura(data, nomenclatura)
 
 	return data
@@ -58,7 +57,7 @@ func (this *Parser) getStariDataset() string {
 }
 
 func (this *Parser) parseCaen() []map[string]string {
-	return readData(filepath.Join(this.dataDirectory, "od_caen_autorizat.csv"))
+	return readData(filepath.Join(config.DataDirectory, "od_caen_autorizat.csv"))
 }
 
 func (this *Parser) getCaenDataset() string {
@@ -66,7 +65,7 @@ func (this *Parser) getCaenDataset() string {
 }
 
 func (this *Parser) parseDescriereCaen() []map[string]string {
-	return readData(filepath.Join(this.dataDirectory, "n_caen.csv"))
+	return readData(filepath.Join(config.DataDirectory, "n_caen.csv"))
 }
 
 func (this *Parser) getDescriereCaenDataset() string {
@@ -74,7 +73,7 @@ func (this *Parser) getDescriereCaenDataset() string {
 }
 
 func (this *Parser) parseBilantSimplu(an int) ([]map[string]int, bool) {
-	filePath := filepath.Join(this.dataDirectory, "web_bl_bs_sl_an" + strconv.Itoa(an) + ".txt")
+	filePath := filepath.Join(config.DataDirectory, "web_bl_bs_sl_an" + strconv.Itoa(an) + ".txt")
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return nil, false
@@ -96,7 +95,7 @@ func (this *Parser) parseUU(an int) ([]map[string]int, bool) {
 		baseFileName += "an"
 	}
 
-	filePath := filepath.Join(this.dataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
+	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return nil, false
@@ -118,7 +117,7 @@ func (this *Parser) parseIR(an int) ([]map[string]int, bool) {
 		return []map[string]int{}, true
 	}
 
-	filePath := filepath.Join(this.dataDirectory, "web_ir_an" + strconv.Itoa(an) + ".txt")
+	filePath := filepath.Join(config.DataDirectory, "web_ir_an" + strconv.Itoa(an) + ".txt")
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return nil, false
@@ -159,7 +158,7 @@ func (this *Parser) parseSituatiiFinanciare(an int) ([]map[string]int, bool) {
 }
 
 func (this *Parser) parseDateIdentificare() []map[string]string {
-	return readData(filepath.Join(this.dataDirectory, "od_dateidentificare.txt"))
+	return readData(filepath.Join(config.DataDirectory, "od_dateidentificare.txt"))
 }
 
 func (this *Parser) getDateIdentificareDataset() string {
@@ -167,7 +166,9 @@ func (this *Parser) getDateIdentificareDataset() string {
 }
 
 func (this *Parser) Parse() {
-	this.metadata = readMetadata(filepath.Join(this.dataDirectory, "metadata.json"))
+	this.repository.Init()
+
+	this.metadata = readMetadata(filepath.Join(config.DataDirectory, "metadata.json"))
 
 	datasetName := this.getFirmeDataset()
 	if !this.repository.IsFirmeOnDataset(datasetName) {

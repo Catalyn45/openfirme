@@ -15,14 +15,12 @@ import (
 
 type Downloader struct {
 	url string
-	outputDir string
 	metadata map[string]string
 }
 
-func NewDownloader(url string, outputDir string) *Downloader {
+func NewDownloader() *Downloader {
 	return &Downloader{
-		url: url,
-		outputDir: outputDir,
+		url: "https://data.gov.ro/api/3/action",
 	}
 }
 
@@ -52,12 +50,12 @@ func (this *Downloader) getJson(url string) map[string]any {
 }
 
 func (this *Downloader) getMetadata() map[string]string {
-	metadataPath := filepath.Join(this.outputDir, "metadata.json")
+	metadataPath := filepath.Join(config.DataDirectory, "metadata.json")
 	return readMetadata(metadataPath)
 }
 
 func (this *Downloader) saveMetadata(obj map[string]string) {
-	metadataPath := filepath.Join(this.outputDir, "metadata.json")
+	metadataPath := filepath.Join(config.DataDirectory, "metadata.json")
 	saveMetadata(obj, metadataPath)
 }
 
@@ -171,7 +169,7 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 }
 
 func (this *Downloader) downloadFile(url string, fileName string, recreate bool) {
-	filePath := this.outputDir + "/" + fileName
+	filePath := filepath.Join(config.DataDirectory, fileName)
 
 	flags := os.O_WRONLY|os.O_CREATE
 	if recreate {
@@ -278,7 +276,7 @@ func (this *Downloader) DownloadData() {
 		[]string{ "date_identificare_platitori_", ".txt" },
 	})
 
-	os.Mkdir(this.outputDir, 0755)
+	os.Mkdir(config.DataDirectory, 0755)
 
 	this.downloadResources(firme, firmeResources, false)
 	this.downloadResources(nomenclatoare, nomenclatoareResources, false)

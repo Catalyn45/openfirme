@@ -31,13 +31,17 @@ func (w *CachedResponseWriter) Write(p []byte) (int, error) {
 
 type Cache struct {
 	c *cache.Cache
-	active bool
+	config *CacheConfig
 }
 
 func newCache() *Cache {
+	config := &config.CacheConfig
 	return &Cache{
-		c: cache.New(20*time.Minute, 10*time.Minute),
-		active: true,
+		c: cache.New(
+			time.Duration(config.DefaultCacheTimeInMinutes) * time.Minute,
+			time.Duration(config.CleanupCacheIntervalTimeInMinutes) * time.Minute,
+		),
+		config: config,
 	}
 }
 
@@ -58,7 +62,7 @@ func (self *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Durati
 }
 
 func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
-	if !self.active {
+	if !self.config.Enabled {
 		handler(w, r)
 		return
 	}
@@ -119,7 +123,11 @@ func (self *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found 
 }
 
 func (self *Cache) SetForJuridic(numarInmatriculare string, dosare []Dosar) {
-	self.c.Set(portalQuery + numarInmatriculare, dosare, 20 * time.Minute)
+	self.c.Set(
+		portalQuery + numarInmatriculare,
+		dosare,
+		time.Duration(self.config.DosareJuridiceCacheTimeInMinutes) * time.Minute,
+	)
 }
 
 func (self *Cache) HtmlCache(handler http.Handler) http.Handler {
@@ -161,7 +169,12 @@ func (self *Cache) ApiPagedSearchCache(handler httprouter.Handle) httprouter.Han
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		pageNumber := float64(getPageNumber(params))
 
-		expiration := self.calculateExpirationForPage(pageNumber, 5, 10)
+		expiration := self.calculateExpirationForPage(
+			pageNumber,
+			float64(self.config.MinSearchCacheTimeInMinutes),
+			float64(self.config.MaxSearchCacheTimeInMinutes),
+		)
+
 		self.apiCache(handler, w, r, params, expiration)
 	}
 }
@@ -170,7 +183,12 @@ func (self *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		pageNumber := float64(getPageNumber(params))
 
-		expiration := self.calculateExpirationForPage(pageNumber, 20, 40)
+		expiration := self.calculateExpirationForPage(
+			pageNumber,
+			float64(self.config.MinPagedCacheTimeInMinutes),
+			float64(self.config.MaxPagedCacheTimeInMinutes),
+		)
+
 		self.apiCache(handler, w, r, params, expiration)
 	}
 }

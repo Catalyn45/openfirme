@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 	"runtime/debug"
 	"slices"
 	"sort"
@@ -18,19 +19,17 @@ import (
 )
 
 type Server struct {
-	host string
-	port int
+	config *ServerConfig
 
 	repository *Repository
 	cache *Cache
 	juridicClient *JuridicClient
 }
 
-func NewServer(host string, port int, repository *Repository) *Server {
+func NewServer() *Server {
 	return &Server {
-		host: host,
-		port: port,
-		repository: repository,
+		config: &config.ServerConfig,
+		repository: NewRepository("file:" + config.DBFilePath + "?mode=ro"),
 		cache: newCache(),
 		juridicClient: NewJuridicClient(),
 	}
@@ -39,33 +38,33 @@ func NewServer(host string, port int, repository *Repository) *Server {
 func (self *Server) Start() {
 	router := httprouter.New()
 
-	static := self.cache.HtmlCache(http.FileServer(http.Dir("./public")))
+	static := self.cache.HtmlCache(http.FileServer(http.Dir(self.config.PublicDirectory)))
 
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
-	router.GET("/", self.serveHtmlFunc("./public/index.html"))
+	router.GET("/", self.serveHtmlFunc("index.html"))
 
-	router.GET("/search/:nume_partial/:page_number", self.serveHtmlFunc("./public/search.html"))
+	router.GET("/search/:nume_partial/:page_number", self.serveHtmlFunc("search.html"))
 	router.GET("/api/search/:nume_partial/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
 
-	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("./public/profile.html"))
+	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("profile.html"))
 	router.GET("/api/profile/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
 
-	router.GET("/top/:page_number", self.serveHtmlFunc("./public/topfirme.html"))
+	router.GET("/top/:page_number", self.serveHtmlFunc("topfirme.html"))
 	router.GET("/api/top/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
 
-	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("./public/administratori.html"))
+	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("administratori.html"))
 	router.GET("/api/admins/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
 
-	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("./public/dosareJuridice.html"))
+	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("dosareJuridice.html"))
 	router.GET("/api/dosareJuridice/:cod_inmatriculare/:page_number", self.cache.ApiPagedCache(self.getDosareJuridiceFirma))
 
-	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("./public/dosarJuridic.html"))
+	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("dosarJuridic.html"))
 	router.GET("/api/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.cache.DefaultApiCache(self.getDosarJuridicFirma))
 
-	router.GET("/error", self.serveHtmlFunc("./public/errorPage.html"))
-	router.GET("/descarca", self.serveHtmlFunc("./public/descarca.html"))
-	router.GET("/despre", self.serveHtmlFunc("./public/despre.html"))
+	router.GET("/error", self.serveHtmlFunc("errorPage.html"))
+	router.GET("/descarca", self.serveHtmlFunc("descarca.html"))
+	router.GET("/despre", self.serveHtmlFunc("despre.html"))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
 		err, ok := p.(error)
@@ -80,7 +79,7 @@ func (self *Server) Start() {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 
-	addr := net.JoinHostPort(self.host, strconv.Itoa(self.port))
+	addr := net.JoinHostPort(self.config.Host, strconv.Itoa(self.config.Port))
 
 	server := &http.Server{
 		Addr:    addr,
@@ -88,7 +87,7 @@ func (self *Server) Start() {
 	}
 
 	fmt.Println("Starting server...")
-	fmt.Printf("Go to http://%s:%d in your browser.\n", self.host, self.port)
+	fmt.Printf("Go to http://%s:%d in your browser.\n", self.config.Host, self.config.Port)
 	fmt.Println("Do not close the window.")
 	err := server.ListenAndServe()
 	if err != nil {
@@ -103,6 +102,8 @@ func (self *Server) returnSuccess(w http.ResponseWriter, content any) {
 }
 
 func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	path = filepath.Join(self.config.PublicDirectory, path)
+
 	servFunc := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.ServeFile(w, r, path)
 	}

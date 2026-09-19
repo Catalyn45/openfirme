@@ -13,7 +13,7 @@ import (
 )
 
 type Repository struct {
-	dbPath string
+	config *DBConfig
 	db     *sql.DB
 }
 
@@ -24,7 +24,7 @@ func NewRepository(dbPath string) *Repository {
 	}
 
 	return &Repository{
-		dbPath: dbPath,
+		config: &config.DBConfig,
 		db:     db,
 	}
 }
@@ -856,7 +856,7 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 	if opt != nil && opt.timeout != nil {
 		timeout = *opt.timeout
 	} else {
-		timeout = 15 * time.Second
+		timeout = time.Duration(this.config.DefaultTimeoutInSeconds) * time.Second
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -942,7 +942,7 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 			sortOrder: "asc",
 		}
 	}
-	timeout := 10 * time.Second
+	timeout := time.Duration(this.config.SearchFirmeTimeoutInSeconds) * time.Second
 	opt := &QueryOptions {
 		timeout: &timeout,
 	}

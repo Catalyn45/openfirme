@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	downloader := common.NewDownloader("https://data.gov.ro/api/3/action", "./data")
+	downloader := common.NewDownloader()
 	downloader.DownloadData()
 
 	fmt.Println("Finished")
