@@ -1,0 +1,141 @@
+{{ template "base.html" }}
+
+{{ define "styles"}}
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/administratori.css">
+{{ end }}
+
+
+{{ define "scripts" }}
+{{ end }}
+
+{{ define "sorting" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "filters" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "sidebar" }}
+    {{ template "sidebar.html" }}
+{{ end }}
+
+
+{{ define "content" }}
+<section>
+
+    <!-- ====================================================
+        MODAL / COMPANY PROFILE
+        ==================================================== -->
+
+        <div class="modal" id="profileModal" >
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h2 id="profileCompanyName">
+                        Despre proiect
+                    </h2>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- IDENTIFICATION -->
+
+                    <div class="profile-section">
+
+                        <h3>
+                            Proiectul este open source și este hostat pe Github
+                        </h3>
+
+                        <div class="profile-grid">
+
+                            <div class="profile-field">
+                                <a href="https://github.com/Catalyn45/openfirme">
+                                    https://github.com/Catalyn45/openfirme
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+
+                        <h3>
+                            Datele sunt preluate din următoarele surse
+                        </h3>
+
+                        <div class="profile-grid">
+
+                            <div class="profile-field">
+                                <small>
+                                    Oficiul Național al Registrului Comerțului
+                                </small>
+
+                                <a href="https://data.gov.ro/organization/onrc">
+                                    https://data.gov.ro/organization/onrc
+                                </a>
+                            </div>
+
+                            <div class="profile-field">
+
+                                <small>
+                                        Ministerul Finanțelor Publice
+                                </small>
+
+                                <a href="https://data.gov.ro/organization/mfp">
+                                    https://data.gov.ro/organization/mfp
+                                </a>
+                            </div>
+
+                            <div class="profile-field">
+                                <small>
+                                        Ministerul Justiției
+                                </small>
+
+                                <a href="https://portal.just.ro">
+                                    https://portal.just.ro
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+
+                        <h3>
+                            Creatorul proiectului
+                        </h3>
+
+                        <div class="profile-grid">
+
+                            <div class="profile-field">
+                                <a href="https://www.linkedin.com/in/c%C4%83t%C4%83lin-iulian-ancu%C8%9Bei-189096193">
+                                    Cătălin-Iulian Ancuței
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+
+                        <h3>
+                            Contributori
+                        </h3>
+
+                        <div class="profile-grid">
+
+                            <div class="profile-field">
+                                <a href="https://www.linkedin.com/in/geovoda/">
+                                    Georgian Vodă
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</section>
+{{ end }}

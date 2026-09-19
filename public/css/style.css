@@ -694,6 +694,11 @@ footer {
     .view-button {
         padding: 9px 70px;
     }
+
+    .hiddenOnSmall {
+        display: none;
+    }
+
 }
 
 @media (max-width: 600px) {

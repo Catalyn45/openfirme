@@ -37,8 +37,6 @@ func NewServer(host string, port int, repository *Repository) *Server {
 }
 
 func (self *Server) Start() {
-	fmt.Println("starting server...")
-
 	router := httprouter.New()
 
 	static := self.cache.HtmlCache(http.FileServer(http.Dir("./public")))
@@ -66,6 +64,8 @@ func (self *Server) Start() {
 	router.GET("/api/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.cache.DefaultApiCache(self.getDosarJuridicFirma))
 
 	router.GET("/error", self.serveHtmlFunc("./public/errorPage.html"))
+	router.GET("/descarca", self.serveHtmlFunc("./public/descarca.html"))
+	router.GET("/despre", self.serveHtmlFunc("./public/despre.html"))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
 		err, ok := p.(error)
@@ -87,6 +87,9 @@ func (self *Server) Start() {
 		Handler: router,
 	}
 
+	fmt.Println("Starting server...")
+	fmt.Printf("Go to http://%s:%d in your browser.\n", self.host, self.port)
+	fmt.Println("Do not close the window.")
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)

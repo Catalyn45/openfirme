@@ -1,0 +1,86 @@
+{{ template "base.html" }}
+
+{{ define "styles"}}
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/administratori.css">
+{{ end }}
+
+
+{{ define "scripts" }}
+{{ end }}
+
+{{ define "sorting" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "filters" }}
+	<!-- empty -->
+{{ end }}
+
+{{ define "sidebar" }}
+    {{ template "sidebar.html" }}
+{{ end }}
+
+
+{{ define "content" }}
+<section>
+
+    <!-- ====================================================
+        MODAL / COMPANY PROFILE
+        ==================================================== -->
+
+        <div class="modal" id="profileModal" >
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h2 id="profileCompanyName">
+                        Descarcă baza de date
+                    </h2>
+
+            <p>
+            Descarcă baza de date sau și ruleaza proiectul local
+            </p>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- IDENTIFICATION -->
+
+                    <div class="profile-section">
+
+                        <h3>
+                            Descarcă baza de date sqlite
+                        </h3>
+
+                        <div class="profile-grid">
+
+                            <div class="profile-field">
+                                <a href="https://files.openfirme.ro/foo.zip">
+                                    foo.zip
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+
+                        <h3>
+                            Descarcă baza de date împreuna cu website-ul
+                        </h3>
+
+                        <div class="profile-grid">
+
+                            <div class="profile-field">
+                                <a href="https://files.openfirme.ro/openfirme.zip">
+                                    openfirme.zip
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</section>
+{{ end }}
