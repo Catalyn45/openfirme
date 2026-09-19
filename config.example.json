@@ -1,0 +1,8 @@
+{
+    "WebsiteGeneratorConfig": {
+        "Enabled": true
+    },
+    "CacheConfig": {
+        "Enabled": false
+    }
+}

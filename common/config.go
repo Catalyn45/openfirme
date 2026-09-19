@@ -68,7 +68,7 @@ func init() {
 		},
 
 		WebsiteGeneratorConfig: WebsiteGeneratorConfig {
-			Enabled: true,
+			Enabled: false,
 			TemplatesDirectory: "./templates",
 			OutputDirectory: "./public",
 		},
