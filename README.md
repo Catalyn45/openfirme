@@ -1,14 +1,14 @@
 # OpenFirme
 
-Openfirme is an application that provides details about Romanian companies (such as: Financial situations, status, administrators etc ) in the form of a website.
+Openfirme is an application that provides details about Romanian companies (such as: Financial data, status, administrators etc.) in the form of a website.
 
-All the source data is retrieved from official government sources available to the public.
+All the data is retrieved from official government sources available to the public.
 
 The application is currently hosted on [openfirme.ro](https://openfirme.ro).
 
 ## Structure
 
-Although the main application is basically a website that queries an [sqlite](https://sqlite.org/) database, the entire project is composed of 3 parts:
+Although the main application is basically a website that query an [sqlite](https://sqlite.org/) database, the entire project is composed of 3 parts:
 
 - `Web Server` (lets users search for companies)
 - `Downloader` (downloads the datasets from government websites)
@@ -51,7 +51,7 @@ To build the project packages do the follwing:
 
 There are 2 main steps in order to construct the database from scratch:
 
-1. Download the datasets from the government website.
+1. Download the datasets from the government websites.
 
 	```sh
 	go run ./cmd/downloader
@@ -73,7 +73,7 @@ There are 2 main steps in order to construct the database from scratch:
 
 ## Configuration
 
-check `common/config.go` to check all the configurations used in the project.
+check `common/config.go` for all the configurations used in the project.
 
-If can also create a file named `config.json` in your current directory, in which you can specify any runtime config override.
+A file named `config.json` can be created in the current directory, in which any runtime config override can be specified.
 See `config.example.json` for an example.
