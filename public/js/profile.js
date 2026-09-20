@@ -58,6 +58,7 @@ class InfoPage extends Base {
         this.profileCompanyCaen = document.getElementById("profileCompanyCaen")
         this.profileCompanyPrimaryCaen = document.getElementById("profileCompanyPrimaryCaen")
         this.profileCompanyTva = document.getElementById("profileCompanyTva")
+        this.profileCompanyImpozitare = document.getElementById("profileCompanyImpozitare")
 
         this.profileCompanyAdministratori = document.getElementById("profileCompanyAdministratori")
         this.profileCompanyAsociati = document.getElementById("profileCompanyAsociati")
@@ -114,6 +115,12 @@ class InfoPage extends Base {
 
         if (data.Tva === true) {
             this.profileCompanyTva.textContent = "Da"
+        }
+
+        if (data.ImpozitareProfit === true) {
+            this.profileCompanyImpozitare.textContent = "Profit"
+        } else if (data.ImpozitareVenit === true) {
+            this.profileCompanyImpozitare.textContent = "Venit"
         }
 
         if (data.Reprezentanti) {

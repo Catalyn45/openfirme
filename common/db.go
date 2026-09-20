@@ -511,6 +511,8 @@ func (this *Repository) InitDateIdentificare() {
 		CREATE TABLE IF NOT EXISTS dateidentificare (
 			cui INTEGER NOT NULL,
 			tva INTEGER NOT NULL,
+			impozitare_profit INTEGER NOT NULL,
+			impozitare_venit INTEGER NOT NULL,
 			data_stare TEXT NOT NULL,
 			stare TEXT NOT NULL
 		);
@@ -542,8 +544,8 @@ func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, data
 	this.DeleteFromTable(transaction, "dateidentificare")
 
 	stmt := `
-		INSERT INTO dateidentificare (cui, tva, data_stare, stare)
-		VALUES (?,?,?,?);`
+		INSERT INTO dateidentificare (cui, tva, impozitare_profit, impozitare_venit, data_stare, stare)
+		VALUES (?,?,?,?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -557,7 +559,7 @@ func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, data
 			continue
 		}
 
-		_, err = preparedStmt.Exec(data["COD_FISCAL"], data["TVA"] == "DA", data["DATA_STARE"], data["STARE"])
+		_, err = preparedStmt.Exec(data["COD_FISCAL"], data["TVA"] == "DA", data["IMP100"] == "DA", data["IMP120"] == "DA", data["DATA_STARE"], data["STARE"])
 		if err != nil {
 			panic(err)
 		}
@@ -1069,6 +1071,8 @@ type InfoFirma struct {
 	Statusuri []string
 	CoduriCaen []string
 	Tva *bool
+	ImpozitareVenit *bool
+	ImpozitareProfit *bool
 	BilanturiFirma []*BilantFirma
 }
 
@@ -1124,7 +1128,9 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 					ON c.cod_caen = dc.clasa AND c.versiune_caen = dc.versiune_caen
 					WHERE c.cod_inmatriculare = firme.cod_inmatriculare
 				) AS coduri_caen,
-				dateidentificare.tva
+				dateidentificare.tva,
+				dateidentificare.impozitare_profit,
+				dateidentificare.impozitare_venit
 			FROM firme
 			LEFT JOIN dateidentificare
 				ON firme.cui = dateidentificare.cui
@@ -1137,7 +1143,7 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 		var statuses sql.NullString
 		var dataset string
 
-		err := rows.Scan(&dataset, &infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva)
+		err := rows.Scan(&dataset, &infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva, &infoFirma.ImpozitareProfit, &infoFirma.ImpozitareVenit)
 		if err != nil {
 			panic(err)
 		}
