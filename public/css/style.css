@@ -587,6 +587,18 @@ main {
     font-size: 14px;
 }
 
+.profile-field a {
+    text-decoration: none;
+}
+
+.profile-field a:visited {
+  color: blue;
+}
+
+.profile-field a:hover {
+    color: purple;
+}
+
 .profile-field:hover .content-copy-button {
     display: block;
 }
