@@ -307,6 +307,9 @@ func (this *Downloader) DownloadData() {
 			[]string{"web_bl_bs_sl_an", ".txt"},
 			[]string{"web_uu_", ".txt"},
 			[]string{"web_ir_an", ".txt"},
+			[]string{"web_ir_an", ".txt"},
+			[]string{"web_inst", "_de_credit_", ".txt"},
+			[]string{"web_instdecredit", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)
