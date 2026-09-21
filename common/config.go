@@ -33,6 +33,8 @@ type CacheConfig struct {
 type DBConfig struct {
 	DefaultTimeoutInSeconds int
 	SearchFirmeTimeoutInSeconds int
+
+	LogQueries bool
 }
 
 type ServerConfig struct {
@@ -76,6 +78,7 @@ func init() {
 		DBConfig: DBConfig {
 			DefaultTimeoutInSeconds: 15,
 			SearchFirmeTimeoutInSeconds: 10,
+			LogQueries: false,
 		},
 
 		CacheConfig : CacheConfig {

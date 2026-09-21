@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -75,7 +76,7 @@ func (this *Server) Start() {
 			}
 		}
 
-		fmt.Printf("panic: %v\n%s", p, debug.Stack())
+		log.Printf("panic: %v\n%s", p, debug.Stack())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 
@@ -86,9 +87,9 @@ func (this *Server) Start() {
 		Handler: router,
 	}
 
-	fmt.Println("Starting server...")
-	fmt.Printf("Go to http://%s:%d in your browser.\n", this.config.Host, this.config.Port)
-	fmt.Println("Do not close the window.")
+	log.Println("Starting server...")
+	log.Printf("Go to http://%s:%d in your browser.\n", this.config.Host, this.config.Port)
+	log.Println("Do not close the window.")
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)
@@ -143,12 +144,8 @@ func isNumeric(s string) bool {
 
 func (this *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
 	pageNumber := getPageNumber(ps)
-	fmt.Println(pageNumber)
 
 	query := r.URL.Query()
-
-	fmt.Println(query)
-
 
 	filters := FirmeFilters {
 		judet: query.Get("judet"),
@@ -210,8 +207,6 @@ func (this *Server) getTopFirme(w http.ResponseWriter, r *http.Request, ps httpr
 func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("numar_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
-
-	fmt.Println("firma:" + numar_inmatriculare)
 
 	firma := this.repository.GetFirma(numar_inmatriculare);
 
@@ -319,10 +314,7 @@ func (this *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Reques
 	numar_inmatriculare := ps.ByName("cod_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
-	fmt.Println("firma:" + numar_inmatriculare)
-
 	pageNumber := getPageNumber(ps)
-	fmt.Println(pageNumber)
 
 	dosare, found := this.cache.GetJuridic(numar_inmatriculare)
 	if !found {

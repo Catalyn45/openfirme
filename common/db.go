@@ -3,7 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -192,7 +192,7 @@ func (this *Repository) IsFirmeOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName string) {
-	fmt.Println("Updating firme")
+	log.Println("Updating firme")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -216,7 +216,7 @@ func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName str
 	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["DENUMIRE"], normalize(data["DENUMIRE"]), data["CUI"], data["COD_INMATRICULARE"], convertDate(data["DATA_INMATRICULARE"]), data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
 		if err != nil {
-			fmt.Println(data["DENUMIRE"])
+			log.Println(data["DENUMIRE"])
 			panic(err)
 		}
 	}
@@ -278,7 +278,7 @@ func (this *Repository) normalizeNumeReprezentant(nume string) string {
 }
 
 func (this *Repository) UpdateReprezentanti(dataset []map[string]string, datasetName string) {
-	fmt.Println("Updating reprezentanti")
+	log.Println("Updating reprezentanti")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -338,7 +338,7 @@ func (this *Repository) IsStariOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateStari(dataset []map[string]string, datasetName string) {
-	fmt.Println("Updating stari")
+	log.Println("Updating stari")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -397,7 +397,7 @@ func (this *Repository) IsCaenOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateCaen(dataset []map[string]string, datasetName string) {
-	fmt.Println("Updating caen")
+	log.Println("Updating caen")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -469,7 +469,7 @@ func (this *Repository) IsDescriereCaenOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateDescriereCaen(dataset []map[string]string, datasetName string) {
-	fmt.Println("Updating descriere_caen")
+	log.Println("Updating descriere_caen")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -532,7 +532,7 @@ func (this *Repository) IsDateIdentificareOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, datasetName string) {
-	fmt.Println("Updating dateidentificare")
+	log.Println("Updating dateidentificare")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -646,7 +646,7 @@ func (this *Repository) DeleteAnFromBilanturi(transaction *sql.Tx, an int) {
 }
 
 func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
-	fmt.Println("Updating bilanturi an: ", an)
+	log.Println("Updating bilanturi an: ", an)
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -843,15 +843,17 @@ func (this *QueryResult) Close() {
 func (this *Repository) executeQuery(stmt string, params []any, readRowCallback func(*sql.Rows), opt *QueryOptions) {
 	stmt += ";"
 
-	fmt.Println("stmt ", stmt)
-	fmt.Println("params ", params)
+	if this.config.LogQueries {
+		log.Println("stmt ", stmt)
+		log.Println("params ", params)
+	}
 
 	preparedStmt, err := this.db.Prepare(stmt)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Started searching in db...")
+	log.Println("Started searching in db...")
 
 	var timeout time.Duration
 
@@ -870,7 +872,7 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 	}
 	defer rows.Close()
 
-	fmt.Println("finished searching in db...")
+	log.Println("finished searching in db...")
 
 	for rows.Next() {
 		readRowCallback(rows)
@@ -881,7 +883,7 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 		panic(err)
 	}
 
-	fmt.Println("finished scanning data...")
+	log.Println("finished scanning data...")
 }
 
 func (this *Repository) executePagedQuery(stmt string, params []any, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, readRowCallback func(*sql.Rows), opt *QueryOptions) {

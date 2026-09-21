@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"openfirme/common"
 )
 
@@ -9,5 +9,5 @@ func main() {
 	parser := common.NewParser()
 	parser.Parse()
 
-	fmt.Println("Finished")
+	log.Println("Finished")
 }

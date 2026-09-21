@@ -2,7 +2,7 @@ package common
 
 import (
 	"bytes"
-	"fmt"
+	"log"
 	"math"
 	"net/http"
 	"time"
@@ -62,6 +62,8 @@ func (this *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Durati
 }
 
 func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
+	log.Println(r.Method + " " + r.URL.String())
+
 	if !this.config.Enabled {
 		handler(w, r)
 		return
@@ -71,10 +73,10 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 
 	var cachedWriter *CachedResponseWriter
 	if found {
-		fmt.Println("cache hit: ", key)
+		log.Println("cache hit: ", key)
 
 		if this.clientAlreadyHaveData(r, expiration) {
-			fmt.Println("client already have data")
+			log.Println("client already have data")
 
 			cachedWriter = &CachedResponseWriter{
 				header: make(http.Header),
@@ -84,7 +86,12 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 			cachedWriter = cached.(*CachedResponseWriter)
 		}
 	} else {
-		fmt.Println("cache miss, adding ", key, " for duration: ", expiration.Minutes())
+		expirationInMinutes := expiration.Minutes()
+		if expirationInMinutes == 0 {
+			expirationInMinutes = float64(this.config.DefaultCacheTimeInMinutes)
+		}
+
+		log.Println("cache miss, adding ", key, " for duration: ", expirationInMinutes)
 
 		cachedWriter = &CachedResponseWriter{
 			header: make(http.Header),

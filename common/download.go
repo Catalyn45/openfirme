@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -67,7 +68,7 @@ func findDataset(data []any, filter string) *Dataset {
 		id := pkg["id"].(string)
 
 		if strings.Contains(name, filter) {
-			fmt.Println("found name: ", name)
+			log.Println("found name: ", name)
 			return &Dataset{
 				name: name,
 				id: id,
@@ -87,7 +88,7 @@ func findDatasets(data []any, filter string) []Dataset {
 		id := pkg["id"].(string)
 
 		if strings.Contains(name, filter) {
-			fmt.Println("found name: ", name)
+			log.Println("found name: ", name)
 			results = append(results, Dataset{
 				name: name,
 				id: id,
@@ -163,7 +164,7 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 		downloadLinks = actualizatDownloadlinks
 	}
 
-	fmt.Println("Download links: ", downloadLinks)
+	log.Println("Download links: ", downloadLinks)
 
 	return downloadLinks
 }
@@ -221,9 +222,9 @@ func (this *Downloader) downloadResourcesCombined(dataset *Dataset, resources []
 	}
 
 	for index, resource := range resources {
-		fmt.Println("Downloading file: ", resource)
+		log.Println("Downloading file: ", resource)
 		this.downloadFile(resource, fileName, index == 0)
-		fmt.Println("Finished file: ", resource)
+		log.Println("Finished file: ", resource)
 	}
 
 	this.metadata[fileName] = dataset.name
@@ -244,9 +245,9 @@ func (this *Downloader) downloadResources(dataset *Dataset, resources []string, 
 			continue
 		}
 
-		fmt.Println("Downloading file: ", resource)
+		log.Println("Downloading file: ", resource)
 		this.downloadFile(resource, fileName, true)
-		fmt.Println("Finished file: ", resource)
+		log.Println("Finished file: ", resource)
 
 		this.metadata[fileName] = dataset.name
 		this.saveMetadata(this.metadata)
@@ -261,14 +262,14 @@ func (this *Downloader) DownloadData() {
 	firme := findDataset(packages, "firme-")
 	nomenclatoare := findDataset(packages, "nomenclatoare")
 
-	fmt.Println(firme, nomenclatoare)
+	log.Println(firme, nomenclatoare)
 
 	packages = this.getPackages("mfp")
 
 	dateIdentificare := findDataset(packages, "date_de_identificare_")
 	bilanturi := findDatasets(packages, "situatii_financiare")
 
-	fmt.Println(dateIdentificare, bilanturi)
+	log.Println(dateIdentificare, bilanturi)
 
 	firmeResources := this.findResources(firme.id, nil)
 	nomenclatoareResources := this.findResources(nomenclatoare.id, nil)
@@ -285,8 +286,6 @@ func (this *Downloader) DownloadData() {
 	sort.Slice(bilanturi, func(i, j int) bool {
 		return bilanturi[i].name > bilanturi[j].name
 	})
-
-	fmt.Println("sorted: ", bilanturi)
 
 	for _, bilant := range bilanturi {
 		// there is situatii_financiare_2024_actualizat
