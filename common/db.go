@@ -1217,7 +1217,7 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	return infoFirma
 }
 
-func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pageNumber int) *InfoFirmeResult {
+func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, filters *FirmeFilters, pageNumber int) *InfoFirmeResult {
 	stmt := `
 		SELECT
 			firme.denumire,
@@ -1242,12 +1242,13 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 		) r ON reprezentanti.persoana_imputernicita_norm = r.persoana_imputernicita_norm
 			AND reprezentanti.data_nastere = r.data_nastere
 			AND reprezentanti.judet_nastere = r.judet_nastere
+		WHERE 1=1
 	`
 
 	params := []any{ cod_inmatriculare, admin }
 
 	result := &InfoFirmeResult {
-		Count: this.getCount(stmt, params, nil, nil),
+		Count: this.getCount(stmt, params, filters, nil),
 		Data: []*InfoFirmaLight{},
 	}
 
@@ -1270,7 +1271,7 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, pa
 	this.executePagedQuery(
 		stmt,
 		params,
-		nil,
+		filters,
 		nil,
 		pageNumber,
 		rowCallback,

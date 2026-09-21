@@ -35,36 +35,36 @@ func NewServer() *Server {
 	}
 }
 
-func (self *Server) Start() {
+func (this *Server) Start() {
 	router := httprouter.New()
 
-	static := self.cache.HtmlCache(http.FileServer(http.Dir(self.config.PublicDirectory)))
+	static := this.cache.HtmlCache(http.FileServer(http.Dir(this.config.PublicDirectory)))
 
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
-	router.GET("/", self.serveHtmlFunc("index.html"))
+	router.GET("/", this.serveHtmlFunc("index.html"))
 
-	router.GET("/search/:nume_partial/:page_number", self.serveHtmlFunc("search.html"))
-	router.GET("/api/search/:nume_partial/:page_number", self.cache.ApiPagedSearchCache(self.getFirme))
+	router.GET("/search/:nume_partial/:page_number", this.serveHtmlFunc("search.html"))
+	router.GET("/api/search/:nume_partial/:page_number", this.cache.ApiPagedSearchCache(this.getFirme))
 
-	router.GET("/profile/:numar_inmatriculare", self.serveHtmlFunc("profile.html"))
-	router.GET("/api/profile/:numar_inmatriculare", self.cache.DefaultApiCache(self.getFirma))
+	router.GET("/profile/:numar_inmatriculare", this.serveHtmlFunc("profile.html"))
+	router.GET("/api/profile/:numar_inmatriculare", this.cache.DefaultApiCache(this.getFirma))
 
-	router.GET("/top/:page_number", self.serveHtmlFunc("topfirme.html"))
-	router.GET("/api/top/:page_number", self.cache.ApiPagedCache(self.getTopFirme))
+	router.GET("/top/:page_number", this.serveHtmlFunc("topfirme.html"))
+	router.GET("/api/top/:page_number", this.cache.ApiPagedCache(this.getTopFirme))
 
-	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", self.serveHtmlFunc("administratori.html"))
-	router.GET("/api/admins/:cod_inmatriculare/:admin/:page_number", self.cache.ApiPagedCache(self.getAdminsFirme))
+	router.GET("/admins/:cod_inmatriculare/:admin/:page_number", this.serveHtmlFunc("administratori.html"))
+	router.GET("/api/admins/:cod_inmatriculare/:admin/:page_number", this.cache.ApiPagedCache(this.getAdminsFirme))
 
-	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", self.serveHtmlFunc("dosareJuridice.html"))
-	router.GET("/api/dosareJuridice/:cod_inmatriculare/:page_number", self.cache.ApiPagedCache(self.getDosareJuridiceFirma))
+	router.GET("/dosareJuridice/:cod_inmatriculare/:page_number", this.serveHtmlFunc("dosareJuridice.html"))
+	router.GET("/api/dosareJuridice/:cod_inmatriculare/:page_number", this.cache.ApiPagedCache(this.getDosareJuridiceFirma))
 
-	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.serveHtmlFunc("dosarJuridic.html"))
-	router.GET("/api/dosarJuridic/:cod_inmatriculare/:numar_dosar", self.cache.DefaultApiCache(self.getDosarJuridicFirma))
+	router.GET("/dosarJuridic/:cod_inmatriculare/:numar_dosar", this.serveHtmlFunc("dosarJuridic.html"))
+	router.GET("/api/dosarJuridic/:cod_inmatriculare/:numar_dosar", this.cache.DefaultApiCache(this.getDosarJuridicFirma))
 
-	router.GET("/error", self.serveHtmlFunc("errorPage.html"))
-	router.GET("/descarca", self.serveHtmlFunc("descarca.html"))
-	router.GET("/despre", self.serveHtmlFunc("despre.html"))
+	router.GET("/error", this.serveHtmlFunc("errorPage.html"))
+	router.GET("/descarca", this.serveHtmlFunc("descarca.html"))
+	router.GET("/despre", this.serveHtmlFunc("despre.html"))
 
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, p any) {
 		err, ok := p.(error)
@@ -79,7 +79,7 @@ func (self *Server) Start() {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 
-	addr := net.JoinHostPort(self.config.Host, strconv.Itoa(self.config.Port))
+	addr := net.JoinHostPort(this.config.Host, strconv.Itoa(this.config.Port))
 
 	server := &http.Server{
 		Addr:    addr,
@@ -87,7 +87,7 @@ func (self *Server) Start() {
 	}
 
 	fmt.Println("Starting server...")
-	fmt.Printf("Go to http://%s:%d in your browser.\n", self.config.Host, self.config.Port)
+	fmt.Printf("Go to http://%s:%d in your browser.\n", this.config.Host, this.config.Port)
 	fmt.Println("Do not close the window.")
 	err := server.ListenAndServe()
 	if err != nil {
@@ -95,20 +95,20 @@ func (self *Server) Start() {
 	}
 }
 
-func (self *Server) returnSuccess(w http.ResponseWriter, content any) {
+func (this *Server) returnSuccess(w http.ResponseWriter, content any) {
 	w.WriteHeader(200)
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(content)
 }
 
-func (self *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	path = filepath.Join(self.config.PublicDirectory, path)
+func (this *Server) serveHtmlFunc(path string) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	path = filepath.Join(this.config.PublicDirectory, path)
 
 	servFunc := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.ServeFile(w, r, path)
 	}
 
-	return self.cache.HtmlRouterCache(servFunc)
+	return this.cache.HtmlRouterCache(servFunc)
 }
 
 func getPageNumber(ps httprouter.Params) int {
@@ -141,7 +141,7 @@ func isNumeric(s string) bool {
 	return s != ""
 }
 
-func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
+func (this *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *FirmeFilters, *FirmeOrdering){
 	pageNumber := getPageNumber(ps)
 	fmt.Println(pageNumber)
 
@@ -189,49 +189,46 @@ func (self *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 	return pageNumber, &filters, &ordering
 }
 
-func (self *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	pageNumber, filters, _ := self.getFilters(r, ps)
+func (this *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pageNumber, filters, _ := this.getFilters(r, ps)
 
-	firme := self.repository.GetFirme(filters, pageNumber)
+	firme := this.repository.GetFirme(filters, pageNumber)
 
-	self.returnSuccess(w, firme)
+	this.returnSuccess(w, firme)
 }
 
 var allowedFormeJuridiceForBilanturi = []string{"SRL", "SA", "SNC", "SCS", "SCA", "RA"}
 
-func (self *Server) getTopFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	pageNumber, filters, ordering := self.getFilters(r, ps)
+func (this *Server) getTopFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	pageNumber, filters, ordering := this.getFilters(r, ps)
 
-	firme := self.repository.GetTopFirme(filters, ordering, pageNumber)
+	firme := this.repository.GetTopFirme(filters, ordering, pageNumber)
 
-	self.returnSuccess(w, firme)
+	this.returnSuccess(w, firme)
 }
 
-func (self *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("numar_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
 	fmt.Println("firma:" + numar_inmatriculare)
 
-	firma := self.repository.GetFirma(numar_inmatriculare);
+	firma := this.repository.GetFirma(numar_inmatriculare);
 
-	self.returnSuccess(w, firma)
+	this.returnSuccess(w, firma)
 }
 
-func (self *Server) getAdminsFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (this *Server) getAdminsFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("cod_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
-	fmt.Println("firma:" + numar_inmatriculare)
-
-	pageNumber := getPageNumber(ps)
-	fmt.Println(pageNumber)
-
 	admin := ps.ByName("admin")
 
-	firme := self.repository.GetAdminFirme(numar_inmatriculare, admin, pageNumber)
+	pageNumber, filters, _ := this.getFilters(r, ps)
 
-	self.returnSuccess(w, firme)
+	firme := this.repository.GetAdminFirme(numar_inmatriculare, admin, filters, pageNumber)
+
+	this.returnSuccess(w, firme)
 }
 
 func getDosareForPage(dosare []Dosar, pageNumber int) []Dosar {
@@ -258,7 +255,7 @@ type FiltersDosare struct {
 	stadiuProcesual string
 }
 
-func (self *Server) FilterDosare(dosare []Dosar, filters *FiltersDosare) []Dosar {
+func (this *Server) FilterDosare(dosare []Dosar, filters *FiltersDosare) []Dosar {
 	if filters.tribunal == "" && filters.categorie == "" && filters.stadiuProcesual == "" {
 		return dosare
 	}
@@ -283,7 +280,7 @@ func (self *Server) FilterDosare(dosare []Dosar, filters *FiltersDosare) []Dosar
 	return dosareFiltered
 }
 
-func (self *Server) OrderDosare(dosare *[]Dosar, sortBy string, sortOrder string) {
+func (this *Server) OrderDosare(dosare *[]Dosar, sortBy string, sortOrder string) {
 	if sortBy == "" {
 		return
 	}
@@ -318,7 +315,7 @@ type FormaJuridicaMap struct {
 	juridicForma string
 }
 
-func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (this *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("cod_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
@@ -327,15 +324,15 @@ func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Reques
 	pageNumber := getPageNumber(ps)
 	fmt.Println(pageNumber)
 
-	dosare, found := self.cache.GetJuridic(numar_inmatriculare)
+	dosare, found := this.cache.GetJuridic(numar_inmatriculare)
 	if !found {
-		numeFirma := self.repository.GetNumeFirma(numar_inmatriculare)
+		numeFirma := this.repository.GetNumeFirma(numar_inmatriculare)
 		if numeFirma == "" {
 			panic(fmt.Errorf("Firma doesn't exist"))
 		}
 
-		dosare = self.juridicClient.GetDosare(numeFirma)
-		self.cache.SetForJuridic(numar_inmatriculare, dosare)
+		dosare = this.juridicClient.GetDosare(numeFirma)
+		this.cache.SetForJuridic(numar_inmatriculare, dosare)
 	}
 
 	query := r.URL.Query()
@@ -346,35 +343,35 @@ func (self *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Reques
 		stadiuProcesual: query.Get("stadiu_procesual"),
 	}
 
-	dosare = self.FilterDosare(dosare, filters)
+	dosare = this.FilterDosare(dosare, filters)
 
 	sort_by := query.Get("sort_by")
 	sort_order := query.Get("sort_order")
 
-	self.OrderDosare(&dosare, sort_by, sort_order)
+	this.OrderDosare(&dosare, sort_by, sort_order)
 
-	self.returnSuccess(w, &DosareJuridiceResponse{
+	this.returnSuccess(w, &DosareJuridiceResponse{
 		Count: len(dosare),
 		Dosare: getDosareForPage(dosare, pageNumber),
 	})
 }
 
-func (self *Server) getDosarJuridicFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (this *Server) getDosarJuridicFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("cod_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
 	numar_dosar := ps.ByName("numar_dosar")
 	numar_dosar = strings.ReplaceAll(numar_dosar, "-", "/")
 
-	dosare, found := self.cache.GetJuridic(numar_inmatriculare)
+	dosare, found := this.cache.GetJuridic(numar_inmatriculare)
 	if !found {
-		numeFirma := self.repository.GetNumeFirma(numar_inmatriculare)
+		numeFirma := this.repository.GetNumeFirma(numar_inmatriculare)
 		if numeFirma == "" {
 			panic(fmt.Errorf("Firma doesn't exist"))
 		}
 
-		dosare = self.juridicClient.GetDosare(numeFirma)
-		self.cache.SetForJuridic(numar_inmatriculare, dosare)
+		dosare = this.juridicClient.GetDosare(numeFirma)
+		this.cache.SetForJuridic(numar_inmatriculare, dosare)
 	}
 
 	index := slices.IndexFunc(dosare, func(dosar Dosar) bool { return dosar.Numar == numar_dosar })
@@ -382,5 +379,5 @@ func (self *Server) getDosarJuridicFirma(w http.ResponseWriter, r *http.Request,
 		panic(fmt.Errorf("Dosar doesn't exist"))
 	}
 
-	self.returnSuccess(w, &dosare[index])
+	this.returnSuccess(w, &dosare[index])
 }

@@ -2,6 +2,11 @@ main {
 	max-width: 1500px;
 }
 
+.layout {
+    grid-template-columns: 0 minmax(0, 1fr);
+    gap: 0px;
+}
+
 .collapsible-content {
     height: auto;
     animation: height 1s ease-out;

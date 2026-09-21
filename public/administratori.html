@@ -16,7 +16,6 @@ Look into "templates" directory for changing HTML files.
     
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/search.css">
-    <link rel="stylesheet" href="/public/css/administratori.css">
 
 
     <title>OpenFirme România — Informații despre companii</title>
@@ -98,8 +97,244 @@ Look into "templates" directory for changing HTML files.
 
 
     
-	
+                    
 
+            <aside class="filters">
+
+                <h3>Filtre</h3>
+
+
+                <div class="filter-group">
+
+                    <label for="countyFilter">
+                        Județ
+                    </label>
+
+					 <select id="countyFilter" onchange="component.onChangeFilter(this)">
+
+                        <option value="">
+                            Toate județele
+                        </option>
+
+                        <option value="Alba">Alba</option>
+                        <option value="Arad">Arad</option>
+                        <option value="Argeş">Argeş</option>
+                        <option value="Bacău">Bacău</option>
+                        <option value="Bihor">Bihor</option>
+                        <option value="Bistriţa-Năsăud">Bistriţa-Năsăud</option>
+                        <option value="Botoşani">Botoşani</option>
+                        <option value="Brăila">Brăila</option>
+                        <option value="Braşov">Braşov</option>
+                        <option value="Bucureşti">Bucureşti</option>
+                        <option value="Buzău">Buzău</option>
+                        <option value="Călăraşi">Călăraşi</option>
+                        <option value="Caraş-Severin">Caraş-Severin</option>
+                        <option value="Cluj">Cluj</option>
+                        <option value="Constanţa">Constanţa</option>
+                        <option value="Covasna">Covasna</option>
+                        <option value="Dâmboviţa">Dâmboviţa</option>
+                        <option value="Dolj">Dolj</option>
+                        <option value="Galaţi">Galaţi</option>
+                        <option value="Giurgiu">Giurgiu</option>
+                        <option value="Gorj">Gorj</option>
+                        <option value="Harghita">Harghita</option>
+                        <option value="Hunedoara">Hunedoara</option>
+                        <option value="Ialomiţa">Ialomiţa</option>
+                        <option value="Iaşi">Iaşi</option>
+                        <option value="Ilfov">Ilfov</option>
+                        <option value="Maramureş">Maramureş</option>
+                        <option value="Mehedinţi">Mehedinţi</option>
+                        <option value="Mureş">Mureş</option>
+                        <option value="Neamţ">Neamţ</option>
+                        <option value="Olt">Olt</option>
+                        <option value="Prahova">Prahova</option>
+                        <option value="Sălaj">Sălaj</option>
+                        <option value="Satu Mare">Satu Mare</option>
+                        <option value="Sibiu">Sibiu</option>
+                        <option value="Suceava">Suceava</option>
+                        <option value="Teleorman">Teleorman</option>
+                        <option value="Timiş">Timiş</option>
+                        <option value="Tulcea">Tulcea</option>
+                        <option value="Vâlcea">Vâlcea</option>
+                        <option value="Vaslui">Vaslui</option>
+                        <option value="Vrancea">Vrancea</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="statusFilter">
+                        Status firmă
+                    </label>
+
+                    <select id="statusFilter" onchange="component.onChangeFilter(this)">
+
+                        <option value="">
+                            Orice status
+                        </option>
+
+                        <option value="funcțiune" selected>
+                            Activă
+                        </option>
+
+                        <option value="radiată">
+                            Radiată
+                        </option>
+
+                        <option value="dizolvare">
+                            Dizolvată
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="formaFilter">
+                        Formă juridică
+                    </label>
+
+                    <select id="formaFilter" onchange="component.onChangeFilter(this)">
+
+                        <option value="">
+                            Oricare
+                        </option>
+
+                        <option value="SRL">
+                            SRL
+                        </option>
+
+                        <option value="SA">
+                            SA
+                        </option>
+
+                        <option value="PFA">
+                            PFA
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <label for="domeniuFilter">
+                        Domeniu activitate
+                    </label>
+
+                    <select id="domeniuFilter" onchange="component.onChangeFilter(this)">
+
+                        <option value="">
+                            Oricare
+                        </option>
+
+                        <option value="A">
+                            Agricultură, silvicultură și pescuit
+                        </option>
+
+                        <option value="B">
+                            Industria extractivă
+                        </option>
+
+                        <option value="C">
+                            Industria prelucrătoare
+                        </option>
+
+                        <option value="D">
+                            Producția și furnizarea de energie electrică și termică, gaze, apă caldă și aer condiționat
+                        </option>
+
+                        <option value="E">
+                            Distribuția apei; salubritate, gestionarea deșeurilor, activități de decontaminare
+                        </option>
+
+                        <option value="F">
+                            Construcții
+                        </option>
+
+                        <option value="G">
+                            Comerț cu ridicata și cu amănuntul
+                        </option>
+
+                        <option value="H">
+                            Transport și depozitare
+                        </option>
+
+                        <option value="I">
+                            Hoteluri și restaurante
+                        </option>
+
+                        <option value="J">
+                            Activități de editare; difuzarea de programe de radio și televiziune; activități de producție și distribuție de conținuturi
+                        </option>
+
+                        <option value="K">
+                            Telecomunicații; activități de programare și de consultanță în tehnologia informației; alte servicii informaționale
+                        </option>
+
+                        <option value="L">
+                            Intermedieri financiare și asigurări
+                        </option>
+
+                        <option value="M">
+                            Tranzacții imobiliare
+                        </option>
+
+                        <option value="N">
+                            Activități profesionale, științifice și tehnice
+                        </option>
+
+                        <option value="O">
+                            Activități de servicii administrative și activități de servicii-suport
+                        </option>
+
+                        <option value="P">
+                            Administrație publică și apărare; asigurări sociale din sistemul public
+                        </option>
+
+                        <option value="Q">
+                            Învățământ
+                        </option>
+
+                        <option value="R">
+                            Sănătate și asistență socială
+                        </option>
+
+                        <option value="S">
+                            Activități de spectacole, culturale, sportive și recreative
+                        </option>
+
+                        <option value="T">
+                            Alte activități de servicii
+                        </option>
+
+                        <option value="U">
+                            Activități ale gospodăriilor private în calitate de angajator de personal casnic; activități ale gospodăriilor private de producere de bunuri și servicii destinate consumului propriu
+                        </option>
+
+                        <option value="V">
+                            Activități ale organizațiilor și organismelor extrateritoriale
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <button
+                    class="reset-btn"
+                    onclick="component.resetFilters()"
+                >
+                    Resetează filtrele
+                </button>
+
+            </aside>
+
+    
 
 </div>
 
@@ -275,8 +510,6 @@ Look into "templates" directory for changing HTML files.
 
 </body>
 </html>
-
-
 
 
 

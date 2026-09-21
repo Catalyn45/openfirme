@@ -45,7 +45,7 @@ func newCache() *Cache {
 	}
 }
 
-func (self *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Duration) bool {
+func (this *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Duration) bool {
 	value := r.Header.Get("If-Modified-Since")
 	if value == "" {
 		return false
@@ -61,19 +61,19 @@ func (self *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Durati
 	return age >= 0 && age < expiration
 }
 
-func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
-	if !self.config.Enabled {
+func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
+	if !this.config.Enabled {
 		handler(w, r)
 		return
 	}
 
-	cached, found := self.c.Get(key)
+	cached, found := this.c.Get(key)
 
 	var cachedWriter *CachedResponseWriter
 	if found {
 		fmt.Println("cache hit: ", key)
 
-		if self.clientAlreadyHaveData(r, expiration) {
+		if this.clientAlreadyHaveData(r, expiration) {
 			fmt.Println("client already have data")
 
 			cachedWriter = &CachedResponseWriter{
@@ -95,7 +95,7 @@ func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 
 		// don't save in cache if the response is 3XX
 		if cachedWriter.status < 300 || cachedWriter.status >= 400 {
-			self.c.Set(key, cachedWriter, expiration)
+			this.c.Set(key, cachedWriter, expiration)
 		}
 	}
 
@@ -113,8 +113,8 @@ func (self *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 
 const portalQuery = "portalquery.just.ro/"
 
-func (self *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found bool) {
-	value, found := self.c.Get(portalQuery + numarInmatriculare)
+func (this *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found bool) {
+	value, found := this.c.Get(portalQuery + numarInmatriculare)
 	if !found {
 		return nil, false
 	}
@@ -122,73 +122,73 @@ func (self *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found 
 	return value.([]Dosar), found
 }
 
-func (self *Cache) SetForJuridic(numarInmatriculare string, dosare []Dosar) {
-	self.c.Set(
+func (this *Cache) SetForJuridic(numarInmatriculare string, dosare []Dosar) {
+	this.c.Set(
 		portalQuery + numarInmatriculare,
 		dosare,
-		time.Duration(self.config.DosareJuridiceCacheTimeInMinutes) * time.Minute,
+		time.Duration(this.config.DosareJuridiceCacheTimeInMinutes) * time.Minute,
 	)
 }
 
-func (self *Cache) HtmlCache(handler http.Handler) http.Handler {
+func (this *Cache) HtmlCache(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		self.cacheFunc(w, r, handler.ServeHTTP, r.URL.Path, cache.DefaultExpiration)
+		this.cacheFunc(w, r, handler.ServeHTTP, r.URL.Path, cache.DefaultExpiration)
 	})
 }
 
-func (self *Cache) getRouterAdaptedFunc(handler httprouter.Handle, w http.ResponseWriter, r *http.Request, params httprouter.Params) http.HandlerFunc {
+func (this *Cache) getRouterAdaptedFunc(handler httprouter.Handle, w http.ResponseWriter, r *http.Request, params httprouter.Params) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handler(w, r, params)
 	}
 }
 
-func (self *Cache) HtmlRouterCache(handler httprouter.Handle) httprouter.Handle {
+func (this *Cache) HtmlRouterCache(handler httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		adapted := self.getRouterAdaptedFunc(handler, w, r, params)
-		self.cacheFunc(w, r, adapted, r.URL.Path, cache.DefaultExpiration)
+		adapted := this.getRouterAdaptedFunc(handler, w, r, params)
+		this.cacheFunc(w, r, adapted, r.URL.Path, cache.DefaultExpiration)
 	}
 }
 
-func (self *Cache) apiCache(handler httprouter.Handle, w http.ResponseWriter, r *http.Request, params httprouter.Params, expiration time.Duration) {
-	adapted := self.getRouterAdaptedFunc(handler, w, r, params)
-	self.cacheFunc(w, r, adapted, r.URL.String(), expiration)
+func (this *Cache) apiCache(handler httprouter.Handle, w http.ResponseWriter, r *http.Request, params httprouter.Params, expiration time.Duration) {
+	adapted := this.getRouterAdaptedFunc(handler, w, r, params)
+	this.cacheFunc(w, r, adapted, r.URL.String(), expiration)
 }
 
-func (self *Cache) DefaultApiCache(handler httprouter.Handle) httprouter.Handle {
+func (this *Cache) DefaultApiCache(handler httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-		self.apiCache(handler, w, r, params, cache.DefaultExpiration)
+		this.apiCache(handler, w, r, params, cache.DefaultExpiration)
 	}
 }
 
-func (self *Cache) calculateExpirationForPage(pageNumber float64, minMinutes float64, maxMinutes float64) time.Duration {
+func (this *Cache) calculateExpirationForPage(pageNumber float64, minMinutes float64, maxMinutes float64) time.Duration {
 	expiration := minMinutes + math.Floor(((10 - pageNumber) * maxMinutes) / 10)
 	return time.Duration(expiration) * time.Minute
 }
 
-func (self *Cache) ApiPagedSearchCache(handler httprouter.Handle) httprouter.Handle {
+func (this *Cache) ApiPagedSearchCache(handler httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		pageNumber := float64(getPageNumber(params))
 
-		expiration := self.calculateExpirationForPage(
+		expiration := this.calculateExpirationForPage(
 			pageNumber,
-			float64(self.config.MinSearchCacheTimeInMinutes),
-			float64(self.config.MaxSearchCacheTimeInMinutes),
+			float64(this.config.MinSearchCacheTimeInMinutes),
+			float64(this.config.MaxSearchCacheTimeInMinutes),
 		)
 
-		self.apiCache(handler, w, r, params, expiration)
+		this.apiCache(handler, w, r, params, expiration)
 	}
 }
 
-func (self *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
+func (this *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		pageNumber := float64(getPageNumber(params))
 
-		expiration := self.calculateExpirationForPage(
+		expiration := this.calculateExpirationForPage(
 			pageNumber,
-			float64(self.config.MinPagedCacheTimeInMinutes),
-			float64(self.config.MaxPagedCacheTimeInMinutes),
+			float64(this.config.MinPagedCacheTimeInMinutes),
+			float64(this.config.MaxPagedCacheTimeInMinutes),
 		)
 
-		self.apiCache(handler, w, r, params, expiration)
+		this.apiCache(handler, w, r, params, expiration)
 	}
 }

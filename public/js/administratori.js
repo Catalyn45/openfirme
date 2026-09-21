@@ -1,17 +1,12 @@
 class AdministratoriSearchPage extends SearchPageBase {
 	init() {
+        super.init()
+
 		const path = window.location.pathname.split("/")
 
         this.numeAdmin = decodeURIComponent(path.at(-2))
         this.inregistrare = path.at(-3)
-
-        this.initSearchBar()
-		this.initFilters()
-		this.initPrototype()
-		this.initPages()
 	}
-
-    setFilters() { }
 
     getEmptyMessage() {
         return [
@@ -28,11 +23,11 @@ class AdministratoriSearchPage extends SearchPageBase {
     }
 
 	getLinkForPage(pageNumber) {
-		return `/admins/${this.inregistrare}/${this.numeAdmin}/${pageNumber}`
+		return `/admins/${this.inregistrare}/${this.numeAdmin}/${pageNumber}?${this.getFilters()}`
 	}
 
 	getLinkForDataRequest() {
-		return `/api/admins/${this.inregistrare}/${this.numeAdmin}/${this.pageNumber}`
+		return `/api/admins/${this.inregistrare}/${this.numeAdmin}/${this.pageNumber}?${this.getFilters()}`
 	}
 
 	getSearchTitle() {
