@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 )
 
@@ -145,6 +146,56 @@ func (this *Parser) parseIR(an int) ([]map[string]int, bool) {
 	return convertValuesToInt(parsed), true
 }
 
+func (this *Parser) normalizeAsig(data []map[string]int, an int) []map[string]int {
+	for _, item := range data {
+		if an < 2024 {
+			item["I1"] = item["I1"] + item["I3"] + item["I4"]
+			item["I2"] =  item["I2"] - item["I3"] - item["I4"] +
+							item["I5"] + item["I6"] + item["I7"] +
+							item["I8"] + item["I9"] + item["I10"] + item["I11"] + item["I12"]
+			item["I7"] = item["I20"]
+			item["I10"] = item["I13"]
+			item["I17"] = item["I31"]
+			item["I18"] = item["I32"]
+			item["I19"] = item["I33"]
+
+		} else {
+			item["I1"] = item["I1"] + item["I3"]
+			item["I2"] =  item["I2"] + item["I8"] + item["I9"] + item["I10"] + item["I14"]
+			item["I7"] = item["I24"]
+			item["I10"] = item["I15"]
+			item["I17"] = item["I36"]
+			item["I18"] = item["I37"]
+			item["I19"] = item["I38"]
+		}
+
+		for key, _ := range item {
+			if !slices.Contains([]string{"CUI", "CAEN", "I1", "I2", "I7", "I10", "I17", "I18", "I19"}, key) {
+				item[key] = 0
+			}
+		}
+	}
+
+	return data
+}
+
+func (this *Parser) parseAsig(an int) ([]map[string]int, bool) {
+	filePath := filepath.Join(config.DataDirectory, "webasig" + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	parsed := readDataDelimiter(filePath, ",", []int{})
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 40)
+	}
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeAsig(converted, an), true
+}
+
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 	result := []map[string]int{}
 
@@ -171,6 +222,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("institDeCredit file should exist"))
 	}
 	result = append(result, institDeCredit...)
+
+	asig, found := this.parseAsig(an)
+	if !found {
+		panic(fmt.Errorf("asig file should exist"))
+	}
+	result = append(result, asig...)
 
 	return result, true
 }
