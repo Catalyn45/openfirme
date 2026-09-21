@@ -636,6 +636,10 @@ main {
     display: none;
 }
 
+.expand-content-button:hover {
+    color: purple;
+}
+
 .source {
     font-size: 12px;
     color: var(--muted);
