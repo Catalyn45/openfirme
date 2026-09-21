@@ -21,6 +21,10 @@ func (this *Parser) parseBilantSimplu(an int) ([]map[string]int, bool) {
 
 	parsed := readDataDelimiter(filePath, ",", skipIndexes)
 
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 21)
+	}
+
 	return convertValuesToInt(parsed), true
 }
 
@@ -42,6 +46,10 @@ func (this *Parser) parseUU(an int) ([]map[string]int, bool) {
 	}
 
 	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 21)
+	}
 
 	return convertValuesToInt(parsed), true
 }
@@ -101,6 +109,11 @@ func (this *Parser) parseInstitDeCredit(an int) ([]map[string]int, bool) {
 
 	skipIndexes := []int{}
 	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 25)
+	}
+
 	converted := convertValuesToInt(parsed)
 
 	return this.normalizeInstitDeCredit(converted), true
@@ -124,6 +137,10 @@ func (this *Parser) parseIR(an int) ([]map[string]int, bool) {
 	}
 
 	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 21)
+	}
 
 	return convertValuesToInt(parsed), true
 }
