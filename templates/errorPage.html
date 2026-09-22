@@ -6,8 +6,14 @@
 {{ end }}
 
 
-{{ define "scripts" }}
-<script src="/public/js/profile.js" defer></script>
+{{ define "inlinescripts" }}
+<script>
+
+function CreateComponent() {
+    return new Base()
+}
+
+</script>
 {{ end }}
 
 {{ define "sorting" }}

@@ -16,7 +16,7 @@ class InfoDosarJuridicPage extends Base {
         this.profileStadiuProcesual = document.getElementById("profileStadiuProcesual")
 
         this.partePrototype = document.getElementById("partePrototype")
-        this.partePrototypeValue = document.getElementById("partePrototypeValue")
+        this.partePrototypeValue = this.partePrototype.getElementsByClassName("partePrototypeValue")[0]
 
         this.sedintaPrototype = document.getElementById("sedintaPrototype")
         this.sedintaTitle = this.sedintaPrototype.getElementsByClassName("sedinta-title")[0]
