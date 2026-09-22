@@ -194,8 +194,6 @@ func (this *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprout
 	this.returnSuccess(w, firme)
 }
 
-var allowedFormeJuridiceForBilanturi = []string{"SRL", "SA", "SNC", "SCS", "SCA", "RA"}
-
 func (this *Server) getTopFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	pageNumber, filters, ordering := this.getFilters(r, ps)
 

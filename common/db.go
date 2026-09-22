@@ -733,18 +733,35 @@ func (this *Repository) mapSortFiled(sortBy string) string {
 	return ""
 }
 
+func (this *Repository) encodeFts5(word string) string {
+	return `"` + strings.ReplaceAll(word, `"`, `""`) + `"`
+}
+
+func (this *Repository) processNumePartial(numePartial string) string {
+	words := strings.Fields(numePartial)
+
+	for i, word := range words {
+		words[i] = this.encodeFts5(word)
+
+		if slices.Contains(allFormeJuridice, strings.ToUpper(word)) {
+			wordWithPoints := strings.Join(strings.Split(word, ""), ".")
+			wordWithPoints = this.encodeFts5(wordWithPoints)
+
+			words[i] = "(" + words[i] + " OR " + wordWithPoints  + ")"
+		}
+	}
+
+	ftsQuery := strings.Join(words, " AND ")
+
+	return ftsQuery
+}
+
 func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, params *[]any) string {
 	if filters != nil {
 		if filters.numePartial != "" {
-			words := strings.Fields(filters.numePartial)
-
-			for i := range words {
-				words[i] = `"` + strings.ReplaceAll(words[i], `"`, `""`) + `"`
-			}
-			ftsQuery := strings.Join(words, " ")
 
 			stmt += " AND firme_search MATCH ? "
-			*params = append(*params, ftsQuery)
+			*params = append(*params, this.processNumePartial(filters.numePartial))
 		}
 
 		if filters.cui != 0 {
@@ -984,6 +1001,28 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 	return result;
 }
 
+var allowedFormeJuridiceForBilanturi = []string{
+	"ALT",
+	"CA",
+	"GEIE",
+	"GIE",
+	"INCD",
+	"N/A",
+	"OC2",
+	"OCC",
+	"OCM",
+	"OCR",
+	"RA",
+	"SA",
+	"SC",
+	"SCA",
+	"SCE",
+	"SCS",
+	"SE",
+	"SNC",
+	"SRL",
+}
+
 func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
 	if filters.formaJuridica != "" &&
 		!slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) {
@@ -1212,7 +1251,7 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	infoFirma := this.getInfoFirma(numar_inmatriculare)
 	
-	if slices.Index(allowedFormeJuridiceForBilanturi, infoFirma.FormaJuridica) != -1 {
+	if slices.Contains(allowedFormeJuridiceForBilanturi, infoFirma.FormaJuridica) {
 		infoFirma.BilanturiFirma = this.getBilanturiFirma(infoFirma.Cui)
 	}
 

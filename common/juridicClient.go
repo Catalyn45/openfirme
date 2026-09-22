@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/xml"
 	"io"
+	"log"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -161,26 +163,26 @@ type CautareDosareResponseSOAPEnvelope struct {
 	Body    CautareDosareResponseSOAPBody `xml:"Body"`
 }
 
-
-var formeJuridiceMap = []FormaJuridicaMap {
-	FormaJuridicaMap{initialForma: " S.R.L.", juridicForma: " SRL"},
-	FormaJuridicaMap{initialForma: " P.F.A.", juridicForma: " PFA"},
-	FormaJuridicaMap{initialForma: " P.F.", juridicForma: " PF"},
-	FormaJuridicaMap{initialForma: " S.A.", juridicForma: " SA"},
-	FormaJuridicaMap{initialForma: " I.I.", juridicForma: " II"},
-	FormaJuridicaMap{initialForma: " C.A.", juridicForma: " CA"},
-}
-
 func (this *JuridicClient) normalizeNumeFirma(numeFirma string) string {
-	for _, formaJuridica := range formeJuridiceMap {
-		numeFirma = strings.ReplaceAll(numeFirma, formaJuridica.initialForma, formaJuridica.juridicForma)
+	result := []string{}
+
+	for _, word := range strings.Fields(numeFirma) {
+		wordWithoutPoints := strings.ReplaceAll(word, ".", "")
+		wordWithoutPoints = strings.ToUpper(wordWithoutPoints)
+
+		if slices.Contains(allFormeJuridice, wordWithoutPoints) {
+			word = wordWithoutPoints
+		}
+
+		result = append(result, word)
 	}
 
-	return numeFirma
+	return strings.Join(result, " ")
 }
 
 func (this *JuridicClient) GetDosare(numeFirma string) []Dosar {
 	numeFirma = this.normalizeNumeFirma(numeFirma)
+	log.Println("Getting dosare for: ", numeFirma)
 
 	requestData := this.CreateJuridicBody(
 		CautareDosare{

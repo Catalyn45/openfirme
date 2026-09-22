@@ -13,6 +13,40 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+var allFormeJuridice = []string {
+	"AF",
+	"ALT",
+	"CA",
+	"GEIE",
+	"GIE",
+	"IF",
+	"II",
+	"INCD",
+	"N/A",
+	"OC",
+	"OC1",
+	"OC2",
+	"OC3",
+	"OC4",
+	"OC5",
+	"OC6",
+	"OC7",
+	"OCC",
+	"OCM",
+	"OCR",
+	"PF",
+	"PFA",
+	"RA",
+	"SA",
+	"SC",
+	"SCA",
+	"SCE",
+	"SCS",
+	"SE",
+	"SNC",
+	"SRL",
+}
+
 func readCsv(file_path string, delimiter string, skipIndexes []int) [][]string {
 	file, err := os.Open(file_path)
 	if err != nil {
