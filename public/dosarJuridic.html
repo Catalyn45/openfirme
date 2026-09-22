@@ -150,11 +150,11 @@ Look into "templates" directory for changing HTML files.
                                         Număr
                                     </small>
 
-                                    <strong id="profileNumarDosar">
+                                    <strong id="profileNumarDosar" class="clipboardContent">
 										Loading...
                                     </strong>
 
-                                    <button class="content-copy-button" data-target="profileNumarDosar" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -165,11 +165,11 @@ Look into "templates" directory for changing HTML files.
                                         Categorie
                                     </small>
 
-                                    <strong id="profileCategorie">
+                                    <strong id="profileCategorie" class="clipboardContent">
 										Loading...
                                     </strong>
 
-                                    <button class="content-copy-button" data-target="profileCategorie" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -180,11 +180,11 @@ Look into "templates" directory for changing HTML files.
                                         Tribunal
                                     </small>
 
-                                    <strong id="profileTribunal">
+                                    <strong id="profileTribunal" class="clipboardContent">
 										Loading...
                                     </strong>
 
-                                    <button class="content-copy-button" data-target="profileTribunal" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -194,11 +194,11 @@ Look into "templates" directory for changing HTML files.
                                         Departament
                                     </small>
 
-                                    <strong id="profileDepartament">
+                                    <strong id="profileDepartament" class="clipboardContent">
 										Loading...
                                     </strong>
 
-                                    <button class="content-copy-button" data-target="profileDepartament" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -208,11 +208,11 @@ Look into "templates" directory for changing HTML files.
                                         Data
                                     </small>
 
-                                    <strong id="profileData">
+                                    <strong id="profileData" class="clipboardContent">
 										Loading...
                                     </strong>
 
-                                    <button class="content-copy-button" data-target="profileData" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -223,11 +223,11 @@ Look into "templates" directory for changing HTML files.
                                         Stadiu procesual
                                     </small>
 
-                                    <strong id="profileStadiuProcesual">
+                                    <strong id="profileStadiuProcesual" class="clipboardContent">
 										Loading...
                                     </strong>
 
-                                    <button class="content-copy-button" data-target="profileStadiuProcesual" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
 
                                 </div>
 
@@ -244,32 +244,109 @@ Look into "templates" directory for changing HTML files.
                             </h3>
 
                             <div class="profile-grid collapsible-content" id="parti-section">
-                                <div class="profile-field" id="numePartePrototype" style="display:none;">
+                                <div class="profile-field" id="partePrototype" style="display:none;">
                                     <small>
-                                        Nume
+                                        nume parte - calitate
                                     </small>
 
-                                    <strong id="numePartePrototypeValue">
+                                    <strong id="partePrototypeValue" class="clipboardContent">
                                         Loading...
                                     </strong>
 
-                                    <button id="numePartePrototypeClipboardButton" class="content-copy-button" data-target="numePartePrototypeValue" onclick="copyContentToClipboard(this)">Copiază</button>
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
                                 </div>
-                                <div class="profile-field" id="calitatePartePrototype" style="display:none;">
-                                    <small>
-                                        Calitate
-                                    </small>
-
-                                    <strong id="calitatePartePrototypeValue">
-                                        Loading...
-                                    </strong>
-
-                                    <button id="calitatePartePrototypeClipboardButton" class="content-copy-button" data-target="calitatePartePrototypeValue" onclick="copyContentToClipboard(this)">Copiază</button>
-                                </div>
-
                             </div>
 
                             <button class="expand-content-button" data-target="parti-section" onclick="toggleCollapsibleContent(this)">Arată mai mult</button>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>
+                                Ședințe
+                            </h3>
+                        </div>
+
+                        <div class="profile-section" id="sedintaPrototype" style="display: none;">
+                            <div class="sedintaContainer">
+                                <a class="sedintaExpand" >▸</a>
+                                <h3 class="sedinta-title" onclick="component.expandSedinta(this)">
+                                    Sedinta Prototype
+                                </h3>
+                            </div>
+
+                            <div class="profile-grid" style="display: none;">
+                                <div class="profile-field">
+                                    <small>
+                                        Data
+                                    </small>
+
+                                    <strong class="sedinta-data clipboardContent">
+                                        Loading...
+                                    </strong>
+
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
+                                </div>
+
+                                <div class="profile-field">
+                                    <small>
+                                        Complet
+                                    </small>
+
+                                    <strong class="sedinta-complet clipboardContent">
+                                        Loading...
+                                    </strong>
+
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
+                                </div>
+
+                                <div class="profile-field">
+                                    <small>
+                                        Data pronunțare
+                                    </small>
+
+                                    <strong class="sedinta-data-pronuntare clipboardContent">
+                                        Loading...
+                                    </strong>
+
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
+                                </div>
+
+                                <div class="profile-field">
+                                    <small>
+                                        Ora
+                                    </small>
+
+                                    <strong class="sedinta-ora clipboardContent">
+                                        Loading...
+                                    </strong>
+
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
+                                </div>
+
+                                <div class="profile-field">
+                                    <small>
+                                        Soluție
+                                    </small>
+
+                                    <strong class="sedinta-solutie clipboardContent">
+                                        Loading...
+                                    </strong>
+
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
+                                </div>
+
+                                <div class="profile-field">
+                                    <small>
+                                        Soluție sumar
+                                    </small>
+
+                                    <strong class="sedinta-solutie-sumar clipboardContent">
+                                        Loading...
+                                    </strong>
+
+                                    <button class="content-copy-button" onclick="component.copyToClipboard(this)">Copiază</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="profile-section">

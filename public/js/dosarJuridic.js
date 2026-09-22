@@ -15,14 +15,34 @@ class InfoDosarJuridicPage extends Base {
         this.profileData = document.getElementById("profileData")
         this.profileStadiuProcesual = document.getElementById("profileStadiuProcesual")
 
-        this.numePartePrototype = document.getElementById("numePartePrototype")
-        this.calitatePartePrototype = document.getElementById("calitatePartePrototype")
-        this.numePartePrototypeValue = document.getElementById("numePartePrototypeValue")
-        this.calitatePartePrototypeValue = document.getElementById("calitatePartePrototypeValue")
-        this.numePartePrototypeClipboardButton = document.getElementById("numePartePrototypeClipboardButton")
-        this.calitatePartePrototypeClipboardButton = document.getElementById("calitatePartePrototypeClipboardButton")
+        this.partePrototype = document.getElementById("partePrototype")
+        this.partePrototypeValue = document.getElementById("partePrototypeValue")
+
+        this.sedintaPrototype = document.getElementById("sedintaPrototype")
+        this.sedintaTitle = this.sedintaPrototype.getElementsByClassName("sedinta-title")[0]
+        this.sedintaData = this.sedintaPrototype.getElementsByClassName("sedinta-data")[0]
+        this.sedintaComplet = this.sedintaPrototype.getElementsByClassName("sedinta-complet")[0]
+        this.sedintaDataPronuntare = this.sedintaPrototype.getElementsByClassName("sedinta-data-pronuntare")[0]
+        this.sedintaOra = this.sedintaPrototype.getElementsByClassName("sedinta-ora")[0]
+        this.sedintaSolutie = this.sedintaPrototype.getElementsByClassName("sedinta-solutie")[0]
+        this.sedintaSolutieSumar = this.sedintaPrototype.getElementsByClassName("sedinta-solutie-sumar")[0]
 
         this.portalJustButton = document.getElementsByClassName("view-button")[0]
+    }
+
+    expandSedinta(element) {
+        let arrow = element.parentNode.parentNode.getElementsByClassName("sedintaExpand")[0]
+        let content = element.parentNode.parentNode.getElementsByClassName("profile-grid")[0]
+
+        let display = content.style.display
+
+        if (!display) {
+            content.style.display = "none"
+            arrow.textContent = "▸"
+        } else {
+            content.style.removeProperty("display")
+            arrow.textContent = "▾"
+        }
     }
 
     populateWithData(data) {
@@ -38,46 +58,39 @@ class InfoDosarJuridicPage extends Base {
         this.profileData.textContent = formatDateDosare(data.Data)
         this.profileStadiuProcesual.textContent = data.StadiuProcesualNume
 
-        let indexParte = 0
-        let numeParteId = this.numePartePrototypeValue.getAttribute("id")
-        let calitateParteId = this.calitatePartePrototypeValue.getAttribute("id")
-
-        this.numePartePrototypeClipboardButton.removeAttribute("id")
-        this.calitatePartePrototypeClipboardButton.removeAttribute("id")
-
-        if (data.Parti.DosareParte.length > 2) {
+        if (data.Parti.DosareParte.length > 4) {
             this.expandContentButton.style.display = "block"
         }
 
         for (let parte of data.Parti.DosareParte) {
             console.log(parte)
 
-            this.numePartePrototypeValue.textContent = parte.Nume
-            this.numePartePrototypeValue.setAttribute("id", `${numeParteId}-${indexParte}`)
+            this.partePrototypeValue.textContent = `${parte.Nume} - ${parte.CalitateParte}`
 
-            this.calitatePartePrototypeValue.textContent = parte.CalitateParte
-            this.calitatePartePrototypeValue.setAttribute("id", `${calitateParteId}-${indexParte}`)
+            let clone = this.partePrototype.cloneNode(true)
 
-            this.numePartePrototypeClipboardButton.dataset.target = this.numePartePrototypeValue.getAttribute("id")
-            this.calitatePartePrototypeClipboardButton.dataset.target = this.calitatePartePrototypeValue.getAttribute("id")
+            clone.style.removeProperty("display")
+            clone.removeAttribute("id")
 
-            let numeClone = this.numePartePrototype.cloneNode(true)
-            let calitateClone = this.calitatePartePrototype.cloneNode(true)
-
-            numeClone.style.removeProperty("display")
-            numeClone.removeAttribute("id")
-
-            calitateClone.style.removeProperty("display")
-            calitateClone.removeAttribute("id")
-
-            this.numePartePrototype.before(numeClone)
-            this.numePartePrototype.before(calitateClone)
-
-            indexParte++
+            this.partePrototype.before(clone)
         }
 
-        this.numePartePrototypeValue.setAttribute("id", numeParteId)
-        this.calitatePartePrototypeValue.setAttribute("id", calitateParteId)
+        for (let sedinta of data.Sedinte?.DosareSedinta ?? []) {
+            this.sedintaTitle.textContent = `Ședință - ${formatDateSedinta(sedinta.Data)}`
+            this.sedintaData.textContent = formatDateSedinta(sedinta.Data)
+            this.sedintaComplet.textContent = sedinta.Complet
+            this.sedintaDataPronuntare.textContent = formatDateDosare(sedinta.DataPronuntare)
+            this.sedintaOra.textContent = sedinta.Ora
+            this.sedintaSolutie.textContent = sedinta.Solutie
+            this.sedintaSolutieSumar.textContent = sedinta.SolutieSumar
+
+            let clone = this.sedintaPrototype.cloneNode(true)
+
+            clone.style.removeProperty("display")
+            clone.removeAttribute("id")
+
+            this.sedintaPrototype.before(clone)
+        }
     }
 
     async Start() {

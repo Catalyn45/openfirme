@@ -19,6 +19,10 @@ function formatDate(d) {
 }
 
 function formatDateDosare(d) {
+    if (!d) {
+        return d
+    }
+
     const date = new Date(d);
 
     const formatted = date.toLocaleDateString("en-GB") + " " + date.toLocaleTimeString("en-GB", {
@@ -26,6 +30,17 @@ function formatDateDosare(d) {
         minute: "2-digit",
         hour12: false
     })
+
+    return formatted
+}
+
+function formatDateSedinta(d) {
+    if (!d) {
+        return d
+    }
+
+    const date = new Date(d);
+    const formatted = date.toLocaleDateString("en-GB")
 
     return formatted
 }
@@ -48,18 +63,8 @@ async function setErrorPage(statusCode) {
     errorText.textContent += statusCode
 }
 
-async function copyContentToClipboard(button) {
-	let targetId = button.dataset.target
-
-	if (targetId === undefined)
-		return
-
-	let target = document.getElementById(targetId)
-
-	if (target === undefined)
-		return
-
-	let success = await setClipboard(target.textContent)
+async function copyContentToClipboard(button, content) {
+	let success = await setClipboard(content)
 
     if (!success)
         return

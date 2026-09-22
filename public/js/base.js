@@ -21,5 +21,12 @@ class Base {
         window.location = `/search/${encoded}/1`
     }
 
+    copyToClipboard(el) {
+        copyContentToClipboard(
+            el,
+            el.parentNode.getElementsByClassName("clipboardContent")[0].textContent
+        )
+    }
+
     Start() { }
 }

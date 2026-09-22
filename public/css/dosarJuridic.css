@@ -13,3 +13,17 @@
     display: block;
     height: auto;
 }
+
+.sedintaContainer {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.sedinta-title {
+    cursor: pointer;
+}
+
+.sedinta-title:hover {
+    color: purple;
+}
