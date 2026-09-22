@@ -11,14 +11,33 @@ class Base {
         this.query = document.getElementById("searchInput")
     }
 
-    searchFirma() {
+    getSearchIfValid() {
         let numePartial = this.query.value?.toLowerCase().trim()
-        if (numePartial.length < 3) {
+
+        let words = numePartial.split(" ")
+        for (let word of words) {
+            if (word.length >= 3) {
+                return encodeURIComponent(numePartial)
+            }
+        }
+
+        this.query.setCustomValidity("Trebuie să aveți măcar un cuvânt de cel puțin 3 caractere");
+        this.query.reportValidity();
+
+        setTimeout(() => {
+            this.query.setCustomValidity("");
+        }, 5000);
+
+        return null
+    }
+
+    searchFirma() {
+        let numePartial = this.getSearchIfValid()
+        if (!numePartial) {
             return
         }
 
-        let encoded = encodeURIComponent(numePartial)
-        window.location = `/search/${encoded}/1`
+        window.location = `/search/${numePartial}/1`
     }
 
     copyToClipboard(el) {

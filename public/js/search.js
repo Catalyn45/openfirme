@@ -7,13 +7,12 @@ class SearchPage extends SearchPageBase {
 	}
 
     searchFirma() {
-        let numePartial = this.query.value?.toLowerCase().trim()
-        if (numePartial.length < 3) {
+        let numePartial = this.getSearchIfValid()
+        if (!numePartial) {
             return
         }
 
-        let encoded = encodeURIComponent(numePartial)
-        window.location = `/search/${encoded}/1?${this.getFilters()}`
+        window.location = `/search/${numePartial}/1?${this.getFilters()}`
     }
 
 	getLinkForPage(pageNumber) {

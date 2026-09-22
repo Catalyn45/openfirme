@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"slices"
 	"strconv"
@@ -759,6 +760,10 @@ func (this *Repository) processNumePartial(numePartial string) (string, []string
 		}
 
 		result = append(result, encodedWord)
+	}
+
+	if len(result) == 0 {
+		panic(fmt.Errorf("at least 1 word of 3 characters needed"))
 	}
 
 	ftsQuery := strings.Join(result, " AND ")
