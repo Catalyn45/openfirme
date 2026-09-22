@@ -154,21 +154,17 @@ func (this *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 		domeniu: query.Get("domeniu"),
 	}
 
-	numePartial := normalize(ps.ByName("nume_partial"))
+	numePartial := ps.ByName("nume_partial")
+	if numePartial != "" {
+		numePartial = normalize(numePartial)
 
-	numePartialLength := len(numePartial)
-	if numePartialLength < 3 {
-		panic(fmt.Errorf("company name too small"))
-	} else if numePartialLength > 200 {
-		numePartial = numePartial[:200]
-	}
-
-	// If numePartial is a number, then we search by cui
-	cui, err := strconv.Atoi(numePartial)
-	if err == nil {
-		filters.cui = cui
-	} else {
-		filters.numePartial = numePartial
+		// If numePartial is a number, then we search by cui
+		cui, err := strconv.Atoi(numePartial)
+		if err == nil {
+			filters.cui = cui
+		} else {
+			filters.numePartial = numePartial
+		}
 	}
 
 	ordering := FirmeOrdering{}
@@ -195,6 +191,15 @@ func (this *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 
 func (this *Server) getFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	pageNumber, filters, _ := this.getFilters(r, ps)
+
+	if filters.cui == 0 {
+		numePartialLength := len(filters.numePartial)
+		if numePartialLength < 3 {
+			panic(fmt.Errorf("company name too small"))
+		} else if numePartialLength > 200 {
+			filters.numePartial = filters.numePartial[:200]
+		}
+	}
 
 	firme := this.repository.GetFirme(filters, pageNumber)
 
