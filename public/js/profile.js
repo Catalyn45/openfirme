@@ -184,8 +184,9 @@ class InfoPage extends Base {
             if (index == 0) {
                 profileCompanyPrimaryCaen.textContent = bilant.Caen
 
-                let descriere = caenDescriere[bilant.Caen]
-                if (descriere) {
+                if (bilant.DescriereCaen) {
+                    profileCompanyPrimaryCaen.textContent += ` - ${bilant.DescriereCaen}`
+                } else if (caenDescriere[bilant.Caen]) {
                     profileCompanyPrimaryCaen.textContent += ` - ${caenDescriere[bilant.Caen]}`
                 }
             }

@@ -156,6 +156,13 @@ func (this *Server) getFilters(r *http.Request, ps httprouter.Params) (int, *Fir
 
 	numePartial := normalize(ps.ByName("nume_partial"))
 
+	numePartialLength := len(numePartial)
+	if numePartialLength < 3 {
+		panic(fmt.Errorf("company name too small"))
+	} else if numePartialLength > 200 {
+		numePartial = numePartial[:200]
+	}
+
 	// If numePartial is a number, then we search by cui
 	cui, err := strconv.Atoi(numePartial)
 	if err == nil {

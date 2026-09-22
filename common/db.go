@@ -737,31 +737,48 @@ func (this *Repository) encodeFts5(word string) string {
 	return `"` + strings.ReplaceAll(word, `"`, `""`) + `"`
 }
 
-func (this *Repository) processNumePartial(numePartial string) string {
+func (this *Repository) processNumePartial(numePartial string) (string, []string) {
 	words := strings.Fields(numePartial)
 
-	for i, word := range words {
-		words[i] = this.encodeFts5(word)
+	result := []string{}
+	remaining := []string{}
+	for _, word := range words {
+		// trigram can't handle words less than 3 characters so just skip
+		if len(word) < 3 {
+			remaining = append(remaining, word)
+			continue
+		}
+
+		encodedWord := this.encodeFts5(word)
 
 		if slices.Contains(allFormeJuridice, strings.ToUpper(word)) {
 			wordWithPoints := strings.Join(strings.Split(word, ""), ".")
 			wordWithPoints = this.encodeFts5(wordWithPoints)
 
-			words[i] = "(" + words[i] + " OR " + wordWithPoints  + ")"
+			encodedWord = "(" + encodedWord + " OR " + wordWithPoints  + ")"
 		}
+
+		result = append(result, encodedWord)
 	}
 
-	ftsQuery := strings.Join(words, " AND ")
+	ftsQuery := strings.Join(result, " AND ")
+	log.Println(ftsQuery)
 
-	return ftsQuery
+	return ftsQuery, remaining
 }
 
 func (this *Repository) addFiltersToQuery(stmt string, filters *FirmeFilters, params *[]any) string {
 	if filters != nil {
 		if filters.numePartial != "" {
+			numePartialProcessed, remaining := this.processNumePartial(filters.numePartial)
 
 			stmt += " AND firme_search MATCH ? "
-			*params = append(*params, this.processNumePartial(filters.numePartial))
+			*params = append(*params, numePartialProcessed)
+
+			for _, word := range remaining {
+				stmt += "\n AND firme.denumire_norm LIKE '%' || ? || '%' "
+				*params = append(*params, word)
+			}
 		}
 
 		if filters.cui != 0 {
@@ -1127,6 +1144,7 @@ type BilantFirma struct {
 	Capitaluri int
 	Angajati int
 	Caen int
+	DescriereCaen *string
 }
 
 func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
@@ -1215,23 +1233,27 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 
 func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 	stmt := `SELECT
-				an,
-				cifra_afaceri,
-				profit_net,
-				datorii,
-				active_imobilizate,
-				active_circulante,
-				capitaluri,
-				numar_mediu_salariati,
-				cod_caen
+				bilanturi.an,
+				bilanturi.cifra_afaceri,
+				bilanturi.profit_net,
+				bilanturi.datorii,
+				bilanturi.active_imobilizate,
+				bilanturi.active_circulante,
+				bilanturi.capitaluri,
+				bilanturi.numar_mediu_salariati,
+				bilanturi.cod_caen,
+				descriere_caen.denumire
 			FROM bilanturi
+			LEFT JOIN descriere_caen
+			ON bilanturi.cod_caen = descriere_caen.clasa
+				AND descriere_caen.versiune_caen = 3
 			WHERE cui = ?
 			ORDER BY an desc`
 
 	var bilanturiFirma []*BilantFirma
 	rowCallback := func (rows *sql.Rows) {
 		var bilantFirma BilantFirma
-		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen)
+		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen, &bilantFirma.DescriereCaen)
 		if err != nil {
 			panic(err)
 		}
