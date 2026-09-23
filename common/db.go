@@ -1287,7 +1287,7 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 
 func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, filters *FirmeFilters, pageNumber int) *InfoFirmeResult {
 	stmt := `
-		SELECT
+		SELECT DISTINCT
 			firme.denumire,
 			firme.cod_inmatriculare,
 			firme.forma_juridica,
