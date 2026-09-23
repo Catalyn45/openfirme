@@ -127,8 +127,17 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 
 		resourceName := strings.ToLower(resource["name"].(string))
 
+
 		// files with -actualizat are missing extension
 		isActualizat := strings.Contains(resourceName, "actualizat")
+
+		// for some reason the actualizat file for this is the header not the data
+		if strings.Contains(resourceName, "web_vm_an2023.txt") {
+			isActualizat = true
+		} else if strings.Contains(resourceName, "web_vm_2023 - actualizat") {
+			isActualizat = false
+		}
+
 		if resourceName[len(resourceName)-3:] != "txt" && isActualizat {
 			resourceName += ".txt"
 		}
@@ -306,12 +315,12 @@ func (this *Downloader) DownloadData() {
 			[]string{"web_bl_bs_sl_an", ".txt"},
 			[]string{"web_uu_", ".txt"},
 			[]string{"web_ir_an", ".txt"},
-			[]string{"web_ir_an", ".txt"},
 			[]string{"web_inst", "_de_credit_", ".txt"},
 			[]string{"web_instdecredit", ".txt"},
 			[]string{"webasig", ".txt"},
 			[]string{"web_vs", ".txt"},
 			[]string{"webbrok", ".txt"},
+			[]string{"web_vm_", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)

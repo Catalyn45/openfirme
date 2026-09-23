@@ -295,6 +295,53 @@ func (this *Parser) parseBrok(an int) ([]map[string]int, bool) {
 	return this.normalizeBrok(converted, an), true
 }
 
+func (this *Parser) normalizeVm(data []map[string]int) []map[string]int {
+	for _, item := range data {
+		item["I5"] = item["I4"]
+		item["I4"] = item["I3"]
+		item["I3"] = 0
+
+		item["I7"] = item["I7"] + item["I8"]
+		item["I8"] = item["I9"]
+		item["I9"] = item["I10"]
+		item["I10"] = item["I11"]
+		item["I11"] = item["I12"]
+		item["I12"] = item["I16"]
+		item["I13"] = item["I17"]
+		item["I14"] = item["I20"]
+		item["I15"] = item["I23"]
+		item["I16"] = item["I24"]
+		item["I17"] = item["I25"]
+		item["I18"] = item["I26"]
+		item["I19"] = item["I27"]
+	}
+
+	return data
+}
+
+func (this *Parser) parseVm(an int) ([]map[string]int, bool) {
+	if an < 2016 {
+		return []map[string]int{}, true
+	}
+
+	baseFileName := "web_vm_"
+	if an >= 2021 {
+		baseFileName += "an"
+	}
+
+	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	parsed := readDataDelimiter(filePath, ",", []int{})
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeVm(converted), true
+}
+
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 	result := []map[string]int{}
 
@@ -339,6 +386,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("brok file should exist"))
 	}
 	result = append(result, brok...)
+
+	vm, found := this.parseVm(an)
+	if !found {
+		panic(fmt.Errorf("vm file should exist"))
+	}
+	result = append(result, vm...)
 
 	return result, true
 }
