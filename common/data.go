@@ -3,6 +3,7 @@ package common
 import (
 	"bufio"
 	"encoding/json"
+	"log"
 	"os"
 	"slices"
 	"strconv"
@@ -116,6 +117,8 @@ func parseCsv(data [][]string) []map[string]string {
 }
 
 func readDataDelimiter(file_path string, delimiter string, skipIndexes []int) []map[string]string {
+	log.Println("reading: ", file_path)
+
 	data := readCsv(file_path, delimiter, skipIndexes)
 
 	parsed := parseCsv(data)

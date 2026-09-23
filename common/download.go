@@ -311,6 +311,7 @@ func (this *Downloader) DownloadData() {
 			[]string{"web_instdecredit", ".txt"},
 			[]string{"webasig", ".txt"},
 			[]string{"web_vs", ".txt"},
+			[]string{"webbrok", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)

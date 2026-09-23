@@ -232,7 +232,7 @@ func (this *Parser) parseVs(an int) ([]map[string]int, bool) {
 
 	skipIndexes := []int{}
 	if an >= 2019 {
-		skipIndexes = []int{16, 17}
+		skipIndexes = []int{18, 19}
 	}
 
 	parsed := readDataDelimiter(filePath, ",", skipIndexes)
@@ -243,6 +243,56 @@ func (this *Parser) parseVs(an int) ([]map[string]int, bool) {
 	converted := convertValuesToInt(parsed)
 
 	return this.normalizeVs(converted), true
+}
+
+func (this *Parser) normalizeBrok(data []map[string]int, an int) []map[string]int {
+	for _, item := range data {
+		if an >= 2024 {
+			item["I9"], item["I10"] = item["I10"], item["I9"]
+		}
+
+		item["I2"] = item["I5"]
+		item["I3"] = 0
+		item["I4"] = item["I7"]
+		item["I5"] = item["I6"]
+		item["I6"] = item["I8"]
+		item["I7"] = item["I10"]
+		item["I8"] = 0
+		item["I10"] = item["I11"]
+		item["I11"] = item["I12"]
+		item["I12"] = item["I15"]
+		item["I13"] = item["I18"]
+		item["I14"] = item["I19"]
+		item["I15"] = item["I20"]
+		item["I16"] = item["I21"]
+		item["I17"] = item["I22"]
+		item["I18"] = item["I23"]
+		item["I19"] = item["I24"]
+	}
+
+	return data
+}
+
+func (this *Parser) parseBrok(an int) ([]map[string]int, bool) {
+	filePath := filepath.Join(config.DataDirectory, "webbrok" + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	skipIndexes := []int{}
+	if an > 2023 {
+		skipIndexes = []int{12, 18}
+	}
+	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 26)
+	}
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeBrok(converted, an), true
 }
 
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
@@ -283,6 +333,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("vs file should exist"))
 	}
 	result = append(result, vs...)
+
+	brok, found := this.parseBrok(an)
+	if !found {
+		panic(fmt.Errorf("brok file should exist"))
+	}
+	result = append(result, brok...)
 
 	return result, true
 }
