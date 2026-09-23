@@ -196,6 +196,55 @@ func (this *Parser) parseAsig(an int) ([]map[string]int, bool) {
 	return this.normalizeAsig(converted, an), true
 }
 
+func (this *Parser) normalizeVs(data []map[string]int) []map[string]int {
+	for _, item := range data {
+		item["I5"] = item["I4"]
+		item["I4"] = item["I3"]
+		item["I3"] = 0
+		item["I7"] = item["I7"] + item["I8"]
+		item["I8"] = item["I9"]
+		item["I9"] = item["I10"]
+		item["I10"] = item["I11"]
+		item["I11"] = item["I12"]
+		item["I12"] = item["I18"]
+		item["I13"] = item["I19"]
+		item["I14"] = item["I22"]
+		item["I15"] = item["I25"]
+		item["I16"] = item["I26"]
+		item["I17"] = item["I27"]
+		item["I18"] = item["I28"]
+		item["I19"] = item["I29"]
+	}
+
+	return data
+}
+
+func (this *Parser) parseVs(an int) ([]map[string]int, bool) {
+	if an < 2015 {
+		return []map[string]int{}, true
+	}
+
+	filePath := filepath.Join(config.DataDirectory, "web_vs_" + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	skipIndexes := []int{}
+	if an >= 2019 {
+		skipIndexes = []int{16, 17}
+	}
+
+	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 31)
+	}
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeVs(converted), true
+}
+
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 	result := []map[string]int{}
 
@@ -228,6 +277,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("asig file should exist"))
 	}
 	result = append(result, asig...)
+
+	vs, found := this.parseVs(an)
+	if !found {
+		panic(fmt.Errorf("vs file should exist"))
+	}
+	result = append(result, vs...)
 
 	return result, true
 }
