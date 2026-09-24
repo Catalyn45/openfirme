@@ -337,9 +337,98 @@ func (this *Parser) parseVm(an int) ([]map[string]int, bool) {
 
 	parsed := readDataDelimiter(filePath, ",", []int{})
 
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 29)
+	}
+
 	converted := convertValuesToInt(parsed)
 
 	return this.normalizeVm(converted), true
+}
+
+func (this *Parser) normalizeIfn(an int, data []map[string]int) []map[string]int {
+	for _, item := range data {
+		if an >= 2023 {
+			item["I5"] = item["I1"]
+			item["I1"] = item["I7"] + item["I8"] + item["I9"]
+			item["I2"] = 0
+			item["I3"] = 0
+			item["I4"] = 0
+			item["I6"] = 0
+			item["I7"] = item["I10"] + item["I11"] + item["I12"]
+			item["I8"] = 0
+			item["I9"] = item["I13"]
+			item["I10"] = item["I14"] + item["I15"] + item["I16"]
+			item["I11"] = item["I14"]
+
+			var found bool
+			item["I12"], found = item["I23"]
+			if !found {
+				item["I12"] = 0
+			}
+
+			item["I13"] = item["I18"]
+			item["I14"] = 0
+			item["I15"] = item["I19"]
+			item["I16"] = 0
+			item["I17"] = item["I22"]
+			item["I18"] = 0
+			item["I19"] = 0
+		} else {
+			item["I5"] = item["I1"]
+			item["I1"] = item["I8"] + item["I9"]
+			item["I4"] = item["I2"] + item["I3"]
+			item["I2"] = 0
+			item["I3"] = 0
+			item["I6"] = 0
+			item["I7"] = item["I10"] + item["I11"] + item["I12"]
+			item["I8"] = 0
+			item["I9"] = item["I13"]
+			item["I10"] = item["I15"]
+			item["I11"] = item["I15"]
+			item["I12"] = 0
+			item["I13"] = item["I19"]
+			item["I14"] = item["I20"]
+			item["I15"] = item["I21"]
+			item["I16"] = item["I22"]
+			item["I17"] = item["I23"]
+			item["I18"] = item["I24"]
+			item["I19"] = 0
+		}
+
+		if item["CUI"] == 39806419 {
+			fmt.Println(item)
+		}
+	}
+
+	return data
+}
+
+func (this *Parser) parseIfn(an int) ([]map[string]int, bool) {
+	if an <= 2011 {
+		return []map[string]int{}, true
+	}
+
+	baseFileName := "web_ifn"
+	if an == 2014 {
+		baseFileName += "_"
+	}
+
+	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	parsed := readDataDelimiter(filePath, ",", []int{})
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 25)
+	}
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeIfn(an, converted), true
 }
 
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
@@ -392,6 +481,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("vm file should exist"))
 	}
 	result = append(result, vm...)
+
+	ifn, found := this.parseIfn(an)
+	if !found {
+		panic(fmt.Errorf("vm file should exist"))
+	}
+	result = append(result, ifn...)
 
 	return result, true
 }
