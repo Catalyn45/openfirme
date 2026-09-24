@@ -28,6 +28,10 @@ type CacheConfig struct {
 
 	MinSearchCacheTimeInMinutes int
 	MaxSearchCacheTimeInMinutes int
+
+	CacheSaveEnabled bool
+	CacheSaveFilePath string
+	CacheSaveIntervalInMinutes int
 }
 
 type DBConfig struct {
@@ -94,6 +98,10 @@ func init() {
 
 			MinSearchCacheTimeInMinutes: 5,
 			MaxSearchCacheTimeInMinutes: 10,
+
+			CacheSaveEnabled: true,
+			CacheSaveFilePath: "./cache.gob",
+			CacheSaveIntervalInMinutes: 5,
 		},
 
 		DosareJuridiceClientConfig: DosareJuridiceClientConfig {

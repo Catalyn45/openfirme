@@ -2,47 +2,128 @@ package common
 
 import (
 	"bytes"
+	"encoding/gob"
 	"log"
 	"math"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/patrickmn/go-cache"
 )
 
+func init() {
+	gob.Register(&CachedResponseWriter{})
+	gob.Register([]Dosar{})
+}
+
+type CachedResponseBuffer struct {
+	buffer bytes.Buffer
+}
+
+func (this *CachedResponseBuffer) Write(p []byte) (int, error){
+	return this.buffer.Write(p)
+}
+
+func (this *CachedResponseBuffer) Bytes() []byte {
+	return this.buffer.Bytes()
+}
+func (this *CachedResponseBuffer) GobEncode() ([]byte, error) {
+    return this.Bytes(), nil
+}
+
+func (this *CachedResponseBuffer) GobDecode(data []byte) error {
+	this.buffer.Reset()
+	_, err := this.Write(data)
+	
+	return err
+}
+
 type CachedResponseWriter struct {
-	header http.Header
-	body   bytes.Buffer
-	status int
+	HttpHeader http.Header
+	Body   CachedResponseBuffer
+	Status int
 }
 
 func (w *CachedResponseWriter) Header() http.Header {
-	return w.header
+	return w.HttpHeader
 }
 
 func (w *CachedResponseWriter) WriteHeader(status int) {
-	w.status = status
+	w.Status = status
 }
 
 func (w *CachedResponseWriter) Write(p []byte) (int, error) {
-	return w.body.Write(p)
+	return w.Body.Write(p)
 }
 
 type Cache struct {
 	c *cache.Cache
 	config *CacheConfig
+
+	saveMutex sync.Mutex
+	lastSave time.Time
 }
 
 func newCache() *Cache {
 	config := &config.CacheConfig
-	return &Cache{
+
+	this := &Cache{
 		c: cache.New(
 			time.Duration(config.DefaultCacheTimeInMinutes) * time.Minute,
 			time.Duration(config.CleanupCacheIntervalTimeInMinutes) * time.Minute,
 		),
 		config: config,
 	}
+
+	this.loadCache()
+
+	return this
+}
+
+func (this *Cache) saveCache() {
+	err := this.c.SaveFile(this.config.CacheSaveFilePath)
+	if err != nil {
+		log.Println("Cache save error: ", err.Error())
+	} else {
+		log.Println("Saved cache to file")
+	}
+
+	this.lastSave = time.Now()
+}
+
+func (this *Cache) checkSaveCache() {
+	if !this.config.CacheSaveEnabled {
+		return
+	}
+
+	isFree := this.saveMutex.TryLock()
+	// other routine is saving the file
+	if !isFree {
+		return
+	}
+
+	defer this.saveMutex.Unlock()
+
+	if time.Now().Sub(this.lastSave) >= time.Duration(this.config.CacheSaveIntervalInMinutes) * time.Minute {
+		this.saveCache()
+	}
+}
+
+func (this *Cache) loadCache() {
+	if !this.config.CacheSaveEnabled {
+		return
+	}
+
+	err := this.c.LoadFile(this.config.CacheSaveFilePath)
+	if err != nil {
+		log.Println("Cache load error: ", err.Error())
+	} else {
+		log.Println("Loaded cache from file")
+	}
+
+	this.lastSave = time.Now()
 }
 
 func (this *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Duration) bool {
@@ -69,6 +150,8 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 		return
 	}
 
+	this.checkSaveCache()
+
 	cached, found := this.c.Get(key)
 
 	var cachedWriter *CachedResponseWriter
@@ -79,8 +162,8 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 			log.Println("client already have data")
 
 			cachedWriter = &CachedResponseWriter{
-				header: make(http.Header),
-				status: 304,
+				HttpHeader: make(http.Header),
+				Status: 304,
 			}
 		} else {
 			cachedWriter = cached.(*CachedResponseWriter)
@@ -94,28 +177,28 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 		log.Println("cache miss, adding ", key, " for duration: ", expirationInMinutes)
 
 		cachedWriter = &CachedResponseWriter{
-			header: make(http.Header),
-			status: 200,
+			HttpHeader: make(http.Header),
+			Status: 200,
 		}
 
 		handler(cachedWriter, r)
 
 		// don't save in cache if the response is 3XX
-		if cachedWriter.status < 300 || cachedWriter.status >= 400 {
+		if cachedWriter.Status < 300 || cachedWriter.Status >= 400 {
 			this.c.Set(key, cachedWriter, expiration)
 		}
 	}
 
 	cachedWriter.Header().Set("Cache-Control", "public, max-age=60")
 
-	for key, values := range cachedWriter.header {
+	for key, values := range cachedWriter.HttpHeader {
 		for _, value := range values {
 			w.Header().Add(key, value)
 		}
 	}
 
-	w.WriteHeader(cachedWriter.status)
-	w.Write(cachedWriter.body.Bytes())
+	w.WriteHeader(cachedWriter.Status)
+	w.Write(cachedWriter.Body.Bytes())
 }
 
 const portalQuery = "portalquery.just.ro/"
