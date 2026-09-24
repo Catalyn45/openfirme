@@ -323,6 +323,7 @@ func (this *Downloader) DownloadData() {
 			[]string{"web_vm_", ".txt"},
 			[]string{"web_ifn", ".txt"},
 			[]string{"web_ip_ieme", ".txt"},
+			[]string{"web_sif", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)

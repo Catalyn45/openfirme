@@ -475,6 +475,51 @@ func (this *Parser) parseIeme(an int) ([]map[string]int, bool){
 	return this.normalizeIeme(converted), true
 }
 
+func (this *Parser) normalizeSif(data []map[string]int) []map[string]int {
+	for _, item := range data {
+		item["I5"] = item["I4"]
+		item["I4"] = item["I3"]
+		item["I3"] = 0
+		item["I7"] = item["I7"] + item["I8"]
+		item["I8"] = item["I9"]
+		item["I9"] = item["I10"]
+		item["I10"] = item["I19"]
+		item["I11"] = item["I12"]
+		item["I12"] = 0
+		item["I13"] = item["I20"]
+		item["I14"] = item["I21"]
+		item["I15"] = item["I22"]
+		item["I16"] = item["I23"]
+		item["I17"] = item["I24"]
+		item["I18"] = item["I25"]
+		item["I19"] = item["I26"]
+	}
+
+	return data
+}
+
+func (this *Parser) parseSif(an int) ([]map[string]int, bool) {
+	if an < 2022 {
+		return []map[string]int{}, true
+	}
+
+	filePath := filepath.Join(config.DataDirectory, "web_sif" + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	parsed := readDataDelimiter(filePath, ",", []int{})
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 28)
+	}
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeSif(converted), true
+}
+
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 	result := []map[string]int{}
 
@@ -537,6 +582,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("ieme file should exist"))
 	}
 	result = append(result, ieme...)
+
+	sif, found := this.parseSif(an)
+	if !found {
+		panic(fmt.Errorf("sif file should exist"))
+	}
+	result = append(result, sif...)
 
 	return result, true
 }
