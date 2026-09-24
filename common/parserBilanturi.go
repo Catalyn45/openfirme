@@ -520,6 +520,29 @@ func (this *Parser) parseSif(an int) ([]map[string]int, bool) {
 	return this.normalizeSif(converted), true
 }
 
+func (this *Parser) parsePensii(an int) ([]map[string]int, bool) {
+	baseFileName := "web_pensii"
+	if an == 2011 || an == 2012 || an == 2014 {
+		baseFileName += "_"
+	}
+
+	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	skipIndexes := []int{ 6 }
+
+	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 21)
+	}
+
+	return convertValuesToInt(parsed), true
+}
+
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 	result := []map[string]int{}
 
@@ -588,6 +611,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("sif file should exist"))
 	}
 	result = append(result, sif...)
+
+	pensii, found := this.parsePensii(an)
+	if !found {
+		panic(fmt.Errorf("pensii file should exist"))
+	}
+	result = append(result, pensii...)
 
 	return result, true
 }

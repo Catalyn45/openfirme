@@ -130,6 +130,7 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 
 		// files with -actualizat are missing extension
 		isActualizat := strings.Contains(resourceName, "actualizat")
+		isActualizat = isActualizat || strings.Contains(resourceName, "actulalizat")
 
 		// for some reason the actualizat file for this is the header not the data
 		if strings.Contains(resourceName, "web_vm_an2023.txt") {
@@ -324,6 +325,7 @@ func (this *Downloader) DownloadData() {
 			[]string{"web_ifn", ".txt"},
 			[]string{"web_ip_ieme", ".txt"},
 			[]string{"web_sif", ".txt"},
+			[]string{"web_pensii", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)
