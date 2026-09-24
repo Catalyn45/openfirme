@@ -322,6 +322,7 @@ func (this *Downloader) DownloadData() {
 			[]string{"webbrok", ".txt"},
 			[]string{"web_vm_", ".txt"},
 			[]string{"web_ifn", ".txt"},
+			[]string{"web_ip_ieme", ".txt"},
 		})
 
 		this.downloadResources(&bilant, bilanturiResources, true)

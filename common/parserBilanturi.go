@@ -395,10 +395,6 @@ func (this *Parser) normalizeIfn(an int, data []map[string]int) []map[string]int
 			item["I18"] = item["I24"]
 			item["I19"] = 0
 		}
-
-		if item["CUI"] == 39806419 {
-			fmt.Println(item)
-		}
 	}
 
 	return data
@@ -429,6 +425,54 @@ func (this *Parser) parseIfn(an int) ([]map[string]int, bool) {
 	converted := convertValuesToInt(parsed)
 
 	return this.normalizeIfn(an, converted), true
+}
+
+func (this *Parser) normalizeIeme(data []map[string]int) []map[string]int {
+	for _, item := range data {
+		item["I4"] = item["I2"] + item["I3"]
+		item["I2"] = item["I1"] + item["I2"] + item["I3"] + item["I4"] + item["I5"] + item["I6"] + item["I7"]
+		item["I5"] = item["I1"]
+		item["I1"] = item["I8"] + item["I9"]
+		item["I3"] = 0
+		item["I6"] = 0
+		item["I7"] = item["I10"] + item["I11"] + item["I12"] + item["I14"]
+		item["I8"] = 0
+		item["I9"] = item["I13"]
+		item["I10"] = item["I15"] + item["I16"] + item["I17"] - item["I18"]
+		item["I11"] = item["I15"]
+		item["I12"] = 0
+		item["I13"] = item["I19"]
+		item["I14"] = item["I20"]
+		item["I15"] = item["I21"]
+		item["I16"] = item["I22"]
+		item["I17"] = item["I23"]
+		item["I18"] = item["I24"]
+		item["I19"] = 0
+	}
+
+	return data
+}
+
+func (this *Parser) parseIeme(an int) ([]map[string]int, bool){
+	if an < 2023 {
+		return []map[string]int{}, true
+	}
+
+	filePath := filepath.Join(config.DataDirectory, "web_ip_ieme" + strconv.Itoa(an) + ".txt")
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, false
+	}
+
+	parsed := readDataDelimiter(filePath, ",", []int{})
+
+	if an >= 2025 {
+		this.expectFieldCount(parsed, 26)
+	}
+
+	converted := convertValuesToInt(parsed)
+
+	return this.normalizeIeme(converted), true
 }
 
 func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
@@ -487,6 +531,12 @@ func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
 		panic(fmt.Errorf("vm file should exist"))
 	}
 	result = append(result, ifn...)
+
+	ieme, found := this.parseIeme(an)
+	if !found {
+		panic(fmt.Errorf("ieme file should exist"))
+	}
+	result = append(result, ieme...)
 
 	return result, true
 }
