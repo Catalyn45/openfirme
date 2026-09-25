@@ -1133,6 +1133,8 @@ type InfoFirma struct {
 	Sector *string
 	Statusuri []string
 	CoduriCaen []string
+	CaenPrincipal *string
+	DescriereCaenPrincipal *string
 	Tva *bool
 	ImpozitareVenit *bool
 	ImpozitareProfit *bool
@@ -1280,6 +1282,17 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	
 	if slices.Contains(allowedFormeJuridiceForBilanturi, infoFirma.FormaJuridica) {
 		infoFirma.BilanturiFirma = this.getBilanturiFirma(infoFirma.Cui)
+
+		maxAnBilant := slices.MaxFunc(infoFirma.BilanturiFirma, func (first *BilantFirma, second *BilantFirma) int {
+			return first.An - second.An
+		})
+
+		if maxAnBilant != nil {
+			caenPrincipal := strconv.Itoa(maxAnBilant.Caen)
+
+			infoFirma.CaenPrincipal = &caenPrincipal
+			infoFirma.DescriereCaenPrincipal = maxAnBilant.DescriereCaen
+		}
 	}
 
 	return infoFirma
@@ -1369,4 +1382,33 @@ func (this *Repository) GetNumeFirma(numarInmatriculare string) string {
 		nil)
 
 	return nume
+}
+
+func (this *Repository) GetDescriereCaen(caen string) string {
+	stmt := `SELECT
+				denumire
+			FROM descriere_caen
+			WHERE clasa = ? and versiune_caen = 3
+	`
+
+	descriere := ""
+	rowCallback := func (rows *sql.Rows) {
+		err := rows.Scan(&descriere)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	caenInt, err := strconv.Atoi(caen)
+	if err != nil {
+		panic(err)
+	}
+
+	this.executeQuery(
+		stmt,
+		[]any { caenInt },
+		rowCallback,
+		nil)
+
+	return descriere
 }

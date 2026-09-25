@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,11 +13,15 @@ import (
 )
 
 type JuridicClient struct {
+	cache *Cache
+	repository *Repository
 	httpClient *http.Client
 }
 
-func NewJuridicClient() *JuridicClient {
+func NewJuridicClient(cache *Cache, repository *Repository) *JuridicClient {
 	return &JuridicClient{
+		cache: cache,
+		repository: repository,
 		httpClient: &http.Client{
 			Timeout: time.Duration(config.DosareJuridiceClientConfig.RequstTimeoutInSeconds) * time.Second,
 		},
@@ -180,7 +185,17 @@ func (this *JuridicClient) normalizeNumeFirma(numeFirma string) string {
 	return strings.Join(result, " ")
 }
 
-func (this *JuridicClient) GetDosare(numeFirma string) []Dosar {
+func (this *JuridicClient) GetDosare(codInmatriculare string) []Dosar {
+	dosare, found := this.cache.GetJuridic(codInmatriculare)
+	if found {
+		return dosare
+	}
+
+	numeFirma := this.repository.GetNumeFirma(codInmatriculare)
+	if numeFirma == "" {
+		panic(fmt.Errorf("Firma doesn't exist"))
+	}
+
 	numeFirma = this.normalizeNumeFirma(numeFirma)
 	log.Println("Getting dosare for: ", numeFirma)
 
@@ -203,5 +218,9 @@ func (this *JuridicClient) GetDosare(numeFirma string) []Dosar {
 		panic(err)
 	}
 
-	return response.Body.Body.CautareDosareResult.Dosare
+	dosare = response.Body.Body.CautareDosareResult.Dosare
+
+	this.cache.SetForJuridic(codInmatriculare, dosare)
+
+	return dosare
 }

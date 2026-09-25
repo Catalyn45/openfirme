@@ -25,14 +25,19 @@ type Server struct {
 	repository *Repository
 	cache *Cache
 	juridicClient *JuridicClient
+	AnafClient *AnafClient
 }
 
 func NewServer() *Server {
+	cache := newCache()
+	repository := NewRepository("file:" + config.DBFilePath + "?mode=ro")
+
 	return &Server {
 		config: &config.ServerConfig,
-		repository: NewRepository("file:" + config.DBFilePath + "?mode=ro"),
-		cache: newCache(),
-		juridicClient: NewJuridicClient(),
+		repository: repository,
+		cache: cache,
+		juridicClient: NewJuridicClient(cache, repository),
+		AnafClient: NewAnafClient(cache),
 	}
 }
 
@@ -214,11 +219,35 @@ func (this *Server) getTopFirme(w http.ResponseWriter, r *http.Request, ps httpr
 	this.returnSuccess(w, firme)
 }
 
+func (this *Server) AddTvaInfo(firma *InfoFirma, tvaInfo *TvaInfo) {
+	if tvaInfo == nil {
+		return
+	}
+
+	firma.Tva = &tvaInfo.Tva
+
+	if firma.CaenPrincipal != nil {
+		return
+	}
+
+	firma.CaenPrincipal = &tvaInfo.Caen
+
+	descriere := this.repository.GetDescriereCaen(*firma.CaenPrincipal)
+	if descriere != "" {
+		firma.DescriereCaenPrincipal = &descriere
+	}
+}
+
 func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	numar_inmatriculare := ps.ByName("numar_inmatriculare")
 	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
 
 	firma := this.repository.GetFirma(numar_inmatriculare);
+
+	if firma.CaenPrincipal == nil || firma.Tva == nil {
+		tvaInfo := this.AnafClient.getTva(firma.Cui)
+		this.AddTvaInfo(firma, tvaInfo)
+	}
 
 	this.returnSuccess(w, firma)
 }
@@ -326,16 +355,7 @@ func (this *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Reques
 
 	pageNumber := getPageNumber(ps)
 
-	dosare, found := this.cache.GetJuridic(numar_inmatriculare)
-	if !found {
-		numeFirma := this.repository.GetNumeFirma(numar_inmatriculare)
-		if numeFirma == "" {
-			panic(fmt.Errorf("Firma doesn't exist"))
-		}
-
-		dosare = this.juridicClient.GetDosare(numeFirma)
-		this.cache.SetForJuridic(numar_inmatriculare, dosare)
-	}
+	dosare := this.juridicClient.GetDosare(numar_inmatriculare)
 
 	query := r.URL.Query()
 
@@ -365,16 +385,7 @@ func (this *Server) getDosarJuridicFirma(w http.ResponseWriter, r *http.Request,
 	numar_dosar := ps.ByName("numar_dosar")
 	numar_dosar = strings.ReplaceAll(numar_dosar, "-", "/")
 
-	dosare, found := this.cache.GetJuridic(numar_inmatriculare)
-	if !found {
-		numeFirma := this.repository.GetNumeFirma(numar_inmatriculare)
-		if numeFirma == "" {
-			panic(fmt.Errorf("Firma doesn't exist"))
-		}
-
-		dosare = this.juridicClient.GetDosare(numeFirma)
-		this.cache.SetForJuridic(numar_inmatriculare, dosare)
-	}
+	dosare := this.juridicClient.GetDosare(numar_inmatriculare)
 
 	index := slices.IndexFunc(dosare, func(dosar Dosar) bool { return dosar.Numar == numar_dosar })
 	if index == -1 {

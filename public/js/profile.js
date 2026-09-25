@@ -113,6 +113,14 @@ class InfoPage extends Base {
 
         }
 
+        if (data.CaenPrincipal) {
+            profileCompanyPrimaryCaen.textContent = data.CaenPrincipal
+        }
+
+        if (data.DescriereCaenPrincipal) {
+            profileCompanyPrimaryCaen.textContent += ` - ${data.DescriereCaenPrincipal}`
+        }
+
         if (data.Tva === true) {
             this.profileCompanyTva.textContent = "Da"
         }
@@ -181,14 +189,8 @@ class InfoPage extends Base {
         const financiarCapitaluriAngajati = prototype.getElementsByClassName("DateFinanciareAngajati")[0]
 
         for (let [index, bilant] of data.BilanturiFirma.entries()) {
-            if (index == 0) {
-                profileCompanyPrimaryCaen.textContent = bilant.Caen
-
-                if (bilant.DescriereCaen) {
-                    profileCompanyPrimaryCaen.textContent += ` - ${bilant.DescriereCaen}`
-                } else if (caenDescriere[bilant.Caen]) {
-                    profileCompanyPrimaryCaen.textContent += ` - ${caenDescriere[bilant.Caen]}`
-                }
+            if (index == 0 && !data.DescriereCaenPrincipal && caenDescriere[bilant.Caen]) {
+                profileCompanyPrimaryCaen.textContent += ` - ${caenDescriere[bilant.Caen]}`
             }
 
             financiarAn.textContent = bilant.An

@@ -6,7 +6,7 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"sync"
+	"strconv"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -16,6 +16,7 @@ import (
 func init() {
 	gob.Register(&CachedResponseWriter{})
 	gob.Register([]Dosar{})
+	gob.Register(&TvaInfo{})
 }
 
 type CachedResponseBuffer struct {
@@ -61,9 +62,6 @@ func (w *CachedResponseWriter) Write(p []byte) (int, error) {
 type Cache struct {
 	c *cache.Cache
 	config *CacheConfig
-
-	saveMutex sync.Mutex
-	lastSave time.Time
 }
 
 func newCache() *Cache {
@@ -77,7 +75,10 @@ func newCache() *Cache {
 		config: config,
 	}
 
-	this.loadCache()
+	if config.CacheSaveEnabled {
+		this.loadCache()
+		go this.saveCacheWorker()
+	}
 
 	return this
 }
@@ -89,41 +90,20 @@ func (this *Cache) saveCache() {
 	} else {
 		log.Println("Saved cache to file")
 	}
-
-	this.lastSave = time.Now()
 }
 
-func (this *Cache) checkSaveCache() {
-	if !this.config.CacheSaveEnabled {
-		return
-	}
-
-	isFree := this.saveMutex.TryLock()
-	// other routine is saving the file
-	if !isFree {
-		return
-	}
-
-	defer this.saveMutex.Unlock()
-
-	if time.Now().Sub(this.lastSave) >= time.Duration(this.config.CacheSaveIntervalInMinutes) * time.Minute {
-		this.saveCache()
-	}
+func (this *Cache) saveCacheWorker() {
+	time.Sleep(time.Duration(this.config.CacheSaveIntervalInMinutes) * time.Minute)
+	this.saveCache()
 }
 
 func (this *Cache) loadCache() {
-	if !this.config.CacheSaveEnabled {
-		return
-	}
-
 	err := this.c.LoadFile(this.config.CacheSaveFilePath)
 	if err != nil {
 		log.Println("Cache load error: ", err.Error())
 	} else {
 		log.Println("Loaded cache from file")
 	}
-
-	this.lastSave = time.Now()
 }
 
 func (this *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Duration) bool {
@@ -145,12 +125,10 @@ func (this *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Durati
 func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
 	log.Println(r.Method + " " + r.URL.String())
 
-	if !this.config.Enabled {
+	if !this.config.WebEnabled {
 		handler(w, r)
 		return
 	}
-
-	this.checkSaveCache()
 
 	cached, found := this.c.Get(key)
 
@@ -204,6 +182,10 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 const portalQuery = "portalquery.just.ro/"
 
 func (this *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found bool) {
+	if !this.config.DosareJuridiceEnabled {
+		return nil, false
+	}
+
 	value, found := this.c.Get(portalQuery + numarInmatriculare)
 	if !found {
 		return nil, false
@@ -213,11 +195,41 @@ func (this *Cache) GetJuridic(numarInmatriculare string) (dosare []Dosar, found 
 }
 
 func (this *Cache) SetForJuridic(numarInmatriculare string, dosare []Dosar) {
+	if !this.config.DosareJuridiceEnabled {
+		return
+	}
+
 	this.c.Set(
 		portalQuery + numarInmatriculare,
 		dosare,
 		time.Duration(this.config.DosareJuridiceCacheTimeInMinutes) * time.Minute,
 	)
+}
+
+const anafTva = "https://anaf.ro/tva/"
+
+func (this *Cache) GetTva(cui int) (tvaInfo *TvaInfo, found bool) {
+	if !this.config.AnafEnabled {
+		return nil, false
+	}
+
+	value, found := this.c.Get(anafTva + strconv.Itoa(cui))
+	if !found {
+		return nil, false
+	}
+
+	return value.(*TvaInfo), found
+}
+
+func (this *Cache) SetTva(cui int, tvaInfo *TvaInfo) {
+	if !this.config.AnafEnabled {
+		return
+	}
+
+	this.c.Set(
+		anafTva + strconv.Itoa(cui),
+		tvaInfo,
+		time.Duration(this.config.AnafTvaCacheTimeInDays) * time.Hour * 24)
 }
 
 func (this *Cache) HtmlCache(handler http.Handler) http.Handler {

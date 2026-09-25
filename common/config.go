@@ -15,13 +15,16 @@ type DosareJuridiceClientConfig struct {
 	RequstTimeoutInSeconds int
 }
 
+type AnafClientConfig struct {
+	RequstTimeoutInSeconds int
+	TvaRequestWorkerIntervalInSeconds int
+}
+
 type CacheConfig struct {
-	Enabled bool
+	WebEnabled bool
 
 	DefaultCacheTimeInMinutes int
 	CleanupCacheIntervalTimeInMinutes int
-
-	DosareJuridiceCacheTimeInMinutes int
 
 	MinPagedCacheTimeInMinutes int
 	MaxPagedCacheTimeInMinutes int
@@ -32,6 +35,12 @@ type CacheConfig struct {
 	CacheSaveEnabled bool
 	CacheSaveFilePath string
 	CacheSaveIntervalInMinutes int
+
+	DosareJuridiceEnabled bool
+	DosareJuridiceCacheTimeInMinutes int
+
+	AnafEnabled bool
+	AnafTvaCacheTimeInDays int
 }
 
 type DBConfig struct {
@@ -56,6 +65,7 @@ type Config struct {
 	DBConfig DBConfig
 	CacheConfig CacheConfig
 	DosareJuridiceClientConfig DosareJuridiceClientConfig
+	AnafClientConfig AnafClientConfig
 	WebsiteGeneratorConfig WebsiteGeneratorConfig
 }
 
@@ -86,12 +96,10 @@ func init() {
 		},
 
 		CacheConfig : CacheConfig {
-			Enabled: true,
+			WebEnabled: true,
 
 			DefaultCacheTimeInMinutes: 20,
 			CleanupCacheIntervalTimeInMinutes: 10,
-
-			DosareJuridiceCacheTimeInMinutes: 30,
 
 			MinPagedCacheTimeInMinutes: 20,
 			MaxPagedCacheTimeInMinutes: 40,
@@ -102,10 +110,21 @@ func init() {
 			CacheSaveEnabled: true,
 			CacheSaveFilePath: "./cache.gob",
 			CacheSaveIntervalInMinutes: 5,
+
+			DosareJuridiceEnabled: true,
+			DosareJuridiceCacheTimeInMinutes: 30,
+
+			AnafEnabled: true,
+			AnafTvaCacheTimeInDays: 30,
 		},
 
 		DosareJuridiceClientConfig: DosareJuridiceClientConfig {
 			RequstTimeoutInSeconds: 20,
+		},
+
+		AnafClientConfig: AnafClientConfig {
+			RequstTimeoutInSeconds: 20,
+			TvaRequestWorkerIntervalInSeconds: 60,
 		},
 	}
 
