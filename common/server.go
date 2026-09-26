@@ -244,7 +244,7 @@ func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprout
 
 	firma := this.repository.GetFirma(numar_inmatriculare);
 
-	if firma.CaenPrincipal == nil || firma.Tva == nil {
+	if firma.DescriereCaenPrincipal == nil || firma.Tva == nil {
 		tvaInfo := this.AnafClient.getTva(firma.Cui)
 		this.AddTvaInfo(firma, tvaInfo)
 	}

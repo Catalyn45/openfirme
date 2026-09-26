@@ -1023,31 +1023,8 @@ func (this *Repository) GetFirme(filters *FirmeFilters, pageNumber int) *InfoFir
 	return result;
 }
 
-var allowedFormeJuridiceForBilanturi = []string{
-	"ALT",
-	"CA",
-	"GEIE",
-	"GIE",
-	"INCD",
-	"N/A",
-	"OC2",
-	"OCC",
-	"OCM",
-	"OCR",
-	"RA",
-	"SA",
-	"SC",
-	"SCA",
-	"SCE",
-	"SCS",
-	"SE",
-	"SNC",
-	"SRL",
-}
-
 func (this *Repository) GetTopFirme(filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int) *InfoFirmeResult {
-	if filters.formaJuridica != "" &&
-		!slices.Contains(allowedFormeJuridiceForBilanturi, filters.formaJuridica) {
+	if filters.formaJuridica != "" && filters.formaJuridica != "SRL" && filters.formaJuridica != "SA" {
 		return &InfoFirmeResult {
 			Count: 0,
 			Data: []*InfoFirmaLight{},
@@ -1280,20 +1257,23 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 	infoFirma := this.getInfoFirma(numar_inmatriculare)
 	
-	if slices.Contains(allowedFormeJuridiceForBilanturi, infoFirma.FormaJuridica) {
-		infoFirma.BilanturiFirma = this.getBilanturiFirma(infoFirma.Cui)
-
-		maxAnBilant := slices.MaxFunc(infoFirma.BilanturiFirma, func (first *BilantFirma, second *BilantFirma) int {
-			return first.An - second.An
-		})
-
-		if maxAnBilant != nil {
-			caenPrincipal := strconv.Itoa(maxAnBilant.Caen)
-
-			infoFirma.CaenPrincipal = &caenPrincipal
-			infoFirma.DescriereCaenPrincipal = maxAnBilant.DescriereCaen
-		}
+	bilanturiFirma := this.getBilanturiFirma(infoFirma.Cui)
+	if len(bilanturiFirma) == 0 {
+		return infoFirma
 	}
+
+	maxAnBilant := slices.MaxFunc(bilanturiFirma, func (first *BilantFirma, second *BilantFirma) int {
+		return first.An - second.An
+	})
+
+	if maxAnBilant != nil {
+		caenPrincipal := strconv.Itoa(maxAnBilant.Caen)
+
+		infoFirma.CaenPrincipal = &caenPrincipal
+		infoFirma.DescriereCaenPrincipal = maxAnBilant.DescriereCaen
+	}
+
+	infoFirma.BilanturiFirma = bilanturiFirma
 
 	return infoFirma
 }
