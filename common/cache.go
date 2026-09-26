@@ -294,3 +294,7 @@ func (this *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
 		this.apiCache(handler, w, r, params, expiration)
 	}
 }
+
+func (this *Cache) RemoveProfileCache(codInmatriculare string) {
+	this.c.Delete("/api/profile/" + codInmatriculare)
+}

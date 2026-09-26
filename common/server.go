@@ -53,8 +53,8 @@ func (this *Server) Start() {
 	router.GET("/search/:nume_partial/:page_number", this.serveHtmlFunc("search.html"))
 	router.GET("/api/search/:nume_partial/:page_number", this.cache.ApiPagedSearchCache(this.getFirme))
 
-	router.GET("/profile/:numar_inmatriculare", this.serveHtmlFunc("profile.html"))
-	router.GET("/api/profile/:numar_inmatriculare", this.cache.DefaultApiCache(this.getFirma))
+	router.GET("/profile/:cod_inmatriculare", this.serveHtmlFunc("profile.html"))
+	router.GET("/api/profile/:cod_inmatriculare", this.cache.DefaultApiCache(this.getFirma))
 
 	router.GET("/top/:page_number", this.serveHtmlFunc("topfirme.html"))
 	router.GET("/api/top/:page_number", this.cache.ApiPagedCache(this.getTopFirme))
@@ -239,13 +239,13 @@ func (this *Server) AddTvaInfo(firma *InfoFirma, tvaInfo *TvaInfo) {
 }
 
 func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	numar_inmatriculare := ps.ByName("numar_inmatriculare")
-	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+	codInmatriculare := ps.ByName("cod_inmatriculare")
+	codInmatriculareSanitized := strings.ReplaceAll(codInmatriculare, "-", "/")
 
-	firma := this.repository.GetFirma(numar_inmatriculare);
+	firma := this.repository.GetFirma(codInmatriculareSanitized);
 
 	if firma.DescriereCaenPrincipal == nil || firma.Tva == nil {
-		tvaInfo := this.AnafClient.getTva(firma.Cui)
+		tvaInfo := this.AnafClient.getTva(firma.Cui, codInmatriculare)
 		this.AddTvaInfo(firma, tvaInfo)
 	}
 
@@ -253,14 +253,14 @@ func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprout
 }
 
 func (this *Server) getAdminsFirme(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	numar_inmatriculare := ps.ByName("cod_inmatriculare")
-	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+	codInmatriculare := ps.ByName("cod_inmatriculare")
+	codInmatriculare = strings.ReplaceAll(codInmatriculare, "-", "/")
 
 	admin := ps.ByName("admin")
 
 	pageNumber, filters, _ := this.getFilters(r, ps)
 
-	firme := this.repository.GetAdminFirme(numar_inmatriculare, admin, filters, pageNumber)
+	firme := this.repository.GetAdminFirme(codInmatriculare, admin, filters, pageNumber)
 
 	this.returnSuccess(w, firme)
 }
@@ -350,12 +350,12 @@ type FormaJuridicaMap struct {
 }
 
 func (this *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	numar_inmatriculare := ps.ByName("cod_inmatriculare")
-	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+	codInmatriculare := ps.ByName("cod_inmatriculare")
+	codInmatriculare = strings.ReplaceAll(codInmatriculare, "-", "/")
 
 	pageNumber := getPageNumber(ps)
 
-	dosare := this.juridicClient.GetDosare(numar_inmatriculare)
+	dosare := this.juridicClient.GetDosare(codInmatriculare)
 
 	query := r.URL.Query()
 
@@ -379,15 +379,15 @@ func (this *Server) getDosareJuridiceFirma(w http.ResponseWriter, r *http.Reques
 }
 
 func (this *Server) getDosarJuridicFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	numar_inmatriculare := ps.ByName("cod_inmatriculare")
-	numar_inmatriculare = strings.ReplaceAll(numar_inmatriculare, "-", "/")
+	codInmatriculare := ps.ByName("cod_inmatriculare")
+	codInmatriculare = strings.ReplaceAll(codInmatriculare, "-", "/")
 
-	numar_dosar := ps.ByName("numar_dosar")
-	numar_dosar = strings.ReplaceAll(numar_dosar, "-", "/")
+	numarDosar := ps.ByName("numar_dosar")
+	numarDosar = strings.ReplaceAll(numarDosar, "-", "/")
 
-	dosare := this.juridicClient.GetDosare(numar_inmatriculare)
+	dosare := this.juridicClient.GetDosare(codInmatriculare)
 
-	index := slices.IndexFunc(dosare, func(dosar Dosar) bool { return dosar.Numar == numar_dosar })
+	index := slices.IndexFunc(dosare, func(dosar Dosar) bool { return dosar.Numar == numarDosar })
 	if index == -1 {
 		panic(fmt.Errorf("Dosar doesn't exist"))
 	}

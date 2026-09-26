@@ -13,7 +13,7 @@ type AnafClient struct {
 	config *AnafClientConfig
 	httpClient *http.Client
 	cache *Cache
-	cuisToRequest *ConcurentSet[int]
+	cuisToRequest *ConcurentMap[int, string]
 }
 
 func NewAnafClient(cache *Cache) *AnafClient {
@@ -25,7 +25,7 @@ func NewAnafClient(cache *Cache) *AnafClient {
 			Timeout: time.Duration(anafConfig.RequstTimeoutInSeconds) * time.Second,
 		},
 		cache: cache,
-		cuisToRequest: NewSet[int](100),
+		cuisToRequest: NewConcurentMap[int, string](100),
 	}
 
 	if config.CacheConfig.AnafEnabled {
@@ -65,16 +65,16 @@ type TvaRequest struct {
 	Data string `json:"data"`
 }
 
-func (this *AnafClient) ConstructTvaBody() []TvaRequest {
+func (this *AnafClient) ConstructTvaBody(cuisToRequest map[int]string) []TvaRequest {
 	requestBody := []TvaRequest{}
 
 	now := time.Now()
-	this.cuisToRequest.IteratePop(func (cui int) {
+	for cui, _ := range cuisToRequest {
 		requestBody = append(requestBody, TvaRequest{
 			Cui: cui,
 			Data: now.Format("2006-01-02"),
 		})
-	})
+	}
 
 	return requestBody
 }
@@ -132,7 +132,9 @@ func (this *AnafClient) MakeTvaRequest() {
 
 	log.Println("making tva request")
 
-	request := this.ConstructTvaBody()
+	cuisToRequest := this.cuisToRequest.Move()
+
+	request := this.ConstructTvaBody(cuisToRequest)
 
 	response := this.SendTvaRequest(request)
 	if response == nil {
@@ -152,6 +154,7 @@ func (this *AnafClient) MakeTvaRequest() {
 		cui := item.DateGenerale.Cui
 
 		this.cache.SetTva(cui, &tvaInfo)
+		this.cache.RemoveProfileCache(cuisToRequest[cui])
 	}
 }
 
@@ -162,7 +165,7 @@ func (this *AnafClient) TvaRequestsWorker() {
 	}
 }
 
-func (this *AnafClient) getTva(cui int) *TvaInfo {
+func (this *AnafClient) getTva(cui int, codInmatriculare string) *TvaInfo {
 	if !config.CacheConfig.AnafEnabled {
 		return nil
 	}
@@ -172,7 +175,7 @@ func (this *AnafClient) getTva(cui int) *TvaInfo {
 		return tvaResponse
 	}
 
-	this.cuisToRequest.Add(cui)
+	this.cuisToRequest.Set(cui, codInmatriculare)
 
 	return nil
 }
