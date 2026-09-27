@@ -99,6 +99,11 @@ func (this *JuridicClient) sendJuridicRequest(action string, data []byte) []byte
 	if err != nil {
 		panic(err)
 	}
+
+	if resp.StatusCode != 200 {
+		return nil
+	}
+
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -211,6 +216,9 @@ func (this *JuridicClient) GetDosare(codInmatriculare string) []Dosar {
 	)
 
 	responseData := this.sendJuridicRequest("CautareDosare", requestData)
+	if responseData == nil {
+		return []Dosar{}
+	}
 
 	var response CautareDosareResponseSOAPEnvelope
 	err := xml.Unmarshal(responseData, &response)
