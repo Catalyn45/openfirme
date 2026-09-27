@@ -225,11 +225,6 @@ func (this *Server) AddTvaInfo(firma *InfoFirma, tvaInfo *TvaInfo) {
 	}
 
 	firma.Tva = &tvaInfo.Tva
-
-	if firma.CaenPrincipal != nil {
-		return
-	}
-
 	firma.CaenPrincipal = &tvaInfo.Caen
 
 	descriere := this.repository.GetDescriereCaen(*firma.CaenPrincipal)
