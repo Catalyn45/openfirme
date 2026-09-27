@@ -1266,7 +1266,7 @@ func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
 		return first.An - second.An
 	})
 
-	if maxAnBilant != nil {
+	if maxAnBilant != nil && maxAnBilant.DescriereCaen != nil {
 		caenPrincipal := strconv.Itoa(maxAnBilant.Caen)
 
 		infoFirma.CaenPrincipal = &caenPrincipal
