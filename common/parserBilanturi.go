@@ -1,61 +1,127 @@
 package common
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
+	"io"
 	"slices"
-	"strconv"
 )
 
-func (this *Parser) parseBilantSimplu(an int) ([]map[string]int, bool) {
-	filePath := filepath.Join(config.DataDirectory, "web_bl_bs_sl_an" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
+type BilanturiParser interface {
+	Available(an int) bool
+	GetFileName(an string) string
+	GetGroupName() string
+	IsFieldCountExpected(an int, fieldCount int) bool
+	Parse(reader io.Reader, an int) []map[string]int
+}
+
+type BilantSimpluParser struct {}
+
+func (this *BilantSimpluParser) Available(_ int) bool {
+	return true
+}
+
+func (this *BilantSimpluParser) GetFileName(an string) string {
+	return "web_bl_bs_sl_an" + an + ".txt"
+}
+
+func (this *BilantSimpluParser) GetGroupName() string {
+	return "bl_sl"
+}
+
+func (this *BilantSimpluParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
 	}
 
+	return fieldCount == 21
+}
+
+func (this *BilantSimpluParser) Parse(reader io.Reader, an int) []map[string]int {
 	skipIndexes := []int{ 13 }
 	if an <= 2015 {
 		skipIndexes = append(skipIndexes, 14)
 	}
 
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 21)
-	}
-
-	return convertValuesToInt(parsed), true
+	return convertValuesToInt(parsed)
 }
 
-func (this *Parser) parseUU(an int) ([]map[string]int, bool) {
-	baseFileName := "web_uu_"
-	if an > 2012 {
-		baseFileName += "an"
+type UUParser struct {}
+
+func (this *UUParser) Available(an int) bool {
+	return true
+}
+
+func (this *UUParser) GetFileName(an string) string {
+	fileName := "web_uu_"
+	if an > "2012" {
+		fileName += "an"
 	}
 
-	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
+	return fileName + an + ".txt"
+}
+
+func (this *UUParser) GetGroupName() string {
+	return "uu"
+}
+
+func (this *UUParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
 	}
 
-	skipIndexes := []int{ }
+	return fieldCount == 21
+}
+
+func (this *UUParser) Parse(reader io.Reader, an int) []map[string]int {
+	skipIndexes := []int{}
 	if an >= 2016 {
 		skipIndexes = append(skipIndexes, 13)
 	}
 
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 21)
-	}
-
-	return convertValuesToInt(parsed), true
+	return convertValuesToInt(parsed)
 }
 
-func (this *Parser) normalizeInstitDeCredit(bilanturi []map[string]int) []map[string]int {
+type InstDeCreditParser struct {}
+
+func (this *InstDeCreditParser) Available(an int) bool {
+	return an > 2013
+}
+
+func (this *InstDeCreditParser) GetFileName(an string) string {
+	fileName := "web_inst"
+	if an >= "2024" {
+		fileName += "it"
+	}
+
+	if an == "2023" {
+		fileName += "decredit_"
+	} else {
+		fileName += "_de_credit_"
+	}
+
+	if an >= "2024" {
+		fileName += "an"
+	}
+
+	return fileName + an + ".txt"
+}
+
+func (this *InstDeCreditParser) GetGroupName() string {
+	return "inst_credit"
+}
+
+func (this *InstDeCreditParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 25
+}
+
+func (this *InstDeCreditParser) normalize(bilanturi []map[string]int) []map[string]int {
 	for _, item := range bilanturi {
 		item["I1"] = item["I7"] + item["I8"] + item["I9"]
 		item["I2"] = item["I2"] + item["I3"] + item["I4"] + item["I5"] + item["I6"]
@@ -82,71 +148,72 @@ func (this *Parser) normalizeInstitDeCredit(bilanturi []map[string]int) []map[st
 	return bilanturi
 }
 
-func (this *Parser) parseInstitDeCredit(an int) ([]map[string]int, bool) {
-	if an <= 2013 {
-		return []map[string]int{}, true
-	}
-
-	baseFileName := "web_inst"
-	if an >= 2024 {
-		baseFileName += "it"
-	}
-
-	if an == 2023 {
-		baseFileName += "decredit_"
-	} else {
-		baseFileName += "_de_credit_"
-	}
-
-	if an >= 2024 {
-		baseFileName += "an"
-	}
-
-	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
+func (this *InstDeCreditParser) Parse(reader io.Reader, an int) []map[string]int {
 	skipIndexes := []int{}
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 25)
-	}
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeInstitDeCredit(converted), true
+	return this.normalize(converted)
 }
 
-func (this *Parser) parseIR(an int) ([]map[string]int, bool) {
-	// there is no data for 2011
-	if an == 2011 {
-		return []map[string]int{}, true
+type IRParser struct {}
+
+func (this *IRParser) Available(an int) bool {
+	return an > 2011
+}
+
+func (this *IRParser) GetFileName(an string) string {
+	return "web_ir_an" + an + ".txt"
+}
+
+func (this *IRParser) GetGroupName() string {
+	return "ir"
+}
+
+func (this *IRParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
 	}
 
-	filePath := filepath.Join(config.DataDirectory, "web_ir_an" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
+	return fieldCount == 21
+}
 
+func (this *IRParser) Parse(reader io.Reader, an int) []map[string]int {
 	skipIndexes := []int{}
 	if an <= 2015 || an >= 2018 {
 		skipIndexes = append(skipIndexes, 13)
 	}
 
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 21)
-	}
-
-	return convertValuesToInt(parsed), true
+	return convertValuesToInt(parsed)
 }
 
-func (this *Parser) normalizeAsig(data []map[string]int, an int) []map[string]int {
+
+type AsigParser struct {}
+
+func (this *AsigParser) Available(_ int) bool {
+	return true
+}
+
+func (this *AsigParser) GetFileName(an string) string {
+	return "webasig" + an + ".txt"
+}
+
+func (this *AsigParser) GetGroupName() string {
+	return "asig"
+}
+
+func (this *AsigParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 40
+}
+
+func (this *AsigParser) normalize(data []map[string]int, an int) []map[string]int {
 	for _, item := range data {
 		if an < 2024 {
 			item["I1"] = item["I1"] + item["I3"] + item["I4"]
@@ -179,24 +246,37 @@ func (this *Parser) normalizeAsig(data []map[string]int, an int) []map[string]in
 	return data
 }
 
-func (this *Parser) parseAsig(an int) ([]map[string]int, bool) {
-	filePath := filepath.Join(config.DataDirectory, "webasig" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
-	parsed := readDataDelimiter(filePath, ",", []int{})
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 40)
-	}
+func (this *AsigParser) Parse(reader io.Reader, an int) []map[string]int {
+	parsed := readDataDelimiter(reader, ",", []int{})
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeAsig(converted, an), true
+	return this.normalize(converted, an)
 }
 
-func (this *Parser) normalizeVs(data []map[string]int) []map[string]int {
+type VSParser struct {}
+
+func (this *VSParser) Available(an int) bool {
+	return an > 2014
+}
+
+func (this *VSParser) GetFileName(an string) string {
+	return "web_vs_" + an + ".txt"
+}
+
+func (this *VSParser) GetGroupName() string {
+	return "vs"
+}
+
+func (this *VSParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 31
+}
+
+func (this *VSParser) normalize(data []map[string]int) []map[string]int {
 	for _, item := range data {
 		item["I5"] = item["I4"]
 		item["I4"] = item["I3"]
@@ -219,33 +299,42 @@ func (this *Parser) normalizeVs(data []map[string]int) []map[string]int {
 	return data
 }
 
-func (this *Parser) parseVs(an int) ([]map[string]int, bool) {
-	if an < 2015 {
-		return []map[string]int{}, true
-	}
-
-	filePath := filepath.Join(config.DataDirectory, "web_vs_" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
+func (this *VSParser) Parse(reader io.Reader, an int) []map[string]int {
 	skipIndexes := []int{}
 	if an >= 2019 {
 		skipIndexes = []int{18, 19}
 	}
 
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 31)
-	}
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeVs(converted), true
+	return this.normalize(converted)
 }
 
-func (this *Parser) normalizeBrok(data []map[string]int, an int) []map[string]int {
+type BrokParser struct {}
+
+func (this *BrokParser) Available(_ int) bool {
+	return true
+}
+
+func (this *BrokParser) GetFileName(an string) string {
+	return "webbrok" + an + ".txt"
+}
+
+func (this *BrokParser) GetGroupName() string {
+	return "brok"
+}
+
+func (this *BrokParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 26
+}
+
+func (this *BrokParser) normalize(data []map[string]int, an int) []map[string]int {
 	for _, item := range data {
 		if an >= 2024 {
 			item["I9"], item["I10"] = item["I10"], item["I9"]
@@ -273,29 +362,46 @@ func (this *Parser) normalizeBrok(data []map[string]int, an int) []map[string]in
 	return data
 }
 
-func (this *Parser) parseBrok(an int) ([]map[string]int, bool) {
-	filePath := filepath.Join(config.DataDirectory, "webbrok" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
+func (this *BrokParser) Parse(reader io.Reader, an int) []map[string]int {
 	skipIndexes := []int{}
 	if an > 2023 {
 		skipIndexes = []int{12, 18}
 	}
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 26)
-	}
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeBrok(converted, an), true
+	return this.normalize(converted, an)
 }
 
-func (this *Parser) normalizeVm(data []map[string]int) []map[string]int {
+type VMParser struct {}
+
+func (this *VMParser) Available(an int) bool {
+	return an > 2015
+}
+
+func (this *VMParser) GetFileName(an string) string {
+	fileName := "web_vm_"
+	if an >= "2021" {
+		fileName += "an"
+	}
+
+	return fileName + an + ".txt"
+}
+
+func (this *VMParser) GetGroupName() string {
+	return "vm"
+}
+
+func (this *VMParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 29
+}
+
+func (this *VMParser) normalize(data []map[string]int) []map[string]int {
 	for _, item := range data {
 		item["I5"] = item["I4"]
 		item["I4"] = item["I3"]
@@ -319,34 +425,42 @@ func (this *Parser) normalizeVm(data []map[string]int) []map[string]int {
 	return data
 }
 
-func (this *Parser) parseVm(an int) ([]map[string]int, bool) {
-	if an < 2016 {
-		return []map[string]int{}, true
-	}
-
-	baseFileName := "web_vm_"
-	if an >= 2021 {
-		baseFileName += "an"
-	}
-
-	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
-	parsed := readDataDelimiter(filePath, ",", []int{})
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 29)
-	}
+func (this *VMParser) Parse(reader io.Reader, an int) []map[string]int {
+	parsed := readDataDelimiter(reader, ",", []int{})
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeVm(converted), true
+	return this.normalize(converted)
 }
 
-func (this *Parser) normalizeIfn(an int, data []map[string]int) []map[string]int {
+type IfnParser struct {}
+
+func (this *IfnParser) Available(an int) bool {
+	return an > 2011
+}
+
+func (this *IfnParser) GetFileName(an string) string {
+	fileName := "web_ifn"
+	if an == "2014" {
+		fileName += "_"
+	}
+
+	return fileName + an + ".txt"
+}
+
+func (this *IfnParser) GetGroupName() string {
+	return "ifn"
+}
+
+func (this *IfnParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 25
+}
+
+func (this *IfnParser) normalize(an int, data []map[string]int) []map[string]int {
 	for _, item := range data {
 		if an >= 2023 {
 			item["I5"] = item["I1"]
@@ -400,34 +514,37 @@ func (this *Parser) normalizeIfn(an int, data []map[string]int) []map[string]int
 	return data
 }
 
-func (this *Parser) parseIfn(an int) ([]map[string]int, bool) {
-	if an <= 2011 {
-		return []map[string]int{}, true
-	}
-
-	baseFileName := "web_ifn"
-	if an == 2014 {
-		baseFileName += "_"
-	}
-
-	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
-	parsed := readDataDelimiter(filePath, ",", []int{})
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 25)
-	}
+func (this *IfnParser) Parse(reader io.Reader, an int) []map[string]int {
+	parsed := readDataDelimiter(reader, ",", []int{})
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeIfn(an, converted), true
+	return this.normalize(an, converted)
 }
 
-func (this *Parser) normalizeIeme(data []map[string]int) []map[string]int {
+type IemeParser struct {}
+
+func (this *IemeParser) Available(an int) bool {
+	return an > 2022
+}
+
+func (this *IemeParser) GetFileName(an string) string {
+	return "web_ip_ieme" + an + ".txt"
+}
+
+func (this *IemeParser) GetGroupName() string {
+	return "ieme"
+}
+
+func (this *IemeParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 26
+}
+
+func (this *IemeParser) normalize(data []map[string]int) []map[string]int {
 	for _, item := range data {
 		item["I4"] = item["I2"] + item["I3"]
 		item["I2"] = item["I1"] + item["I2"] + item["I3"] + item["I4"] + item["I5"] + item["I6"] + item["I7"]
@@ -453,29 +570,37 @@ func (this *Parser) normalizeIeme(data []map[string]int) []map[string]int {
 	return data
 }
 
-func (this *Parser) parseIeme(an int) ([]map[string]int, bool){
-	if an < 2023 {
-		return []map[string]int{}, true
-	}
-
-	filePath := filepath.Join(config.DataDirectory, "web_ip_ieme" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
-	parsed := readDataDelimiter(filePath, ",", []int{})
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 26)
-	}
+func (this *IemeParser) Parse(reader io.Reader, an int) []map[string]int {
+	parsed := readDataDelimiter(reader, ",", []int{})
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeIeme(converted), true
+	return this.normalize(converted)
 }
 
-func (this *Parser) normalizeSif(data []map[string]int) []map[string]int {
+type SifParser struct {}
+
+func (this *SifParser) Available(an int) bool {
+	return an > 2021
+}
+
+func (this *SifParser) GetFileName(an string) string {
+	return "web_sif" + an + ".txt"
+}
+
+func (this *SifParser) GetGroupName() string {
+	return "sif"
+}
+
+func (this *SifParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
+	}
+
+	return fieldCount == 28
+}
+
+func (this *SifParser) normalize(data []map[string]int) []map[string]int {
 	for _, item := range data {
 		item["I5"] = item["I4"]
 		item["I4"] = item["I3"]
@@ -498,140 +623,45 @@ func (this *Parser) normalizeSif(data []map[string]int) []map[string]int {
 	return data
 }
 
-func (this *Parser) parseSif(an int) ([]map[string]int, bool) {
-	if an < 2022 {
-		return []map[string]int{}, true
-	}
-
-	filePath := filepath.Join(config.DataDirectory, "web_sif" + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
-	}
-
-	parsed := readDataDelimiter(filePath, ",", []int{})
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 28)
-	}
+func (this *SifParser) Parse(reader io.Reader, an int) []map[string]int {
+	parsed := readDataDelimiter(reader, ",", []int{})
 
 	converted := convertValuesToInt(parsed)
 
-	return this.normalizeSif(converted), true
+	return this.normalize(converted)
 }
 
-func (this *Parser) parsePensii(an int) ([]map[string]int, bool) {
-	baseFileName := "web_pensii"
-	if an == 2011 || an == 2012 || an == 2014 {
-		baseFileName += "_"
+type PensiiParser struct {}
+
+func (this *PensiiParser) Available(_ int) bool {
+	return true
+}
+
+func (this *PensiiParser) GetFileName(an string) string {
+	fileName := "web_pensii"
+	if an == "2011" || an == "2012" || an == "2014" {
+		fileName += "_"
 	}
 
-	filePath := filepath.Join(config.DataDirectory, baseFileName + strconv.Itoa(an) + ".txt")
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, false
+	return fileName + an + ".txt"
+}
+
+func (this *PensiiParser) GetGroupName() string {
+	return "pensii"
+}
+
+func (this *PensiiParser) IsFieldCountExpected(an int, fieldCount int) bool {
+	if an < 2025 {
+		return true
 	}
 
+	return fieldCount == 21
+}
+
+
+func (this *PensiiParser) Parse(reader io.Reader, an int) []map[string]int {
 	skipIndexes := []int{ 6 }
+	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
-	parsed := readDataDelimiter(filePath, ",", skipIndexes)
-
-	if an >= 2025 {
-		this.expectFieldCount(parsed, 21)
-	}
-
-	return convertValuesToInt(parsed), true
-}
-
-func (this *Parser) parseBilanturiForAn(an int) ([]map[string]int, bool) {
-	result := []map[string]int{}
-
-	blsl, found := this.parseBilantSimplu(an)
-	if !found {
-		return nil, false
-	}
-	result = append(result, blsl...)
-
-	uu, found := this.parseUU(an)
-	if !found {
-		panic(fmt.Errorf("uu file should exist"))
-	}
-	result = append(result, uu...)
-
-	ir, found := this.parseIR(an)
-	if !found {
-		panic(fmt.Errorf("ir file should exist"))
-	}
-	result = append(result, ir...)
-
-	institDeCredit, found := this.parseInstitDeCredit(an)
-	if !found {
-		panic(fmt.Errorf("institDeCredit file should exist"))
-	}
-	result = append(result, institDeCredit...)
-
-	asig, found := this.parseAsig(an)
-	if !found {
-		panic(fmt.Errorf("asig file should exist"))
-	}
-	result = append(result, asig...)
-
-	vs, found := this.parseVs(an)
-	if !found {
-		panic(fmt.Errorf("vs file should exist"))
-	}
-	result = append(result, vs...)
-
-	brok, found := this.parseBrok(an)
-	if !found {
-		panic(fmt.Errorf("brok file should exist"))
-	}
-	result = append(result, brok...)
-
-	vm, found := this.parseVm(an)
-	if !found {
-		panic(fmt.Errorf("vm file should exist"))
-	}
-	result = append(result, vm...)
-
-	ifn, found := this.parseIfn(an)
-	if !found {
-		panic(fmt.Errorf("vm file should exist"))
-	}
-	result = append(result, ifn...)
-
-	ieme, found := this.parseIeme(an)
-	if !found {
-		panic(fmt.Errorf("ieme file should exist"))
-	}
-	result = append(result, ieme...)
-
-	sif, found := this.parseSif(an)
-	if !found {
-		panic(fmt.Errorf("sif file should exist"))
-	}
-	result = append(result, sif...)
-
-	pensii, found := this.parsePensii(an)
-	if !found {
-		panic(fmt.Errorf("pensii file should exist"))
-	}
-	result = append(result, pensii...)
-
-	return result, true
-}
-
-func (this *Parser) ParseBilanturi() {
-	for i := 2011; ; i++ {
-		if this.repository.DoesAnExist(i) {
-			continue
-		}
-
-		data, exists := this.parseBilanturiForAn(i)
-		if !exists {
-			break
-		}
-
-		this.repository.UpdateBilanturi(data, i)
-	}
+	return convertValuesToInt(parsed)
 }

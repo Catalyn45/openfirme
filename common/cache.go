@@ -14,6 +14,7 @@ import (
 )
 
 func init() {
+	log.SetFlags(log.Lshortfile)
 	gob.Register(&CachedResponseWriter{})
 	gob.Register([]Dosar{})
 	gob.Register(&TvaInfo{})
@@ -232,6 +233,32 @@ func (this *Cache) SetTva(cui int, tvaInfo *TvaInfo) {
 		time.Duration(this.config.AnafTvaCacheTimeInDays) * time.Hour * 24)
 }
 
+const anafBilant = "https://anaf.ro/bilant/"
+
+func (this *Cache) GetBilant(cui int, an int) (bilant map[string]int, found bool) {
+	if !this.config.AnafEnabled {
+		return nil, false
+	}
+
+	value, found := this.c.Get(anafBilant + strconv.Itoa(cui) + "/" + strconv.Itoa(an))
+	if !found {
+		return nil, false
+	}
+
+	return value.(map[string]int), found
+}
+
+func (this *Cache) SetBilant(cui int, an int, bilant map[string]int) {
+	if !this.config.AnafEnabled {
+		return
+	}
+
+	this.c.Set(
+		anafBilant + strconv.Itoa(cui) + "/" + strconv.Itoa(an),
+		bilant,
+		time.Duration(this.config.AnafBilanturiCacheTimeInDays) * time.Hour * 24)
+}
+
 func (this *Cache) HtmlCache(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		this.cacheFunc(w, r, handler.ServeHTTP, r.URL.Path, cache.DefaultExpiration)
@@ -296,5 +323,6 @@ func (this *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
 }
 
 func (this *Cache) RemoveProfileCache(codInmatriculare string) {
+	log.Println("removing cache ", "/api/profile/" + codInmatriculare)
 	this.c.Delete("/api/profile/" + codInmatriculare)
 }

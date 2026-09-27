@@ -2,19 +2,45 @@ package common
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 )
 
 type Parser struct {
 	metadata map[string]string
 
+	bilanturiParsers []BilanturiParser
+	bilanturiParserForStopCheck BilanturiParser
+
 	repository *Repository
 }
 
-func NewParser() *Parser {
+func NewParser(repository *Repository) *Parser {
+	if repository == nil {
+		repository = NewRepository(config.DBFilePath)
+	}
+
 	return &Parser{
-		repository: NewRepository(config.DBFilePath),
+		repository: repository,
+		bilanturiParserForStopCheck: &BilantSimpluParser{},
+		bilanturiParsers: []BilanturiParser{
+			&BilantSimpluParser{},
+			&UUParser{},
+			&InstDeCreditParser{},
+			&IRParser{},
+			&AsigParser{},
+			&VSParser{},
+			&BrokParser{},
+			&VMParser{},
+			&IfnParser{},
+			&IemeParser{},
+			&SifParser{},
+			&PensiiParser{},
+		},
 	}
 }
 
@@ -97,6 +123,82 @@ func (this *Parser) getDateIdentificareDataset() string {
 	return this.metadata["od_dateidentificare.txt"]
 }
 
+func (this *Parser) parseBilanturiForAn(an int) bool {
+	anString := strconv.Itoa(an)
+
+	fileName := this.bilanturiParserForStopCheck.GetFileName(anString)
+	_, err := os.Stat(filepath.Join(config.DataDirectory, fileName))
+	if err != nil {
+		return false
+	}
+
+	for _, parser := range this.bilanturiParsers {
+		if !parser.Available(an) {
+			continue
+		}
+
+		fileName = parser.GetFileName(anString)
+		fullPath := filepath.Join(config.DataDirectory, fileName)
+
+		_, err := os.Stat(fullPath)
+		if err != nil {
+			panic(fmt.Errorf("file %s should exist", fullPath))
+		}
+
+		file, err := os.Open(fullPath)
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
+		log.Println("reading: ", fullPath)
+
+		data := parser.Parse(file, an)
+
+		fieldCount := len(data[0])
+		if !parser.IsFieldCountExpected(an, fieldCount) {
+			log.Println("unexpected field count for file: ", fullPath)
+			panic(fmt.Errorf("Unexpected field count: %d", fieldCount))
+		}
+
+		group := parser.GetGroupName()
+		this.repository.UpdateBilanturi(data, an, group)
+	}
+
+	return true
+}
+
+func (this *Parser) ParseBilanturi() {
+	for i := 2011; ; i++ {
+		if this.repository.DoesAnExist(i) {
+			continue
+		}
+
+		shouldContinue := this.parseBilanturiForAn(i)
+		if !shouldContinue {
+			break
+		}
+	}
+}
+
+func (this *Parser) ParseByGrup(reader io.Reader, an int, group string) map[string]int {
+	for _, parser := range this.bilanturiParsers {
+		if parser.GetGroupName() != group {
+			continue
+		}
+
+		data := parser.Parse(reader, an)
+
+		if !parser.IsFieldCountExpected(an, len(data[0])) {
+			return nil
+		}
+
+		return data[0]
+	}
+
+	return nil
+}
+
 func (this *Parser) Parse() {
 	this.repository.Init()
 
@@ -134,3 +236,4 @@ func (this *Parser) Parse() {
 
 	this.ParseBilanturi()
 }
+

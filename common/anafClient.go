@@ -6,17 +6,31 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"slices"
+	"strconv"
+	"strings"
 	"time"
 )
+
+type BilantToRequest struct {
+	an int
+	codInmatriculare string
+	grup string
+}
 
 type AnafClient struct {
 	config *AnafClientConfig
 	httpClient *http.Client
+
 	cache *Cache
+	parser *Parser
+
 	cuisToRequest *ConcurentMap[int, string]
+	bilanturiToRequest *ConcurentMap[int, BilantToRequest]
 }
 
-func NewAnafClient(cache *Cache) *AnafClient {
+func NewAnafClient(cache *Cache, repository *Repository) *AnafClient {
 	anafConfig := &config.AnafClientConfig
 
 	anafClient := &AnafClient{
@@ -25,11 +39,14 @@ func NewAnafClient(cache *Cache) *AnafClient {
 			Timeout: time.Duration(anafConfig.RequstTimeoutInSeconds) * time.Second,
 		},
 		cache: cache,
+		parser: NewParser(repository),
 		cuisToRequest: NewConcurentMap[int, string](100),
+		bilanturiToRequest: NewConcurentMap[int, BilantToRequest](100),
 	}
 
 	if config.CacheConfig.AnafEnabled {
 		go anafClient.TvaRequestsWorker()
+		go anafClient.BilanturiRequestsWorker()
 	}
 	
 	return anafClient
@@ -165,7 +182,120 @@ func (this *AnafClient) TvaRequestsWorker() {
 	}
 }
 
-func (this *AnafClient) getTva(cui int, codInmatriculare string) *TvaInfo {
+const anafBilanturiUrl = "https://webservicesp.anaf.ro/bilant"
+
+type AnafBilantEntry struct {
+	Indicator string `json:"indicator"`
+	ValIndicator int `json:"val_indicator"`
+}
+
+type AnafBilanturiResponse struct {
+	An int `json:"an"`
+	Cui int `json:"cui"`
+	Caen int `json:"caen"`
+	I []AnafBilantEntry `json:"i"`
+}
+
+func (this *AnafClient) sendBilanturiRequest(cui int, bilanturiToRequest BilantToRequest) *AnafBilanturiResponse {
+	params := url.Values{}
+	params.Set("cui", strconv.Itoa(cui))
+	params.Set("an", strconv.Itoa(bilanturiToRequest.an))
+
+	fullUrl := anafBilanturiUrl + "?" + params.Encode()
+
+	req, err := http.NewRequest(
+		http.MethodGet,
+		fullUrl,
+		nil,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := this.httpClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Println("Status: ", resp.StatusCode)
+		return nil
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Error: ", err.Error())
+		return nil
+	}
+
+	var response AnafBilanturiResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Println("Error: ", err.Error())
+		return nil
+	}
+
+	return &response
+}
+
+func (this *AnafClient) ProcessBilantResponse(response *AnafBilanturiResponse) string {
+	header := "CUI,CAEN"
+	values := strconv.Itoa(response.Cui) + "," + strconv.Itoa(response.Caen)
+
+	slices.SortFunc(response.I, func (a AnafBilantEntry, b AnafBilantEntry) int {
+		aInt, err := strconv.Atoi(a.Indicator[1:])
+		if err != nil {
+			return 0
+		}
+
+		bInt, err := strconv.Atoi(b.Indicator[1:])
+		if err != nil {
+			return 0
+		}
+
+		return  aInt - bInt
+	})
+
+	for _, entry := range response.I {
+		header += "," + entry.Indicator
+		values += "," + strconv.Itoa(entry.ValIndicator)
+	}
+
+	return strings.Join([]string{header, values}, "\n")
+}
+
+func (this *AnafClient) MakeBilanturiRequest() {
+	log.Println("making bilanturi request")
+
+	cui, bilantToRequest := this.bilanturiToRequest.Pop()
+
+	response := this.sendBilanturiRequest(cui, bilantToRequest)
+	if response == nil {
+		return
+	}
+
+	if len(response.I) == 0 {
+		return
+	}
+
+	processed := this.ProcessBilantResponse(response)
+
+	parsed := this.parser.ParseByGrup(strings.NewReader(processed), bilantToRequest.an, bilantToRequest.grup)
+
+	this.cache.SetBilant(cui, bilantToRequest.an, parsed)
+	this.cache.RemoveProfileCache(bilantToRequest.codInmatriculare)
+}
+
+func (this *AnafClient) BilanturiRequestsWorker() {
+	time.Sleep(time.Duration(this.config.BilanturiRequstWorkerIntervalInSeconds) * time.Second)
+	this.MakeBilanturiRequest()
+}
+
+func (this *AnafClient) GetTva(cui int, codInmatriculare string) *TvaInfo {
 	if !config.CacheConfig.AnafEnabled {
 		return nil
 	}
@@ -176,6 +306,25 @@ func (this *AnafClient) getTva(cui int, codInmatriculare string) *TvaInfo {
 	}
 
 	this.cuisToRequest.Set(cui, codInmatriculare)
+
+	return nil
+}
+
+func (this *AnafClient) GetBilant(cui int, codInmatriculare string, an int, grup string) map[string]int {
+	if !config.CacheConfig.AnafEnabled {
+		return nil
+	}
+
+	bilant, found := this.cache.GetBilant(cui, an)
+	if found {
+		return bilant
+	}
+
+	this.bilanturiToRequest.Set(cui, BilantToRequest{
+		an: an,
+		codInmatriculare: codInmatriculare,
+		grup: grup,
+	})
 
 	return nil
 }

@@ -173,6 +173,10 @@ class InfoPage extends Base {
             return
         }
 
+        data.BilanturiFirma.sort((a, b) => {
+            return b.An - a.An
+        })
+
         const bilanturiFirmaContainer = document.getElementById("dateFinanciareContainer")
 
         const table = document.getElementById("dateFinanciareTable")

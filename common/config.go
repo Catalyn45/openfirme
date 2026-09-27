@@ -18,6 +18,7 @@ type DosareJuridiceClientConfig struct {
 type AnafClientConfig struct {
 	RequstTimeoutInSeconds int
 	TvaRequestWorkerIntervalInSeconds int
+	BilanturiRequstWorkerIntervalInSeconds int
 }
 
 type CacheConfig struct {
@@ -41,6 +42,7 @@ type CacheConfig struct {
 
 	AnafEnabled bool
 	AnafTvaCacheTimeInDays int
+	AnafBilanturiCacheTimeInDays int
 }
 
 type DBConfig struct {
@@ -116,6 +118,7 @@ func init() {
 
 			AnafEnabled: true,
 			AnafTvaCacheTimeInDays: 30,
+			AnafBilanturiCacheTimeInDays: 30,
 		},
 
 		DosareJuridiceClientConfig: DosareJuridiceClientConfig {
@@ -125,6 +128,7 @@ func init() {
 		AnafClientConfig: AnafClientConfig {
 			RequstTimeoutInSeconds: 20,
 			TvaRequestWorkerIntervalInSeconds: 60,
+			BilanturiRequstWorkerIntervalInSeconds: 2,
 		},
 	}
 

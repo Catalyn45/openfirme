@@ -37,7 +37,7 @@ func NewServer() *Server {
 		repository: repository,
 		cache: cache,
 		juridicClient: NewJuridicClient(cache, repository),
-		AnafClient: NewAnafClient(cache),
+		AnafClient: NewAnafClient(cache, repository),
 	}
 }
 
@@ -233,14 +233,61 @@ func (this *Server) AddTvaInfo(firma *InfoFirma, tvaInfo *TvaInfo) {
 	}
 }
 
+func (this *Server) addAnafInfoToBilant(firma *InfoFirma, maxAn int, anafInfoBilant map[string]int) {
+	if anafInfoBilant == nil {
+		return
+	}
+
+	bilant := &BilantFirma{
+		An: maxAn,
+		CifraAfaceri: anafInfoBilant["I12"],
+		ProfitNet: anafInfoBilant["I17"] - anafInfoBilant["I18"],
+		Datorii: anafInfoBilant["I7"],
+		ActiveImobilizate: anafInfoBilant["I1"],
+		ActiveCirculante: anafInfoBilant["I2"],
+		Capitaluri: anafInfoBilant["I10"],
+		Angajati: anafInfoBilant["I19"],
+		Caen: anafInfoBilant["CAEN"],
+	}
+
+	caenString := strconv.Itoa(bilant.Caen)
+	descriereCaen := this.repository.GetDescriereCaen(caenString)
+	if descriereCaen != "" {
+		bilant.DescriereCaen = &descriereCaen
+	}
+
+	firma.CaenPrincipal = &caenString
+	firma.DescriereCaenPrincipal = bilant.DescriereCaen
+
+	firma.BilanturiFirma = append(firma.BilanturiFirma, bilant)
+}
+
 func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	codInmatriculare := ps.ByName("cod_inmatriculare")
 	codInmatriculareSanitized := strings.ReplaceAll(codInmatriculare, "-", "/")
 
 	firma := this.repository.GetFirma(codInmatriculareSanitized);
 
+	if len(firma.BilanturiFirma) != 0 {
+		maxAnBilant := slices.MaxFunc(firma.BilanturiFirma, func (first *BilantFirma, second *BilantFirma) int {
+			return first.An - second.An
+		})
+
+		maxAn := this.repository.GetMaxAn()
+
+		if maxAn - maxAnBilant.An == 1 {
+			grup := *maxAnBilant.Grup
+			for _, bilant := range firma.BilanturiFirma {
+				bilant.Grup = nil
+			}
+
+			anafInfoBilant := this.AnafClient.GetBilant(firma.Cui, codInmatriculare, maxAn, grup)
+			this.addAnafInfoToBilant(firma, maxAn, anafInfoBilant)
+		}
+	}
+
 	if firma.DescriereCaenPrincipal == nil || firma.Tva == nil {
-		tvaInfo := this.AnafClient.getTva(firma.Cui, codInmatriculare)
+		tvaInfo := this.AnafClient.GetTva(firma.Cui, codInmatriculare)
 		this.AddTvaInfo(firma, tvaInfo)
 	}
 

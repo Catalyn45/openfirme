@@ -4,15 +4,20 @@ import "sync"
 
 type ConcurentMap[K comparable, V any] struct {
 	mutex sync.RWMutex
+	cond *sync.Cond
 	container  map[K]V
 	maxCapacity int
 }
 
 func NewConcurentMap[K comparable, V any](maxCapacity int) *ConcurentMap[K, V] {
-	return &ConcurentMap[K, V] {
+	concurentMap := &ConcurentMap[K, V] {
 		container: make(map[K]V),
 		maxCapacity: maxCapacity,
 	}
+
+	concurentMap.cond = sync.NewCond(&concurentMap.mutex)
+
+	return concurentMap
 }
 
 func (this *ConcurentMap[K, V]) Set(key K, value V) {
@@ -24,6 +29,8 @@ func (this *ConcurentMap[K, V]) Set(key K, value V) {
 	}
 
 	this.container[key] = value
+
+	this.cond.Signal()
 }
 
 func (this *ConcurentMap[K, V]) Remove(key K) {
@@ -31,6 +38,22 @@ func (this *ConcurentMap[K, V]) Remove(key K) {
 	defer this.mutex.Unlock()
 
 	delete(this.container, key)
+}
+
+func (this *ConcurentMap[K, V]) Pop() (K, V) {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	for len(this.container) == 0 {
+		this.cond.Wait()
+	}
+
+	for key, value := range this.container {
+		delete(this.container, key)
+		return key, value
+	}
+
+	panic("unreachable")
 }
 
 func (this *ConcurentMap[K, V]) IsEmpty() bool {

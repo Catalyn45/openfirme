@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	parser := common.NewParser()
+	parser := common.NewParser(nil)
 	parser.Parse()
 
 	log.Println("Finished")

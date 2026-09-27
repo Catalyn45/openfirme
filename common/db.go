@@ -596,7 +596,8 @@ func (this *Repository) InitBilanturi() {
 			profit_brut INTEGER,
 			profit_net INTEGER,
 			numar_mediu_salariati INTEGER,
-			an INTEGER NOT NULL
+			an INTEGER NOT NULL,
+			grup TEXT NOT NULL
 		);
 
 		CREATE INDEX IF NOT EXISTS idx_bilanturi_cui_an
@@ -638,16 +639,8 @@ func (this *Repository) DoesAnExist(an int) bool {
 	return rows.Next()
 }
 
-func (this *Repository) DeleteAnFromBilanturi(transaction *sql.Tx, an int) {
-	stmt := "DELETE FROM bilanturi WHERE an = " + strconv.Itoa(an) + ";"
-	_, err := transaction.Exec(stmt)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
-	log.Println("Updating bilanturi an: ", an)
+func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int, grup string) {
+	log.Println("Updating bilanturi grup: ", grup, " an: ", an)
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -656,11 +649,9 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 
 	defer transaction.Rollback()
 
-	this.DeleteAnFromBilanturi(transaction, an)
-
 	stmt := `
-		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
+		INSERT INTO bilanturi (cui, cod_caen, active_imobilizate, active_circulante, stocuri, creante, casa_si_conturi, cheltuieli_avans, datorii, venituri_avans, provizioane, capitaluri, capital_subscris, cifra_afaceri, venituri, cheltuieli, profit_brut, profit_net, numar_mediu_salariati, an, grup)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);`
 
 	preparedStmt, err := transaction.Prepare(stmt)
 	if err != nil {
@@ -670,7 +661,7 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int) {
 	defer preparedStmt.Close()
 
 	for _, data := range dataset {
-		_, err = preparedStmt.Exec(data["CUI"], data["CAEN"], data["I1"], data["I2"], data["I3"], data["I4"], data["I5"], data["I6"], data["I7"], data["I8"], data["I9"], data["I10"], data["I11"], data["I12"], data["I13"], data["I14"], data["I15"] - data["I16"], data["I17"] - data["I18"], data["I19"], an)
+		_, err = preparedStmt.Exec(data["CUI"], data["CAEN"], data["I1"], data["I2"], data["I3"], data["I4"], data["I5"], data["I6"], data["I7"], data["I8"], data["I9"], data["I10"], data["I11"], data["I12"], data["I13"], data["I14"], data["I15"] - data["I16"], data["I17"] - data["I18"], data["I19"], an, grup)
 		if err != nil {
 			panic(err)
 		}
@@ -1128,6 +1119,7 @@ type BilantFirma struct {
 	Capitaluri int
 	Angajati int
 	Caen int
+	Grup *string
 	DescriereCaen *string
 }
 
@@ -1226,6 +1218,7 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 				bilanturi.capitaluri,
 				bilanturi.numar_mediu_salariati,
 				bilanturi.cod_caen,
+				bilanturi.grup,
 				descriere_caen.denumire
 			FROM bilanturi
 			LEFT JOIN descriere_caen
@@ -1237,7 +1230,7 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 	var bilanturiFirma []*BilantFirma
 	rowCallback := func (rows *sql.Rows) {
 		var bilantFirma BilantFirma
-		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen, &bilantFirma.DescriereCaen)
+		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen,&bilantFirma.Grup, &bilantFirma.DescriereCaen)
 		if err != nil {
 			panic(err)
 		}
@@ -1252,6 +1245,29 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 		nil)
 
 	return bilanturiFirma
+}
+
+func (this *Repository) GetMaxAn() int {
+	stmt := `SELECT
+				MAX(an)
+			FROM bilanturi
+	`
+
+	maxAn := 0
+	rowCallback := func (rows *sql.Rows) {
+		err := rows.Scan(&maxAn)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	this.executeQuery(
+		stmt,
+		[]any {},
+		rowCallback,
+		nil)
+
+	return maxAn
 }
 
 func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {

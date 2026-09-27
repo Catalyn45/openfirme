@@ -3,6 +3,7 @@ package common
 import (
 	"bufio"
 	"encoding/json"
+	"io"
 	"log"
 	"os"
 	"slices"
@@ -48,15 +49,8 @@ var allFormeJuridice = []string {
 	"SRL",
 }
 
-func readCsv(file_path string, delimiter string, skipIndexes []int) [][]string {
-	file, err := os.Open(file_path)
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+func readCsv(reader io.Reader, delimiter string, skipIndexes []int) [][]string {
+	scanner := bufio.NewScanner(reader)
 
 	data := [][]string{}
 
@@ -116,18 +110,25 @@ func parseCsv(data [][]string) []map[string]string {
 	return parsed
 }
 
-func readDataDelimiter(file_path string, delimiter string, skipIndexes []int) []map[string]string {
-	log.Println("reading: ", file_path)
+func readDataDelimiter(reader io.Reader, delimiter string, skipIndexes []int) []map[string]string {
 
-	data := readCsv(file_path, delimiter, skipIndexes)
+	data := readCsv(reader, delimiter, skipIndexes)
 
 	parsed := parseCsv(data)
 
 	return parsed
 }
 
-func readData(file_path string) []map[string]string {
-	return readDataDelimiter(file_path, "^", []int{})
+func readData(filePath string) []map[string]string {
+	log.Println("reading: ", filePath)
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	return readDataDelimiter(file, "^", []int{})
 }
 
 func readMetadata(filePath string) map[string]string {
