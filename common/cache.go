@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -16,6 +17,7 @@ func init() {
 	gob.Register(&CachedResponseWriter{})
 	gob.Register([]Dosar{})
 	gob.Register(&TvaInfo{})
+	gob.Register(map[string]int{})
 }
 
 type CachedResponseBuffer struct {
@@ -84,12 +86,21 @@ func newCache() *Cache {
 }
 
 func (this *Cache) saveCache() {
-	err := this.c.SaveFile(this.config.CacheSaveFilePath)
+	tmpFile := this.config.CacheSaveFilePath + ".tmp"
+
+	err := this.c.SaveFile(tmpFile)
 	if err != nil {
 		logger.Critical("Cache save error: ", err.Error())
-	} else {
-		logger.Info("Saved cache to file")
+		return
 	}
+
+	err = os.Rename(tmpFile, this.config.CacheSaveFilePath)
+	if err != nil {
+		logger.Critical("Cache move error: ", err.Error())
+		return
+	}
+
+	logger.Info("Saved cache to file")
 }
 
 func (this *Cache) saveCacheWorker() {
