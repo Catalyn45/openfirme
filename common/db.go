@@ -1251,29 +1251,6 @@ func (this *Repository) getBilanturiFirma(cui int) ([]*BilantFirma, int) {
 	return bilanturiFirma, maxAn
 }
 
-func (this *Repository) GetMaxAn() int {
-	stmt := `SELECT
-				MAX(an)
-			FROM bilanturi
-	`
-
-	maxAn := 0
-	rowCallback := func (rows *sql.Rows) {
-		err := rows.Scan(&maxAn)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	this.executeQuery(
-		stmt,
-		[]any {},
-		rowCallback,
-		nil)
-
-	return maxAn
-}
-
 func (this *Repository) GetFirma(codInmatriculare string) (*InfoFirma, int) {
 	infoFirma := this.getInfoFirma(codInmatriculare)
 	
