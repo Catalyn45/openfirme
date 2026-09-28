@@ -623,11 +623,11 @@ func (this *Repository) InitBilanturi() {
 	}
 }
 
-func (this *Repository) DoesAnExist(an int) bool {
+func (this *Repository) DoesBilanturiSetExist(an int, group string) bool {
 	stmt := `
 		SELECT 1
 		FROM bilanturi
-		WHERE bilanturi.an = ` + strconv.Itoa(an) + `
+		WHERE bilanturi.an = ` + strconv.Itoa(an) + ` AND bilanturi.grup = '` + group + `'
 		LIMIT 1;`
 
 	rows, err :=  this.db.Query(stmt)

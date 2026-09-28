@@ -132,6 +132,11 @@ func (this *Parser) parseBilanturiForAn(an int) bool {
 	}
 
 	for _, parser := range this.bilanturiParsers {
+		group := parser.GetGroupName()
+		if this.repository.DoesBilanturiSetExist(an, group) {
+			continue
+		}
+
 		if !parser.Available(an) {
 			continue
 		}
@@ -159,7 +164,6 @@ func (this *Parser) parseBilanturiForAn(an int) bool {
 			panic(fmt.Errorf("Unexpected field count: %d, for file: %s", fieldCount, fullPath))
 		}
 
-		group := parser.GetGroupName()
 		this.repository.UpdateBilanturi(data, an, group)
 	}
 
@@ -168,10 +172,6 @@ func (this *Parser) parseBilanturiForAn(an int) bool {
 
 func (this *Parser) ParseBilanturi() {
 	for i := 2011; ; i++ {
-		if this.repository.DoesAnExist(i) {
-			continue
-		}
-
 		shouldContinue := this.parseBilanturiForAn(i)
 		if !shouldContinue {
 			break
