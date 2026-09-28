@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -193,7 +192,7 @@ func (this *Repository) IsFirmeOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName string) {
-	log.Println("Updating firme")
+	logger.Info("Updating firme")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -217,7 +216,6 @@ func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName str
 	for _, data := range dataset {
 		_, err = preparedStmt.Exec(data["DENUMIRE"], normalize(data["DENUMIRE"]), data["CUI"], data["COD_INMATRICULARE"], convertDate(data["DATA_INMATRICULARE"]), data["EUID"], data["FORMA_JURIDICA"], data["ADR_TARA"], data["ADR_JUDET"], data["ADR_LOCALITATE"], data["ADR_DEN_STRADA"], data["ADR_NR_STRADA"], data["ADR_BLOC"], data["ADR_SCARA"], data["ADR_ETAJ"], data["ADR_APARTAMENT"], data["ADR_COD_POSTAL"], data["ADR_SECTOR"], data["ADR_COMPLETARE"], data["WEB"], data["TARA_FIRMA_MAMA"])
 		if err != nil {
-			log.Println(data["DENUMIRE"])
 			panic(err)
 		}
 	}
@@ -279,7 +277,7 @@ func (this *Repository) normalizeNumeReprezentant(nume string) string {
 }
 
 func (this *Repository) UpdateReprezentanti(dataset []map[string]string, datasetName string) {
-	log.Println("Updating reprezentanti")
+	logger.Info("Updating reprezentanti")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -339,7 +337,7 @@ func (this *Repository) IsStariOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateStari(dataset []map[string]string, datasetName string) {
-	log.Println("Updating stari")
+	logger.Info("Updating stari")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -398,7 +396,7 @@ func (this *Repository) IsCaenOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateCaen(dataset []map[string]string, datasetName string) {
-	log.Println("Updating caen")
+	logger.Info("Updating caen")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -470,7 +468,7 @@ func (this *Repository) IsDescriereCaenOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateDescriereCaen(dataset []map[string]string, datasetName string) {
-	log.Println("Updating descriere_caen")
+	logger.Info("Updating descriere_caen")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -533,7 +531,7 @@ func (this *Repository) IsDateIdentificareOnDataset(dataset string) bool {
 }
 
 func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, datasetName string) {
-	log.Println("Updating dateidentificare")
+	logger.Info("Updating dateidentificare")
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -640,7 +638,7 @@ func (this *Repository) DoesAnExist(an int) bool {
 }
 
 func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int, grup string) {
-	log.Println("Updating bilanturi grup: ", grup, " an: ", an)
+	logger.Info("Updating bilanturi grup: ", grup, ", an: ", an)
 
 	transaction, err := this.db.Begin()
 	if err != nil {
@@ -758,7 +756,6 @@ func (this *Repository) processNumePartial(numePartial string) (string, []string
 	}
 
 	ftsQuery := strings.Join(result, " AND ")
-	log.Println(ftsQuery)
 
 	return ftsQuery, remaining
 }
@@ -874,8 +871,8 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 	stmt += ";"
 
 	if this.config.LogQueries {
-		log.Println("stmt ", stmt)
-		log.Println("params ", params)
+		logger.Info("stmt ", stmt)
+		logger.Info("params ", params)
 	}
 
 	preparedStmt, err := this.db.Prepare(stmt)
@@ -883,7 +880,7 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 		panic(err)
 	}
 
-	log.Println("Started searching in db...")
+	logger.Info("Started searching in db...")
 
 	var timeout time.Duration
 
@@ -902,7 +899,6 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 	}
 	defer rows.Close()
 
-	log.Println("finished searching in db...")
 
 	for rows.Next() {
 		readRowCallback(rows)
@@ -913,7 +909,7 @@ func (this *Repository) executeQuery(stmt string, params []any, readRowCallback 
 		panic(err)
 	}
 
-	log.Println("finished scanning data...")
+	logger.Info("finished searching in db.")
 }
 
 func (this *Repository) executePagedQuery(stmt string, params []any, filters *FirmeFilters, ordering *FirmeOrdering, pageNumber int, readRowCallback func(*sql.Rows), opt *QueryOptions) {
@@ -1101,7 +1097,7 @@ type InfoFirma struct {
 	Sector *string
 	Statusuri []string
 	CoduriCaen []string
-	CaenPrincipal *string
+	CaenPrincipal *int
 	DescriereCaenPrincipal *string
 	Tva *bool
 	ImpozitareVenit *bool
@@ -1119,7 +1115,7 @@ type BilantFirma struct {
 	Capitaluri int
 	Angajati int
 	Caen int
-	Grup *string
+	Grup string `json:"-"`
 	DescriereCaen *string
 }
 
@@ -1207,8 +1203,12 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 	return &infoFirma
 }
 
-func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
+func (this *Repository) getBilanturiFirma(cui int) ([]*BilantFirma, int) {
 	stmt := `SELECT
+				(
+					SELECT MAX(an)
+					FROM bilanturi
+				) as maxAn,
 				bilanturi.an,
 				bilanturi.cifra_afaceri,
 				bilanturi.profit_net,
@@ -1228,9 +1228,10 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 			ORDER BY an desc`
 
 	var bilanturiFirma []*BilantFirma
+	var maxAn int
 	rowCallback := func (rows *sql.Rows) {
 		var bilantFirma BilantFirma
-		err := rows.Scan(&bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen,&bilantFirma.Grup, &bilantFirma.DescriereCaen)
+		err := rows.Scan(&maxAn, &bilantFirma.An, &bilantFirma.CifraAfaceri, &bilantFirma.ProfitNet, &bilantFirma.Datorii, &bilantFirma.ActiveImobilizate, &bilantFirma.ActiveCirculante, &bilantFirma.Capitaluri, &bilantFirma.Angajati, &bilantFirma.Caen,&bilantFirma.Grup, &bilantFirma.DescriereCaen)
 		if err != nil {
 			panic(err)
 		}
@@ -1244,7 +1245,7 @@ func (this *Repository) getBilanturiFirma(cui int) []*BilantFirma {
 		rowCallback,
 		nil)
 
-	return bilanturiFirma
+	return bilanturiFirma, maxAn
 }
 
 func (this *Repository) GetMaxAn() int {
@@ -1270,31 +1271,20 @@ func (this *Repository) GetMaxAn() int {
 	return maxAn
 }
 
-func (this *Repository) GetFirma(numar_inmatriculare string) *InfoFirma {
-	infoFirma := this.getInfoFirma(numar_inmatriculare)
+func (this *Repository) GetFirma(codInmatriculare string) (*InfoFirma, int) {
+	infoFirma := this.getInfoFirma(codInmatriculare)
 	
-	bilanturiFirma := this.getBilanturiFirma(infoFirma.Cui)
+	bilanturiFirma, maxAn := this.getBilanturiFirma(infoFirma.Cui)
 	if len(bilanturiFirma) == 0 {
-		return infoFirma
-	}
-
-	maxAnBilant := slices.MaxFunc(bilanturiFirma, func (first *BilantFirma, second *BilantFirma) int {
-		return first.An - second.An
-	})
-
-	if maxAnBilant != nil && maxAnBilant.DescriereCaen != nil {
-		caenPrincipal := strconv.Itoa(maxAnBilant.Caen)
-
-		infoFirma.CaenPrincipal = &caenPrincipal
-		infoFirma.DescriereCaenPrincipal = maxAnBilant.DescriereCaen
+		return infoFirma, 0
 	}
 
 	infoFirma.BilanturiFirma = bilanturiFirma
 
-	return infoFirma
+	return infoFirma, maxAn
 }
 
-func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, filters *FirmeFilters, pageNumber int) *InfoFirmeResult {
+func (this *Repository) GetAdminFirme(codInmatriculare string, admin string, filters *FirmeFilters, pageNumber int) *InfoFirmeResult {
 	stmt := `
 		SELECT DISTINCT
 			firme.denumire,
@@ -1322,7 +1312,7 @@ func (this *Repository) GetAdminFirme(cod_inmatriculare string, admin string, fi
 		WHERE 1=1
 	`
 
-	params := []any{ cod_inmatriculare, admin }
+	params := []any{ codInmatriculare, admin }
 
 	result := &InfoFirmeResult {
 		Count: this.getCount(stmt, params, filters, nil),
@@ -1380,7 +1370,7 @@ func (this *Repository) GetNumeFirma(numarInmatriculare string) string {
 	return nume
 }
 
-func (this *Repository) GetDescriereCaen(caen string) string {
+func (this *Repository) GetDescriereCaen(caen int) string {
 	stmt := `SELECT
 				denumire
 			FROM descriere_caen
@@ -1395,14 +1385,9 @@ func (this *Repository) GetDescriereCaen(caen string) string {
 		}
 	}
 
-	caenInt, err := strconv.Atoi(caen)
-	if err != nil {
-		panic(err)
-	}
-
 	this.executeQuery(
 		stmt,
-		[]any { caenInt },
+		[]any { caen },
 		rowCallback,
 		nil)
 

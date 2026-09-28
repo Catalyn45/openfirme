@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -151,14 +150,13 @@ func (this *Parser) parseBilanturiForAn(an int) bool {
 		}
 		defer file.Close()
 
-		log.Println("reading: ", fullPath)
+		logger.Info("reading: ", fullPath)
 
 		data := parser.Parse(file, an)
 
 		fieldCount := len(data[0])
 		if !parser.IsFieldCountExpected(an, fieldCount) {
-			log.Println("unexpected field count for file: ", fullPath)
-			panic(fmt.Errorf("Unexpected field count: %d", fieldCount))
+			panic(fmt.Errorf("Unexpected field count: %d, for file: %s", fieldCount, fullPath))
 		}
 
 		group := parser.GetGroupName()
@@ -235,5 +233,7 @@ func (this *Parser) Parse() {
 	}
 
 	this.ParseBilanturi()
+
+	logger.Info("Finished")
 }
 

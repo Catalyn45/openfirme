@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -77,11 +76,12 @@ func (this *Server) Start() {
 		if ok {
 			if errors.Is(err, context.DeadlineExceeded) {
 				http.Error(w, "too generic", http.StatusUnprocessableEntity)
+				logger.Warning("Request timeout for: ", r.URL.String())
 				return
 			}
 		}
 
-		log.Printf("panic: %v\n%s", p, debug.Stack())
+		logger.Critical("panic: %v\n%s", p, string(debug.Stack()))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 
@@ -92,9 +92,10 @@ func (this *Server) Start() {
 		Handler: router,
 	}
 
-	log.Println("Starting server...")
-	log.Printf("Go to http://%s:%d in your browser.\n", this.config.Host, this.config.Port)
-	log.Println("Do not close the window.")
+	logger.Info("Starting server...")
+	logger.Info("Go to http://%s:%d in your browser.\n", this.config.Host, this.config.Port)
+	logger.Info("Do not close the window.")
+
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)
@@ -225,7 +226,13 @@ func (this *Server) AddTvaInfo(firma *InfoFirma, tvaInfo *TvaInfo) {
 	}
 
 	firma.Tva = &tvaInfo.Tva
-	firma.CaenPrincipal = &tvaInfo.Caen
+
+	caen, err := strconv.Atoi(tvaInfo.Caen)
+	if err != nil {
+		panic(err)
+	}
+
+	firma.CaenPrincipal = &caen
 
 	descriere := this.repository.GetDescriereCaen(*firma.CaenPrincipal)
 	if descriere != "" {
@@ -250,13 +257,12 @@ func (this *Server) addAnafInfoToBilant(firma *InfoFirma, maxAn int, anafInfoBil
 		Caen: anafInfoBilant["CAEN"],
 	}
 
-	caenString := strconv.Itoa(bilant.Caen)
-	descriereCaen := this.repository.GetDescriereCaen(caenString)
+	descriereCaen := this.repository.GetDescriereCaen(bilant.Caen)
 	if descriereCaen != "" {
 		bilant.DescriereCaen = &descriereCaen
 	}
 
-	firma.CaenPrincipal = &caenString
+	firma.CaenPrincipal = &bilant.Caen
 	firma.DescriereCaenPrincipal = bilant.DescriereCaen
 
 	firma.BilanturiFirma = append(firma.BilanturiFirma, bilant)
@@ -266,23 +272,19 @@ func (this *Server) getFirma(w http.ResponseWriter, r *http.Request, ps httprout
 	codInmatriculare := ps.ByName("cod_inmatriculare")
 	codInmatriculareSanitized := strings.ReplaceAll(codInmatriculare, "-", "/")
 
-	firma := this.repository.GetFirma(codInmatriculareSanitized);
+	firma, maxAn := this.repository.GetFirma(codInmatriculareSanitized);
 
 	if len(firma.BilanturiFirma) != 0 {
 		maxAnBilant := slices.MaxFunc(firma.BilanturiFirma, func (first *BilantFirma, second *BilantFirma) int {
 			return first.An - second.An
 		})
 
-		maxAn := this.repository.GetMaxAn()
-
 		if maxAn - maxAnBilant.An == 1 {
-			grup := *maxAnBilant.Grup
-			for _, bilant := range firma.BilanturiFirma {
-				bilant.Grup = nil
-			}
-
-			anafInfoBilant := this.AnafClient.GetBilant(firma.Cui, codInmatriculare, maxAn, grup)
+			anafInfoBilant := this.AnafClient.GetBilant(firma.Cui, codInmatriculare, maxAn, maxAnBilant.Grup)
 			this.addAnafInfoToBilant(firma, maxAn, anafInfoBilant)
+		} else {
+			firma.CaenPrincipal =  &maxAnBilant.Caen
+			firma.DescriereCaenPrincipal = maxAnBilant.DescriereCaen
 		}
 	}
 

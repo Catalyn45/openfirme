@@ -36,9 +36,9 @@ func (this *BilantSimpluParser) IsFieldCountExpected(an int, fieldCount int) boo
 }
 
 func (this *BilantSimpluParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{ 13 }
+	skipIndexes := []string{ "I12" }
 	if an <= 2015 {
-		skipIndexes = append(skipIndexes, 14)
+		skipIndexes = append(skipIndexes, "I13")
 	}
 
 	parsed := readDataDelimiter(reader, ",", skipIndexes)
@@ -74,9 +74,9 @@ func (this *UUParser) IsFieldCountExpected(an int, fieldCount int) bool {
 }
 
 func (this *UUParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{}
+	skipIndexes := []string{}
 	if an >= 2016 {
-		skipIndexes = append(skipIndexes, 13)
+		skipIndexes = append(skipIndexes, "I12")
 	}
 
 	parsed := readDataDelimiter(reader, ",", skipIndexes)
@@ -149,8 +149,7 @@ func (this *InstDeCreditParser) normalize(bilanturi []map[string]int) []map[stri
 }
 
 func (this *InstDeCreditParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{}
-	parsed := readDataDelimiter(reader, ",", skipIndexes)
+	parsed := readDataDelimiter(reader, ",", []string{})
 
 	converted := convertValuesToInt(parsed)
 
@@ -180,9 +179,9 @@ func (this *IRParser) IsFieldCountExpected(an int, fieldCount int) bool {
 }
 
 func (this *IRParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{}
+	skipIndexes := []string{}
 	if an <= 2015 || an >= 2018 {
-		skipIndexes = append(skipIndexes, 13)
+		skipIndexes = append(skipIndexes, "I12")
 	}
 
 	parsed := readDataDelimiter(reader, ",", skipIndexes)
@@ -247,7 +246,7 @@ func (this *AsigParser) normalize(data []map[string]int, an int) []map[string]in
 }
 
 func (this *AsigParser) Parse(reader io.Reader, an int) []map[string]int {
-	parsed := readDataDelimiter(reader, ",", []int{})
+	parsed := readDataDelimiter(reader, ",", []string{})
 
 	converted := convertValuesToInt(parsed)
 
@@ -300,9 +299,9 @@ func (this *VSParser) normalize(data []map[string]int) []map[string]int {
 }
 
 func (this *VSParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{}
+	skipIndexes := []string{}
 	if an >= 2019 {
-		skipIndexes = []int{18, 19}
+		skipIndexes = []string{"I17", "I18"}
 	}
 
 	parsed := readDataDelimiter(reader, ",", skipIndexes)
@@ -363,9 +362,9 @@ func (this *BrokParser) normalize(data []map[string]int, an int) []map[string]in
 }
 
 func (this *BrokParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{}
+	skipIndexes := []string{}
 	if an > 2023 {
-		skipIndexes = []int{12, 18}
+		skipIndexes = []string{"I11", "I17"}
 	}
 	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
@@ -426,7 +425,7 @@ func (this *VMParser) normalize(data []map[string]int) []map[string]int {
 }
 
 func (this *VMParser) Parse(reader io.Reader, an int) []map[string]int {
-	parsed := readDataDelimiter(reader, ",", []int{})
+	parsed := readDataDelimiter(reader, ",", []string{})
 
 	converted := convertValuesToInt(parsed)
 
@@ -515,7 +514,7 @@ func (this *IfnParser) normalize(an int, data []map[string]int) []map[string]int
 }
 
 func (this *IfnParser) Parse(reader io.Reader, an int) []map[string]int {
-	parsed := readDataDelimiter(reader, ",", []int{})
+	parsed := readDataDelimiter(reader, ",", []string{})
 
 	converted := convertValuesToInt(parsed)
 
@@ -571,7 +570,7 @@ func (this *IemeParser) normalize(data []map[string]int) []map[string]int {
 }
 
 func (this *IemeParser) Parse(reader io.Reader, an int) []map[string]int {
-	parsed := readDataDelimiter(reader, ",", []int{})
+	parsed := readDataDelimiter(reader, ",", []string{})
 
 	converted := convertValuesToInt(parsed)
 
@@ -624,7 +623,7 @@ func (this *SifParser) normalize(data []map[string]int) []map[string]int {
 }
 
 func (this *SifParser) Parse(reader io.Reader, an int) []map[string]int {
-	parsed := readDataDelimiter(reader, ",", []int{})
+	parsed := readDataDelimiter(reader, ",", []string{})
 
 	converted := convertValuesToInt(parsed)
 
@@ -660,7 +659,7 @@ func (this *PensiiParser) IsFieldCountExpected(an int, fieldCount int) bool {
 
 
 func (this *PensiiParser) Parse(reader io.Reader, an int) []map[string]int {
-	skipIndexes := []int{ 6 }
+	skipIndexes := []string{ "I5" }
 	parsed := readDataDelimiter(reader, ",", skipIndexes)
 
 	return convertValuesToInt(parsed)

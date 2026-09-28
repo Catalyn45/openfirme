@@ -25,7 +25,6 @@ type CacheConfig struct {
 	WebEnabled bool
 
 	DefaultCacheTimeInMinutes int
-	CleanupCacheIntervalTimeInMinutes int
 
 	MinPagedCacheTimeInMinutes int
 	MaxPagedCacheTimeInMinutes int
@@ -101,7 +100,6 @@ func init() {
 			WebEnabled: true,
 
 			DefaultCacheTimeInMinutes: 20,
-			CleanupCacheIntervalTimeInMinutes: 10,
 
 			MinPagedCacheTimeInMinutes: 20,
 			MaxPagedCacheTimeInMinutes: 40,
@@ -127,8 +125,8 @@ func init() {
 
 		AnafClientConfig: AnafClientConfig {
 			RequstTimeoutInSeconds: 20,
-			TvaRequestWorkerIntervalInSeconds: 60,
-			BilanturiRequstWorkerIntervalInSeconds: 2,
+			TvaRequestWorkerIntervalInSeconds: 25,
+			BilanturiRequstWorkerIntervalInSeconds: 1,
 		},
 	}
 

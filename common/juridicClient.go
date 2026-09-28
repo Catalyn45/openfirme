@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"slices"
 	"strings"
@@ -202,7 +201,7 @@ func (this *JuridicClient) GetDosare(codInmatriculare string) []Dosar {
 	}
 
 	numeFirma = this.normalizeNumeFirma(numeFirma)
-	log.Println("Getting dosare for: ", numeFirma)
+	logger.Info("Getting dosare for: ", numeFirma)
 
 	requestData := this.CreateJuridicBody(
 		CautareDosare{
@@ -227,6 +226,8 @@ func (this *JuridicClient) GetDosare(codInmatriculare string) []Dosar {
 	}
 
 	dosare = response.Body.Body.CautareDosareResult.Dosare
+
+	logger.Info("Finish getting dosare for: ", numeFirma)
 
 	this.cache.SetForJuridic(codInmatriculare, dosare)
 

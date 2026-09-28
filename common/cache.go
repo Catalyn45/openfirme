@@ -3,7 +3,6 @@ package common
 import (
 	"bytes"
 	"encoding/gob"
-	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -14,7 +13,6 @@ import (
 )
 
 func init() {
-	log.SetFlags(log.Lshortfile)
 	gob.Register(&CachedResponseWriter{})
 	gob.Register([]Dosar{})
 	gob.Register(&TvaInfo{})
@@ -71,14 +69,15 @@ func newCache() *Cache {
 	this := &Cache{
 		c: cache.New(
 			time.Duration(config.DefaultCacheTimeInMinutes) * time.Minute,
-			time.Duration(config.CleanupCacheIntervalTimeInMinutes) * time.Minute,
+			0,
 		),
 		config: config,
 	}
 
 	if config.CacheSaveEnabled {
 		this.loadCache()
-		go this.saveCacheWorker()
+
+		go withRestart(this.saveCacheWorker)
 	}
 
 	return this
@@ -87,23 +86,24 @@ func newCache() *Cache {
 func (this *Cache) saveCache() {
 	err := this.c.SaveFile(this.config.CacheSaveFilePath)
 	if err != nil {
-		log.Println("Cache save error: ", err.Error())
+		logger.Critical("Cache save error: ", err.Error())
 	} else {
-		log.Println("Saved cache to file")
+		logger.Info("Saved cache to file")
 	}
 }
 
 func (this *Cache) saveCacheWorker() {
 	time.Sleep(time.Duration(this.config.CacheSaveIntervalInMinutes) * time.Minute)
+	this.c.DeleteExpired()
 	this.saveCache()
 }
 
 func (this *Cache) loadCache() {
 	err := this.c.LoadFile(this.config.CacheSaveFilePath)
 	if err != nil {
-		log.Println("Cache load error: ", err.Error())
+		logger.Warning("Cache load error: ", err.Error())
 	} else {
-		log.Println("Loaded cache from file")
+		logger.Info("Loaded cache from file")
 	}
 }
 
@@ -124,7 +124,7 @@ func (this *Cache) clientAlreadyHaveData(r *http.Request, expiration time.Durati
 }
 
 func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc, key string, expiration time.Duration) {
-	log.Println(r.Method + " " + r.URL.String())
+	logger.Info(r.Method + " " + r.URL.String())
 
 	if !this.config.WebEnabled {
 		handler(w, r)
@@ -135,10 +135,10 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 
 	var cachedWriter *CachedResponseWriter
 	if found {
-		log.Println("cache hit: ", key)
+		logger.Info("cache hit: ", key)
 
 		if this.clientAlreadyHaveData(r, expiration) {
-			log.Println("client already have data")
+			logger.Info("client already have data")
 
 			cachedWriter = &CachedResponseWriter{
 				HttpHeader: make(http.Header),
@@ -153,7 +153,7 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 			expirationInMinutes = float64(this.config.DefaultCacheTimeInMinutes)
 		}
 
-		log.Println("cache miss, adding ", key, " for duration: ", expirationInMinutes)
+		logger.Info("cache miss, adding ", key, " for duration: ", expirationInMinutes, " minutes")
 
 		cachedWriter = &CachedResponseWriter{
 			HttpHeader: make(http.Header),
@@ -323,6 +323,6 @@ func (this *Cache) ApiPagedCache(handler httprouter.Handle) httprouter.Handle {
 }
 
 func (this *Cache) RemoveProfileCache(codInmatriculare string) {
-	log.Println("removing cache ", "/api/profile/" + codInmatriculare)
+	logger.Info("removing cache ", "/api/profile/" + codInmatriculare)
 	this.c.Delete("/api/profile/" + codInmatriculare)
 }

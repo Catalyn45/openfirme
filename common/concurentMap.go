@@ -40,7 +40,16 @@ func (this *ConcurentMap[K, V]) Remove(key K) {
 	delete(this.container, key)
 }
 
-func (this *ConcurentMap[K, V]) Pop() (K, V) {
+func (this *ConcurentMap[K, V]) RemoveAll(container map[K]V) {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+
+	for key, _ := range container {
+		delete(this.container, key)
+	}
+}
+
+func (this *ConcurentMap[K, V]) Get() (K, V) {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 
@@ -49,7 +58,6 @@ func (this *ConcurentMap[K, V]) Pop() (K, V) {
 	}
 
 	for key, value := range this.container {
-		delete(this.container, key)
 		return key, value
 	}
 
@@ -63,13 +71,18 @@ func (this *ConcurentMap[K, V]) IsEmpty() bool {
 	return len(this.container) == 0
 }
 
-func (this *ConcurentMap[K, V]) Move() map[K]V {
+func (this *ConcurentMap[K, V]) Clone() map[K]V {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 
-	container := this.container
+	for len(this.container) == 0 {
+		this.cond.Wait()
+	}
 
-	this.container = make(map[K]V)
+	container := make(map[K]V)
+	for k, v := range this.container {
+		container[k] = v
+	}
 
 	return container
 }

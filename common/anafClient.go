@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -45,8 +43,8 @@ func NewAnafClient(cache *Cache, repository *Repository) *AnafClient {
 	}
 
 	if config.CacheConfig.AnafEnabled {
-		go anafClient.TvaRequestsWorker()
-		go anafClient.BilanturiRequestsWorker()
+		go withRestart(anafClient.TvaRequestsWorker)
+		go withRestart(anafClient.BilanturiRequestsWorker)
 	}
 	
 	return anafClient
@@ -99,7 +97,7 @@ func (this *AnafClient) ConstructTvaBody(cuisToRequest map[int]string) []TvaRequ
 func (this *AnafClient) SendTvaRequest(request []TvaRequest) *TvaResponse {
 	data, err := json.Marshal(request)
 	if err != nil {
-		log.Println("error: ", err.Error())
+		logger.Error("error: ", err.Error())
 		return nil
 	}
 
@@ -122,20 +120,20 @@ func (this *AnafClient) SendTvaRequest(request []TvaRequest) *TvaResponse {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Println("Status: ", resp.StatusCode)
+		logger.Error("Status: ", resp.StatusCode)
 		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("Error: ", err.Error())
+		logger.Error("Error: ", err.Error())
 		return nil
 	}
 
 	var response TvaResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		log.Println("Error: ", err.Error())
+		logger.Error("Error: ", err.Error())
 		return nil
 	}
 
@@ -143,13 +141,10 @@ func (this *AnafClient) SendTvaRequest(request []TvaRequest) *TvaResponse {
 }
 
 func (this *AnafClient) MakeTvaRequest() {
-	if this.cuisToRequest.IsEmpty() {
-		return
-	}
+	cuisToRequest := this.cuisToRequest.Clone()
+	defer this.cuisToRequest.RemoveAll(cuisToRequest)
 
-	log.Println("making tva request")
-
-	cuisToRequest := this.cuisToRequest.Move()
+	logger.Info("making tva request")
 
 	request := this.ConstructTvaBody(cuisToRequest)
 
@@ -173,6 +168,8 @@ func (this *AnafClient) MakeTvaRequest() {
 		this.cache.SetTva(cui, &tvaInfo)
 		this.cache.RemoveProfileCache(cuisToRequest[cui])
 	}
+
+	time.Sleep(1 * time.Second)
 }
 
 func (this *AnafClient) TvaRequestsWorker() {
@@ -222,20 +219,20 @@ func (this *AnafClient) sendBilanturiRequest(cui int, bilanturiToRequest BilantT
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.Println("Status: ", resp.StatusCode)
+		logger.Error("Status: ", resp.StatusCode)
 		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("Error: ", err.Error())
+		logger.Error("Error: ", err.Error())
 		return nil
 	}
 
 	var response AnafBilanturiResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		log.Println("Error: ", err.Error())
+		logger.Error("Error: ", err.Error())
 		return nil
 	}
 
@@ -246,20 +243,6 @@ func (this *AnafClient) ProcessBilantResponse(response *AnafBilanturiResponse) s
 	header := "CUI,CAEN"
 	values := strconv.Itoa(response.Cui) + "," + strconv.Itoa(response.Caen)
 
-	slices.SortFunc(response.I, func (a AnafBilantEntry, b AnafBilantEntry) int {
-		aInt, err := strconv.Atoi(a.Indicator[1:])
-		if err != nil {
-			return 0
-		}
-
-		bInt, err := strconv.Atoi(b.Indicator[1:])
-		if err != nil {
-			return 0
-		}
-
-		return  aInt - bInt
-	})
-
 	for _, entry := range response.I {
 		header += "," + entry.Indicator
 		values += "," + strconv.Itoa(entry.ValIndicator)
@@ -269,9 +252,10 @@ func (this *AnafClient) ProcessBilantResponse(response *AnafBilanturiResponse) s
 }
 
 func (this *AnafClient) MakeBilanturiRequest() {
-	log.Println("making bilanturi request")
+	cui, bilantToRequest := this.bilanturiToRequest.Get()
+	defer this.bilanturiToRequest.Remove(cui)
 
-	cui, bilantToRequest := this.bilanturiToRequest.Pop()
+	logger.Info("making bilanturi request")
 
 	response := this.sendBilanturiRequest(cui, bilantToRequest)
 	if response == nil {
@@ -279,6 +263,7 @@ func (this *AnafClient) MakeBilanturiRequest() {
 	}
 
 	if len(response.I) == 0 {
+		logger.Error("Empty list")
 		return
 	}
 
@@ -288,6 +273,8 @@ func (this *AnafClient) MakeBilanturiRequest() {
 
 	this.cache.SetBilant(cui, bilantToRequest.an, parsed)
 	this.cache.RemoveProfileCache(bilantToRequest.codInmatriculare)
+
+	time.Sleep(1 * time.Second)
 }
 
 func (this *AnafClient) BilanturiRequestsWorker() {
