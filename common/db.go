@@ -249,6 +249,9 @@ func (this *Repository) InitReprezentanti() {
 
 		CREATE INDEX IF NOT EXISTS idx_reprezentanti_persoana_imputernicita
 		ON reprezentanti(persoana_imputernicita_norm, cod_inmatriculare);
+
+		CREATE INDEX IF NOT EXISTS idx_reprezentanti_judet_nastere_persoana_imputernicita
+		ON reprezentanti(judet_nastere, data_nastere, persoana_imputernicita_norm);
 	`
 
 	_, err := this.db.Exec(createTableStmt)
@@ -273,7 +276,7 @@ func (this *Repository) normalizeNumeReprezentant(nume string) string {
 		result = append(result, strings.ToLower(item))
 	}
 
-	return strings.Join(result, " ")
+	return normalize(strings.Join(result, " "))
 }
 
 func (this *Repository) UpdateReprezentanti(dataset []map[string]string, datasetName string) {
@@ -1306,13 +1309,25 @@ func (this *Repository) GetAdminFirme(codInmatriculare string, admin string, fil
 			FROM reprezentanti
 			WHERE cod_inmatriculare = ? AND persoana_imputernicita = ?
 			LIMIT 1
-		) r ON reprezentanti.persoana_imputernicita_norm = r.persoana_imputernicita_norm
-			AND reprezentanti.data_nastere = r.data_nastere
+		) r ON reprezentanti.data_nastere = r.data_nastere
 			AND reprezentanti.judet_nastere = r.judet_nastere
-		WHERE 1=1
 	`
 
 	params := []any{ codInmatriculare, admin }
+
+	numeAdminNormalized := this.normalizeNumeReprezentant(admin)
+	names := splitWords(numeAdminNormalized)
+
+	for _, name := range names {
+		stmt += `
+		AND reprezentanti.persoana_imputernicita_norm LIKE '%' || ? || '%' `
+
+		params = append(params, name)
+	}
+
+	stmt += `
+	WHERE 1=1
+	`
 
 	result := &InfoFirmeResult {
 		Count: this.getCount(stmt, params, filters, nil),

@@ -159,3 +159,9 @@ func withRestart(routine func()) {
 
 	routine()
 }
+
+func splitWords(text string) []string {
+	return strings.FieldsFunc(text, func(r rune) bool {
+		return !unicode.IsLetter(r)
+	})
+}

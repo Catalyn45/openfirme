@@ -81,7 +81,7 @@ func (this *Server) Start() {
 			}
 		}
 
-		logger.Critical("panic: %v\n%s", p, string(debug.Stack()))
+		logger.Critical("panic: ", p, string(debug.Stack()))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 	}
 
@@ -93,7 +93,7 @@ func (this *Server) Start() {
 	}
 
 	logger.Info("Starting server...")
-	logger.Info("Go to http://%s:%d in your browser.\n", this.config.Host, this.config.Port)
+	logger.Info("Go to http://" + this.config.Host + ":" + strconv.Itoa(this.config.Port) + " in your browser.")
 	logger.Info("Do not close the window.")
 
 	err := server.ListenAndServe()
