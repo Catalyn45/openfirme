@@ -278,8 +278,10 @@ func (this *AnafClient) MakeBilanturiRequest() {
 }
 
 func (this *AnafClient) BilanturiRequestsWorker() {
-	time.Sleep(time.Duration(this.config.BilanturiRequstWorkerIntervalInSeconds) * time.Second)
-	this.MakeBilanturiRequest()
+	for {
+		time.Sleep(time.Duration(this.config.BilanturiRequstWorkerIntervalInSeconds) * time.Second)
+		this.MakeBilanturiRequest()
+	}
 }
 
 func (this *AnafClient) GetTva(cui int, codInmatriculare string) *TvaInfo {

@@ -104,9 +104,11 @@ func (this *Cache) saveCache() {
 }
 
 func (this *Cache) saveCacheWorker() {
-	time.Sleep(time.Duration(this.config.CacheSaveIntervalInMinutes) * time.Minute)
-	this.c.DeleteExpired()
-	this.saveCache()
+	for {
+		time.Sleep(time.Duration(this.config.CacheSaveIntervalInMinutes) * time.Minute)
+		this.c.DeleteExpired()
+		this.saveCache()
+	}
 }
 
 func (this *Cache) loadCache() {
@@ -164,7 +166,6 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 			expirationInMinutes = float64(this.config.DefaultCacheTimeInMinutes)
 		}
 
-		logger.Info("cache miss, adding ", key, " for duration: ", expirationInMinutes, " minutes")
 
 		cachedWriter = &CachedResponseWriter{
 			HttpHeader: make(http.Header),
@@ -175,7 +176,10 @@ func (this *Cache) cacheFunc(w http.ResponseWriter, r *http.Request, handler htt
 
 		// don't save in cache if the response is 3XX
 		if cachedWriter.Status < 300 || cachedWriter.Status >= 400 {
+			logger.Info("cache miss, adding ", key, " for duration: ", expirationInMinutes, " minutes")
 			this.c.Set(key, cachedWriter, expiration)
+		} else {
+			logger.Info("file server status:", cachedWriter.Status , "for:", key)
 		}
 	}
 
