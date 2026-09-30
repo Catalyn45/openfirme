@@ -94,23 +94,20 @@ func (this *Repository) InitFirme() {
 		CREATE INDEX IF NOT EXISTS idx_firme_judet
 		ON firme(judet);
 
+		CREATE INDEX IF NOT EXISTS idx_firme_judet_cui
+		ON firme(judet, cui);
+
 		CREATE INDEX IF NOT EXISTS idx_firme_forma_juridica
 		ON firme(forma_juridica);
 
-		CREATE INDEX IF NOT EXISTS idx_firme_forma_data_inmatriculare
-		ON firme(data_inmatriculare);
+		CREATE INDEX IF NOT EXISTS idx_firme_forma_juridica_cui
+		ON firme(forma_juridica, cui);
 
 		CREATE INDEX IF NOT EXISTS idx_firme_judet_forma_juridica
 		ON firme(judet, forma_juridica);
 
-		CREATE INDEX IF NOT EXISTS idx_firme_judet_data_inmatriculara
-		ON firme(judet, data_inmatriculare);
-
-		CREATE INDEX IF NOT EXISTS idx_firme_forma_juridica_data_inmatriculara
-		ON firme(forma_juridica, data_inmatriculare);
-
-		CREATE INDEX IF NOT EXISTS idx_firme_judet_forma_juridica_data_inmatriculara
-		ON firme(judet, forma_juridica, data_inmatriculare);
+		CREATE INDEX IF NOT EXISTS idx_firme_judet_forma_juridica_cui
+		ON firme(judet, forma_juridica, cui);
 
 		CREATE VIRTUAL TABLE IF NOT EXISTS firme_search USING fts5(
 			denumire_norm,
