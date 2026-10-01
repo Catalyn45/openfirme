@@ -1,5 +1,12 @@
 {{ template "base.html" }}
 
+{{ define "metadata" }}
+<meta name="description" content="Caută și filtrează companii din România după denumire, județ, status sau formă juridică.">
+<meta name="robots" content="noindex,follow">
+<meta property="og:title" content="Căutare firme din România">
+<meta property="og:description" content="Caută și filtrează companii din România după denumire, județ, status sau formă juridică.">
+{{ end }}
+
 {{ define "styles"}}
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/search.css">

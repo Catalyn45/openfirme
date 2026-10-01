@@ -10,6 +10,16 @@
     {{ end }}
 
     <title>OpenFirme România — Informații despre companii</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="OpenFirme România">
+    <meta property="og:locale" content="ro_RO">
+
+    {{ block "metadata" . }}
+    <meta name="description" content="Caută informații publice despre companii din România.">
+    <meta name="robots" content="index,follow">
+    <meta property="og:title" content="OpenFirme România | Informații despre companii">
+    <meta property="og:description" content="Caută informații publice despre companii din România.">
+    {{ end }}
 
     <script src="/public/js/common.js" defer></script>
     <script src="/public/js/base.js" defer></script>
