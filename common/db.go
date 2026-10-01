@@ -598,8 +598,8 @@ func (this *Repository) InitBilanturi() {
 			grup TEXT NOT NULL
 		);
 
-		CREATE INDEX IF NOT EXISTS idx_bilanturi_cui_an
-		ON bilanturi(cui, an);
+		CREATE INDEX IF NOT EXISTS idx_bilanturi_an_cui
+		ON bilanturi(an, cui);
 
 		CREATE INDEX IF NOT EXISTS idx_bilanuri_an_cifra_afaceri_cui
 		ON bilanturi(an, cifra_afaceri DESC, cui);

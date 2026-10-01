@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"runtime/debug"
 	"slices"
@@ -29,7 +30,26 @@ type Server struct {
 
 func NewServer() *Server {
 	cache := newCache()
-	repository := NewRepository("file:" + config.DBFilePath + "?mode=ro")
+
+	u := &url.URL{
+		Scheme: "file",
+		Opaque:  config.DBFilePath,
+	}
+
+	q := u.Query()
+
+	q.Set("mode", "ro")
+	q.Set("immutable", "1")
+	q.Set("cache", "private")
+	q.Set("_mmap_size", "128849018880")
+
+	q.Set("_cache_size", "-2048576")
+
+	q.Set("_query_only", "1")
+
+	u.RawQuery = q.Encode()
+
+	repository := NewRepository(u.String())
 
 	return &Server {
 		config: &config.ServerConfig,
