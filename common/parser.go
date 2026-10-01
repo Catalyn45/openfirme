@@ -16,6 +16,8 @@ type Parser struct {
 	bilanturiParserForStopCheck BilanturiParser
 
 	repository *Repository
+
+	dbUpdated bool
 }
 
 func NewParser(repository *Repository) *Parser {
@@ -24,6 +26,7 @@ func NewParser(repository *Repository) *Parser {
 	}
 
 	return &Parser{
+		dbUpdated: false,
 		repository: repository,
 		bilanturiParserForStopCheck: &BilantSimpluParser{},
 		bilanturiParsers: []BilanturiParser{
@@ -165,6 +168,7 @@ func (this *Parser) parseBilanturiForAn(an int) bool {
 		}
 
 		this.repository.UpdateBilanturi(data, an, group)
+		this.setDbUpdated()
 	}
 
 	return true
@@ -197,6 +201,14 @@ func (this *Parser) ParseByGrup(reader io.Reader, an int, group string) map[stri
 	return nil
 }
 
+func (this *Parser) setDbUpdated() {
+	this.dbUpdated = true
+}
+
+func (this *Parser) IsDbUpdated() bool {
+	return this.dbUpdated
+}
+
 func (this *Parser) Parse() {
 	this.repository.Init()
 
@@ -205,34 +217,44 @@ func (this *Parser) Parse() {
 	datasetName := this.getFirmeDataset()
 	if !this.repository.IsFirmeOnDataset(datasetName) {
 		this.repository.UpdateFirme(this.parseFirme(), datasetName)
+		this.setDbUpdated()
 	}
 
 	datasetName = this.getReprezentantiDataset()
 	if !this.repository.IsReprezentantiOnDataset(datasetName) {
 		this.repository.UpdateReprezentanti(this.parseReprezentanti(), datasetName)
+		this.setDbUpdated()
 	}
 
 	datasetName = this.getStariDataset()
 	if !this.repository.IsStariOnDataset(datasetName) {
 		this.repository.UpdateStari(this.parseStari(), datasetName)
+		this.setDbUpdated()
 	}
 
 	datasetName = this.getCaenDataset()
 	if !this.repository.IsCaenOnDataset(datasetName) {
 		this.repository.UpdateCaen(this.parseCaen(), datasetName)
+		this.setDbUpdated()
 	}
 
 	datasetName = this.getDescriereCaenDataset()
 	if !this.repository.IsDescriereCaenOnDataset(datasetName) {
 		this.repository.UpdateDescriereCaen(this.parseDescriereCaen(), datasetName)
+		this.setDbUpdated()
 	}
 
 	datasetName = this.getDateIdentificareDataset()
 	if !this.repository.IsDateIdentificareOnDataset(datasetName) {
 		this.repository.UpdateDateIdentificare(this.parseDateIdentificare(), datasetName)
+		this.setDbUpdated()
 	}
 
 	this.ParseBilanturi()
+
+	if this.IsDbUpdated() {
+		this.repository.DoOptimizations()
+	}
 
 	logger.Info("Finished")
 }

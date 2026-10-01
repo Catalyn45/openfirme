@@ -671,6 +671,17 @@ func (this *Repository) UpdateBilanturi(dataset []map[string]int, an int, grup s
 	}
 }
 
+func (this *Repository) DoOptimizations() {
+	stmt := `
+		ANALYZE;
+	`
+
+	_, err := this.db.Exec(stmt)
+	if err != nil {
+		panic(err)
+	}
+}
+
 type FirmeFilters struct {
 	cui int
 	numePartial string
