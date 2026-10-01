@@ -68,6 +68,8 @@ func (this *Server) Start() {
 	router.Handler("GET", "/public/*filepath", http.StripPrefix("/public/", static))
 
 	router.GET("/", this.serveHtmlFunc("index.html"))
+	router.GET("/sitemap.xml", this.serveHtmlFunc("sitemap.xml"))
+	router.GET("/robots.txt", this.serveHtmlFunc("robots.txt"))
 
 	router.GET("/search/:nume_partial/:page_number", this.serveHtmlFunc("search.html"))
 	router.GET("/api/search/:nume_partial/:page_number", this.cache.ApiPagedSearchCache(this.getFirme))
