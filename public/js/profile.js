@@ -119,6 +119,8 @@ class InfoPage extends Base {
 
         if (data.DescriereCaenPrincipal) {
             profileCompanyPrimaryCaen.textContent += ` - ${data.DescriereCaenPrincipal}`
+        } else if (data.CaenPrincipal && caenDescriere[data.CaenPrincipal]) {
+            profileCompanyPrimaryCaen.textContent += ` - ${caenDescriere[data.CaenPrincipal]}`
         }
 
         if (data.Tva === true) {
