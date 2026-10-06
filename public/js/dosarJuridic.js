@@ -94,6 +94,8 @@ class InfoDosarJuridicPage extends Base {
     }
 
     async Start() {
+        this.addMetadata(`OpenFirme România — Dosar juridic număr ${this.numarDosar}`, `Vezi dosarul juridic cu numărul ${this.numarDosar}`)
+        
         const data = await fetch(`/api/dosarJuridic/${this.inregistrare}/${this.numarDosar}`)
         if (data.status !== 200) {
             await setErrorPage(data.status)

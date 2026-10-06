@@ -29,6 +29,19 @@ class TopFirmeSearchPage extends SearchPageBase {
         this.sortOrder.value = params.get("sort_order") ?? this.sortOrder.value
     }
 
+    setMetadata() {
+        if (this.county.value) {
+            this.addMetadata(`OpenFirme România - Top companii din județul ${this.county.value}`, `Vezi topul companiilor din județul ${this.county.value} după cifra de afaceri, profit și numărul de angajați.`)
+        } else if (this.formaJuridica.value) {
+            this.addMetadata(`OpenFirme România - Top companii ${this.formaJuridica.value}`, `Vezi topul companiilor cu forma juridică ${this.formaJuridica.value} după cifra de afaceri, profit și numărul de angajați.`)
+        } else if (this.domeniu.value) {
+            let domeniuMapped = domeniiMap[this.domeniu.value]
+            this.addMetadata(`OpenFirme România - Top companii din domeniul ${domeniuMapped}`, `Vezi topul companiilor din domeniul ${domeniuMapped} după cifra de afaceri, profit și numărul de angajați.`)
+        } else {
+            this.addMetadata("OpenFirme România - Top companii din România", "Vezi topul companiilor din România după cifra de afaceri, profit și numărul de angajați.")
+        }
+    }
+
     getFilters() {
         let params = super.getFilters()
 

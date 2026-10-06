@@ -119,3 +119,28 @@ async function toggleCollapsibleContent(button) {
 
     target.classList.toggle("collapsible-content-active")
 }
+
+const domeniiMap = {
+    "A":"Agricultură, silvicultură și pescuit",
+    "B":"Industria extractivă",
+    "C":"Industria prelucrătoare",
+    "D":"Producția și furnizarea de energie electrică",
+    "E":"Distribuția apei, salubritate si gestionarea deșeurilor",
+    "F":"Construcții",
+    "G":"Comerț cu ridicata și cu amănuntul",
+    "H":"Transport și depozitare",
+    "I":"Hoteluri și restaurante",
+    "J":"Activități de editare",
+    "K":"Telecomunicații",
+    "L":"Intermedieri financiare și asigurări",
+    "M":"Tranzacții imobiliare",
+    "N":"Activități profesionale, științifice și tehnice",
+    "O":"Activități de servicii administrative",
+    "P":"Administrație publică și apărare",
+    "Q":"Învățământ",
+    "R":"Sănătate și asistență socială",
+    "S":"Activități de spectacole, sportive și recreative",
+    "T":"Alte activități de servicii",
+    "U":"Activități ale gospodăriilor",
+    "V":"Activități ale organizațiilor extrateritoriale"
+}

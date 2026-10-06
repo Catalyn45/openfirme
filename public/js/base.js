@@ -11,6 +11,28 @@ class Base {
         this.query = document.getElementById("searchInput")
     }
 
+    addMetadata(title, description) {
+        document.title = title
+
+        let ogTitle = document.createElement("meta")
+        ogTitle.setAttribute("property", "og:title")
+        ogTitle.content = title
+
+        document.head.appendChild(ogTitle)
+
+        let metaDescription = document.createElement("meta")
+        metaDescription.name = "description"
+        metaDescription.content = description
+
+        document.head.appendChild(metaDescription)
+        
+        let ogDescription = document.createElement("meta")
+        ogDescription.setAttribute("property", "og:description")
+        ogDescription.content = description
+
+        document.head.appendChild(ogDescription)
+    }
+
     getSearchIfValid() {
         let numePartial = this.query.value?.toLowerCase().trim()
 

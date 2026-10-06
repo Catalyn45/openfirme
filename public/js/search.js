@@ -26,6 +26,10 @@ class SearchPage extends SearchPageBase {
 	getSearchTitle() {
 		return `Rezultate căutare: ${decodeURIComponent(this.numePartial)}`
 	}
+
+	setMetadata() {
+		this.addMetadata(`OpenFirme România - Rezultatele căutarii "${this.query.value}" `, `Vezi rezultatele căutarii "${this.query.value}"`)
+	}
 }
 
 function CreateComponent() {

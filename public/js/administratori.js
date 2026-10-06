@@ -26,6 +26,10 @@ class AdministratoriSearchPage extends SearchPageBase {
 		return `/admins/${this.inregistrare}/${this.numeAdmin}/${pageNumber}?${this.getFilters()}`
 	}
 
+    setMetadata() {
+        this.addMetadata(`OpenFirme România — Companii asociate cu ${this.numeAdmin}`, `Vezi companiile asociate cu ${this.numeAdmin}`)
+    }
+
 	getLinkForDataRequest() {
 		return `/api/admins/${this.inregistrare}/${this.numeAdmin}/${this.pageNumber}?${this.getFilters()}`
 	}

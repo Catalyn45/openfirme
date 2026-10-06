@@ -31,6 +31,10 @@ class DosareSearchPage extends SearchPageBase {
         this.sortOrder.value = params.get("sort_order") ?? this.sortOrder.value
     }
 
+    setMetadata() {
+        this.addMetadata(`OpenFirme România - Dosare juridice ${this.numeFirma}`, `Vezi dosarele juridice în care este implicată compania ${this.numeFirma}`)
+    }
+
     getFilters() {
 		const params = new URLSearchParams();
 

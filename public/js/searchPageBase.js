@@ -81,6 +81,10 @@ class SearchPageBase extends Base {
         return params
 	}
 
+	setMetadata() {
+
+	}
+
     resetFilters() {
         window.location = window.location.pathname
     }
@@ -252,6 +256,7 @@ class SearchPageBase extends Base {
 
 	async Start() {
         this.setFilters()
+		this.setMetadata()
 
         this.resultCount.scrollIntoView()
 
