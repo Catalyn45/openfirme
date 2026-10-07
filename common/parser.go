@@ -1,12 +1,14 @@
 package common
 
 import (
+	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
+	"encoding/csv"
 )
 
 type Parser struct {
@@ -127,6 +129,37 @@ func (this *Parser) getDateIdentificareDataset() string {
 	return this.metadata["od_dateidentificare.txt"]
 }
 
+func (this *Parser) parseDateContact() []map[string]string {
+	path := filepath.Join(config.DataDirectory, "companii_active_romania.csv.gz")
+
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	gzipReader, err := gzip.NewReader(file)
+	if err != nil {
+		panic(err)
+	}
+
+	// use the actual encoding/csv since this csv is actually valid
+	csvReader := csv.NewReader(gzipReader)
+
+	csvParsed, err := csvReader.ReadAll()
+	if err != nil {
+		panic(err)
+	}
+
+	data := parseCsv(csvParsed)
+
+	return this.expectFieldCount(data, 5)
+}
+
+func (this *Parser) getDateContactDataset() string {
+	return this.metadata["companii_active_romania.csv.gz"]
+}
+
 func (this *Parser) parseBilanturiForAn(an int) bool {
 	anString := strconv.Itoa(an)
 
@@ -216,10 +249,12 @@ func (this *Parser) Parse() {
 
 	this.metadata = readMetadata(filepath.Join(config.DataDirectory, "metadata.json"))
 
+	isFirmeUpdated := false
 	datasetName := this.getFirmeDataset()
 	if !this.repository.IsFirmeOnDataset(datasetName) {
 		this.repository.UpdateFirme(this.parseFirme(), datasetName)
 		this.setDbUpdated()
+		isFirmeUpdated = true
 	}
 
 	datasetName = this.getReprezentantiDataset()
@@ -252,10 +287,19 @@ func (this *Parser) Parse() {
 		this.setDbUpdated()
 	}
 
+	// Only update date contact if we update the entire db
+	if isFirmeUpdated && !this.repository.IsDateContactOnDataset(datasetName) {
+		datasetName = this.getDateContactDataset()
+		this.repository.UpdateDateContact(this.parseDateContact(), datasetName)
+	}
+
 	this.ParseBilanturi()
 
 	if this.IsDbUpdated() {
+		logger.Info("Doing optimizations")
 		this.repository.DoOptimizations()
+
+		logger.Info("generating sitemaps")
 		this.sitemapGenerator.GenerateSitemap()
 	}
 

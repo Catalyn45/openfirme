@@ -67,6 +67,9 @@ class InfoPage extends Base {
 
         this.profileCompanyAdministratori = document.getElementById("profileCompanyAdministratori")
         this.profileCompanyAsociati = document.getElementById("profileCompanyAsociati")
+
+        this.profileCompanyEmails = document.getElementById("profileCompanyEmails")
+        this.profileCompanyWebsites = document.getElementById("profileCompanyWebsites")
     }
 
     populatePage(data) {
@@ -136,6 +139,59 @@ class InfoPage extends Base {
             this.profileCompanyImpozitare.textContent = "Profit"
         } else if (data.ImpozitareVenit === true) {
             this.profileCompanyImpozitare.textContent = "Venit"
+        }
+
+        if (data.Emails) {
+            for (let email of data.Emails) {
+                if (!email) {
+                    continue
+                }
+
+                const p = document.createElement("p")
+                const link = document.createElement("a");
+
+                if (this.profileCompanyEmails.children.length === 0) {
+                    this.profileCompanyEmails.textContent = ""
+                }
+
+                link.href = `mailto:${email}`
+                link.textContent = email
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                p.appendChild(link)
+
+                this.profileCompanyEmails.appendChild(p)
+            }
+        }
+
+        if (data.Websites) {
+            for (let website of data.Websites) {
+                if (!website) {
+                    continue
+                }
+
+                const p = document.createElement("p")
+                const link = document.createElement("a");
+
+                if (this.profileCompanyWebsites.children.length === 0) {
+                    this.profileCompanyWebsites.textContent = ""
+                }
+
+                link.textContent = website
+
+                if (!website.startsWith("http://") && !website.startsWith("https://")) {
+                    website = `https://${website}`
+                }
+
+                link.href = website
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                p.appendChild(link)
+
+                this.profileCompanyWebsites.appendChild(p)
+            }
         }
 
         if (data.Reprezentanti) {

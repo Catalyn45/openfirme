@@ -14,18 +14,20 @@ import (
 )
 
 type Downloader struct {
-	url string
+	dataGovUrl string
+	dateContactUrl string
 	metadata map[string]string
 }
 
 func NewDownloader() *Downloader {
 	return &Downloader{
-		url: "https://data.gov.ro/api/3/action",
+		dataGovUrl: "https://data.gov.ro/api/3/action",
+		dateContactUrl: "https://api.github.com/repos/web3metatrade/cui-ro-dataset/releases/latest",
 	}
 }
 
 func (this *Downloader) getJson(url string) map[string]any {
-	resp, err := http.Get(this.url + url)
+	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
@@ -41,6 +43,12 @@ func (this *Downloader) getJson(url string) map[string]any {
 	if err != nil {
 		panic(err)
 	}
+
+	return data
+}
+
+func (this *Downloader) getDatasetJson(url string) map[string]any {
+	data := this.getJson(this.dataGovUrl + url)
 
 	if data["success"].(bool) != true {
 		panic(fmt.Errorf("fail"))
@@ -99,7 +107,7 @@ func findDatasets(data []any, filter string) []Dataset {
 }
 
 func (this *Downloader) getPackages(orgId string) []any {
-	data := this.getJson("/organization_show?include_datasets=true&id=" + orgId)
+	data := this.getDatasetJson("/organization_show?include_datasets=true&id=" + orgId)
 
 	result := data["result"].(map[string]any)
 
@@ -112,7 +120,7 @@ type Dataset struct {
 }
 
 func (this *Downloader) findResources(id string, filtersSet [][]string) []string {
-	data := this.getJson("/package_show?id=" + id)
+	data := this.getDatasetJson("/package_show?id=" + id)
 
 	result := data["result"].(map[string]any)
 
@@ -176,6 +184,14 @@ func (this *Downloader) findResources(id string, filtersSet [][]string) []string
 	logger.Info("Download links: ", downloadLinks)
 
 	return downloadLinks
+}
+
+func (this *Downloader) findDateContactUrl() string {
+	data := this.getJson(this.dateContactUrl)
+
+	assets := data["assets"].([]any)
+
+	return assets[0].(map[string]any)["browser_download_url"].(string)
 }
 
 func (this *Downloader) downloadFile(url string, fileName string, recreate bool) {
@@ -286,11 +302,20 @@ func (this *Downloader) DownloadData() {
 		[]string{ "date_identificare_platitori_", ".txt" },
 	})
 
+	dateContactResource := this.findDateContactUrl()
+	splitted := strings.Split(dateContactResource, "/")
+	dateContactName := splitted[len(splitted) - 2] + "-" + splitted[len(splitted) - 1]
+	dateContact := Dataset{
+		name: dateContactName,
+		id: "0000",
+	}
+
 	os.Mkdir(config.DataDirectory, 0755)
 
 	this.downloadResources(firme, firmeResources, false)
 	this.downloadResources(nomenclatoare, nomenclatoareResources, false)
 	this.downloadResourcesCombined(dateIdentificare, dateIdentificareResources, "od_dateidentificare.txt")
+	this.downloadResources(&dateContact, []string{dateContactResource}, false)
 
 	sort.Slice(bilanturi, func(i, j int) bool {
 		return bilanturi[i].name > bilanturi[j].name

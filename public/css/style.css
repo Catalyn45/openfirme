@@ -587,9 +587,19 @@ main {
     font-size: 14px;
 }
 
+#contact-grid a {
+    color: rgb(37, 99, 235);
+    text-decoration: underline;
+}
+
+#contact-grid a:hover {
+    color: purple;
+}
+
 .profile-field a {
     text-decoration: none;
 }
+
 
 .profile-field a:visited {
   color: blue;

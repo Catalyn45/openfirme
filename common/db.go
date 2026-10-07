@@ -37,10 +37,13 @@ func (this *Repository) Init() {
 	this.InitCaen()
 	this.InitDescriereCaen()
 	this.InitDateIdentificare()
+	this.InitDateContact()
 	this.InitBilanturi()
 }
 
 func (this *Repository) InitMetadata() {
+	logger.Info("Initializing metadata table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS metadata (
 			tablename TEXT PRIMARY KEY,
@@ -63,6 +66,8 @@ func (this *Repository) DeleteFromTable(transaction *sql.Tx, tableName string) {
 }
 
 func (this *Repository) InitFirme() {
+	logger.Info("Initializing firme table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS firme (
 			denumire TEXT NOT NULL,
@@ -156,6 +161,8 @@ func (this *Repository) UpdateMetadata(transaction *sql.Tx, datasetName string, 
 }
 
 func (this *Repository) isOnDataset(datasetName string, table string) bool {
+	logger.Info("Checking if", table, "is on dataset", datasetName)
+
 	metadataStmt := `
 		SELECT dataset
 		FROM metadata
@@ -226,6 +233,8 @@ func (this *Repository) UpdateFirme(dataset []map[string]string, datasetName str
 }
 
 func (this *Repository) InitReprezentanti() {
+	logger.Info("Initializing reprezentanti table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS reprezentanti (
 			cod_inmatriculare TEXT NOT NULL,
@@ -315,6 +324,8 @@ func (this *Repository) UpdateReprezentanti(dataset []map[string]string, dataset
 }
 
 func (this *Repository) InitStari() {
+	logger.Info("Initializing stari table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS stari (
 			cod_inmatriculare TEXT NOT NULL,
@@ -375,6 +386,8 @@ func (this *Repository) UpdateStari(dataset []map[string]string, datasetName str
 }
 
 func (this *Repository) InitCaen() {
+	logger.Info("Initializing caen table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS caen (
 			cod_inmatriculare TEXT NOT NULL,
@@ -439,6 +452,8 @@ func (this *Repository) UpdateCaen(dataset []map[string]string, datasetName stri
 }
 
 func (this *Repository) InitDescriereCaen() {
+	logger.Info("Initializing descrierecaen table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS descriere_caen (
 			sectiunea TEXT,
@@ -506,6 +521,8 @@ func (this *Repository) UpdateDescriereCaen(dataset []map[string]string, dataset
 }
 
 func (this *Repository) InitDateIdentificare() {
+	logger.Info("Initializing daetidentificare table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS dateidentificare (
 			cui INTEGER NOT NULL,
@@ -572,7 +589,75 @@ func (this *Repository) UpdateDateIdentificare(dataset []map[string]string, data
 	}
 }
 
+func (this *Repository) InitDateContact() {
+	logger.Info("Initializing datecontact table")
+
+	createTableStmt := `
+		CREATE TABLE IF NOT EXISTS datecontact (
+			cui INTEGER NOT NULL,
+			email TEXT,
+			website TEXT
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_datecontact_cui
+		ON datecontact(cui);
+	`
+
+	_, err := this.db.Exec(createTableStmt)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (this *Repository) IsDateContactOnDataset(dataset string) bool {
+	return this.isOnDataset(dataset, "datecontact")
+}
+
+func (this *Repository) UpdateDateContact(dataset []map[string]string, datasetName string) {
+	logger.Info("Updating datecontact")
+
+	transaction, err := this.db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	defer transaction.Rollback()
+
+	this.DeleteFromTable(transaction, "datecontact")
+
+	stmt := `
+		INSERT INTO datecontact (cui, email, website)
+		VALUES (?,?,?);`
+
+	preparedStmt, err := transaction.Prepare(stmt)
+	if err != nil {
+		panic(err)
+	}
+
+	defer preparedStmt.Close()
+
+	for _, data := range dataset {
+		if data["Email"] == "" && data["Website"] == "" {
+			continue
+		}
+
+		_, err = preparedStmt.Exec(data["CUI"], data["Email"], data["Website"])
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	this.UpdateMetadata(transaction, datasetName, "datecontact")
+
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (this *Repository) InitBilanturi() {
+	logger.Info("Initializing bilanturi table")
+
 	createTableStmt := `
 		CREATE TABLE IF NOT EXISTS bilanturi (
 			cui INTEGER NOT NULL,
@@ -601,6 +686,9 @@ func (this *Repository) InitBilanturi() {
 		CREATE INDEX IF NOT EXISTS idx_bilanturi_an_cui
 		ON bilanturi(an, cui);
 
+		CREATE INDEX IF NOT EXISTS idx_bilanturi_an_grup
+		ON bilanturi(an, grup);
+
 		CREATE INDEX IF NOT EXISTS idx_bilanuri_an_cifra_afaceri_cui
 		ON bilanturi(an, cifra_afaceri DESC, cui);
 
@@ -621,6 +709,8 @@ func (this *Repository) InitBilanturi() {
 }
 
 func (this *Repository) DoesBilanturiSetExist(an int, group string) bool {
+	logger.Info("Checking if bilant group", group, "exists for an", an)
+
 	stmt := `
 		SELECT 1
 		FROM bilanturi
@@ -1113,6 +1203,8 @@ type InfoFirma struct {
 	Tva *bool
 	ImpozitareVenit *bool
 	ImpozitareProfit *bool
+	Emails []string
+	Websites []string
 	BilanturiFirma []*BilantFirma
 }
 
@@ -1172,10 +1264,14 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 				) AS coduri_caen,
 				dateidentificare.tva,
 				dateidentificare.impozitare_profit,
-				dateidentificare.impozitare_venit
+				dateidentificare.impozitare_venit,
+				datecontact.email,
+				datecontact.website
 			FROM firme
 			LEFT JOIN dateidentificare
 				ON firme.cui = dateidentificare.cui
+			LEFT JOIN datecontact
+				ON firme.cui = datecontact.cui
 			WHERE firme.cod_inmatriculare = ?`
 
 	var infoFirma InfoFirma
@@ -1184,8 +1280,10 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 		var coduriCaen sql.NullString
 		var statuses sql.NullString
 		var dataset string
+		var emails sql.NullString
+		var websites sql.NullString
 
-		err := rows.Scan(&dataset, &infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva, &infoFirma.ImpozitareProfit, &infoFirma.ImpozitareVenit)
+		err := rows.Scan(&dataset, &infoFirma.Nume, &infoFirma.CodInmatriculare, &infoFirma.Euid, &infoFirma.FormaJuridica, &infoFirma.Cui, &reprezentanti, &infoFirma.DataInregistrare, &infoFirma.Judet, &infoFirma.Localitate, &infoFirma.Strada, &infoFirma.NrStrada, &infoFirma.Bloc, &infoFirma.Scara, &infoFirma.Etaj, &infoFirma.Apartament, &infoFirma.CodPostal, &infoFirma.Sector, &statuses, &coduriCaen, &infoFirma.Tva, &infoFirma.ImpozitareProfit, &infoFirma.ImpozitareVenit, &emails, &websites)
 		if err != nil {
 			panic(err)
 		}
@@ -1202,6 +1300,14 @@ func (this *Repository) getInfoFirma(numar_inmatriculare string) *InfoFirma {
 
 		if coduriCaen.Valid {
 			infoFirma.CoduriCaen = strings.Split(coduriCaen.String, "@")
+		}
+
+		if emails.Valid {
+			infoFirma.Emails = strings.Split(emails.String, ";")
+		}
+
+		if websites.Valid {
+			infoFirma.Websites = strings.Split(websites.String, ";")
 		}
 	}
 
