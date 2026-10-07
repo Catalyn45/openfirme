@@ -11,6 +11,12 @@ type WebsiteGeneratorConfig struct {
 	OutputDirectory string
 }
 
+type SitemapGeneratorConfig struct {
+	Enabled bool
+	OutputDirectory string
+	SitemapFirmeCount int
+}
+
 type DosareJuridiceClientConfig struct {
 	RequstTimeoutInSeconds int
 }
@@ -68,6 +74,7 @@ type Config struct {
 	DosareJuridiceClientConfig DosareJuridiceClientConfig
 	AnafClientConfig AnafClientConfig
 	WebsiteGeneratorConfig WebsiteGeneratorConfig
+	SitemapGeneratorConfig SitemapGeneratorConfig
 }
 
 const configOverridePath = "./config.json"
@@ -88,6 +95,12 @@ func init() {
 			Enabled: false,
 			TemplatesDirectory: "./templates",
 			OutputDirectory: "./public",
+		},
+
+		SitemapGeneratorConfig: SitemapGeneratorConfig {
+			Enabled: true,
+			OutputDirectory: "./sitemaps",
+			SitemapFirmeCount: 50,
 		},
 
 		DBConfig: DBConfig {

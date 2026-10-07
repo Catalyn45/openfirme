@@ -16,6 +16,7 @@ type Parser struct {
 	bilanturiParserForStopCheck BilanturiParser
 
 	repository *Repository
+	sitemapGenerator *SitemapGenerator
 
 	dbUpdated bool
 }
@@ -29,6 +30,7 @@ func NewParser(repository *Repository) *Parser {
 		dbUpdated: false,
 		repository: repository,
 		bilanturiParserForStopCheck: &BilantSimpluParser{},
+		sitemapGenerator: NewSitemapGenerator(repository),
 		bilanturiParsers: []BilanturiParser{
 			&BilantSimpluParser{},
 			&UUParser{},
@@ -254,6 +256,7 @@ func (this *Parser) Parse() {
 
 	if this.IsDbUpdated() {
 		this.repository.DoOptimizations()
+		this.sitemapGenerator.GenerateSitemap()
 	}
 
 	logger.Info("Finished")

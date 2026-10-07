@@ -1393,3 +1393,48 @@ func (this *Repository) GetDescriereCaen(caen int) string {
 
 	return descriere
 }
+
+type CodInmatriculareNumeFirma struct {
+	codInmatriculare string
+	numeFirma string
+}
+
+func (this *Repository) GetAllFirmeActive() []CodInmatriculareNumeFirma {
+	stmt := `SELECT
+				firme.cod_inmatriculare,
+				firme.denumire
+			FROM firme
+			JOIN stari
+				ON firme.cod_inmatriculare = stari.cod_inmatriculare
+					AND stari.status = 'funcțiune'
+			ORDER BY firme.rowid ASC
+	`
+
+	numeFirme := []CodInmatriculareNumeFirma{}
+	rowCallback := func (rows *sql.Rows) {
+		var codInmatriculare string
+		var numeFirma string
+		err := rows.Scan(&codInmatriculare, &numeFirma)
+		if err != nil {
+			panic(err)
+		}
+
+		numeFirme = append(numeFirme, CodInmatriculareNumeFirma{
+			codInmatriculare: codInmatriculare,
+			numeFirma: numeFirma,
+		})
+	}
+
+	tm := 5 * time.Minute
+	opt := QueryOptions {
+		timeout: &tm,
+	}
+
+	this.executeQuery(
+		stmt,
+		[]any {},
+		rowCallback,
+		&opt)
+
+	return numeFirme
+}

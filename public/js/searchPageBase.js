@@ -131,7 +131,7 @@ class SearchPageBase extends Base {
 		}
 
 		let inregistrare = data.CodInmatriculare.replaceAll("/", "-")
-		this.companyVeziProfil.href = `/profile/${inregistrare}`
+		this.companyVeziProfil.href = `/profile/${inregistrare}?nume_firma=${encodeURIComponent(data.Nume)}`
 	}
 
 	createResults(data) {

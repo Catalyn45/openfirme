@@ -38,6 +38,11 @@ class InfoPage extends Base {
 
         this.inregistrare = window.location.pathname.split('/').pop();
 
+        let numeFirma = (new URLSearchParams(window.location.search)).get("nume_firma")
+        if (numeFirma) {
+            this.numeFirma = decodeURIComponent(numeFirma)
+        }
+
 		this.veziDosareButton = document.getElementsByClassName("view-button")[0]
         this.expandContentButton = document.getElementsByClassName("expand-content-button")[0]
 
@@ -219,6 +224,10 @@ class InfoPage extends Base {
     }
 
     async Start() {
+        if (this.numeFirma) {
+            this.addMetadata(`${this.numeFirma} - OpenFirme România`, `Vezi profilul companiei ${this.numeFirma} incluzând datele financiare și dosarele juridice.`)
+        }
+
         const data = await fetch(`/api/profile/${this.inregistrare}`)
         if (data.status !== 200) {
             await setErrorPage(data.status)
