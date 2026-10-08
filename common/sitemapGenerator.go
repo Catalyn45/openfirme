@@ -61,7 +61,10 @@ func (this *SitemapGenerator) generateSitemapsFirme(firme []CodInmatriculareNume
 
 	lastMod := time.Now().Format("2006-01-02")
 
-	var sitemap XMLUrlSitemap
+	sitemap := XMLUrlSitemap {
+		XMLNS: "http://www.sitemaps.org/schemas/sitemap/0.9",
+		Urls: []XMLUrl{},
+	}
 
 	for index, firma := range firme {
 		sitemap.Urls = append(sitemap.Urls, XMLUrl {
