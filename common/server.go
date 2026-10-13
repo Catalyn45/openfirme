@@ -249,9 +249,14 @@ func (this *Server) AddTvaInfo(firma *InfoFirma, tvaInfo *TvaInfo) {
 
 	firma.Tva = &tvaInfo.Tva
 
+	if tvaInfo.Caen == "" {
+		return
+	}
+
 	caen, err := strconv.Atoi(tvaInfo.Caen)
 	if err != nil {
-		panic(err)
+		logger.Error("CAEN invalid: ", err)
+		return
 	}
 
 	firma.CaenPrincipal = &caen
