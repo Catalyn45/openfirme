@@ -23,6 +23,10 @@ func NewRepository(dbPath string) *Repository {
 		panic(err)
 	}
 
+	db.SetMaxOpenConns(8)
+	db.SetMaxIdleConns(4)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+
 	return &Repository{
 		config: &config.DBConfig,
 		db:     db,

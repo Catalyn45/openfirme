@@ -41,9 +41,9 @@ func NewServer() *Server {
 	q.Set("mode", "ro")
 	q.Set("immutable", "1")
 	q.Set("cache", "private")
-	q.Set("_mmap_size", "128849018880")
+	q.Set("_mmap_size", "67108864")
 
-	q.Set("_cache_size", "-2048576")
+	q.Set("_cache_size", "-262144")
 
 	q.Set("_query_only", "1")
 
