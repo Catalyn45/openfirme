@@ -33,6 +33,10 @@ func readCsv(reader io.Reader, delimiter string, skipIndexes []string) [][]strin
 		normalized := []string{}
 
 		for index, el := range splitted {
+			if lineNumber > 0 && index >= len(data[0]) {
+				continue
+			}
+
 			// some old datasets have an additional column we don't care about
 			// but it will break the expected order so we just skip
 			if lineNumber > 0 && slices.Contains(skipIndexes, data[0][index]) {
