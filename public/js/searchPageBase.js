@@ -169,6 +169,9 @@ class SearchPageBase extends Base {
 			this.nextButton.style.display = "none"
 		}
 
+        this.nextButton.href = `${this.getLinkForPage(this.pageNumber + 1)}`
+        this.backButton.href = `${this.getLinkForPage(this.pageNumber - 1)}`
+
 		this.setPageNumber(this.rightPage, totalPages)
         this.setPageNumber(this.leftPage, 1)
 
